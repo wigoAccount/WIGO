@@ -179,8 +179,8 @@ namespace WIGO.Userinterface
                 .Join(_overlay.DOFade(1f, 0.28f))
                 .OnComplete(() =>
                 {
-                    _onCardSkip?.Invoke(accept);
                     Clear();
+                    _onCardSkip?.Invoke(accept);
                 });
         }
 
