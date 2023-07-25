@@ -41,8 +41,8 @@ namespace WIGO.Userinterface
 
         public void OnSkipClick()
         {
-            //ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
-            _onStartCallback?.Invoke();
+            ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
+            //_onStartCallback?.Invoke();
         }
 
         protected override void Awake()

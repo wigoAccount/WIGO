@@ -32,5 +32,15 @@ namespace WIGO.Userinterface
             //_errorTip.SetActive(!complete);
             return complete;
         }
+
+        public void OnClearNameClick()
+        {
+            _usernameField.SetTextWithoutNotify(string.Empty);
+            if (_isComplete)
+            {
+                _isComplete = false;
+                _isStepComplete?.Invoke(false);
+            }
+        }
     }
 }

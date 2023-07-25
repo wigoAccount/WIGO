@@ -9,12 +9,27 @@ namespace WIGO.Userinterface
 {
     public class PopupManager : MonoBehaviour
     {
+        [SerializeField] NotificationErrorDatabase _errorsDatabase;
         [SerializeField] Image _overlay;
         [SerializeField] PopupWindowElement _popupPrefab;
+        [SerializeField] NotificationMessageElement _notificationAlertPrefab;
         [SerializeField] PopupBottomPanel _bottomPanel;
         [SerializeField] SafeArea _safeArea;
 
         PopupWindowElement _currentPopup;
+        NotificationMessageElement _notification;
+
+        public void AddErrorNotification(int errorId)
+        {
+            if (_notification != null)
+            {
+                return;
+            }
+
+            string message = _errorsDatabase.GetErrorMessageWithId(errorId);
+            _notification = Instantiate(_notificationAlertPrefab, _safeArea.transform);
+            _notification.Setup(message, () => _notification = null);
+        }
 
         public void AddPopup(string titleKey, IEnumerable<PopupOption> options)
         {

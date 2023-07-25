@@ -17,6 +17,7 @@ namespace WIGO.Core
     public class RPCResult<TObj>
     {
         public TObj result;
+        public ErrorResult error;
         public string jsonrpc;
         public string id;
     }
@@ -40,5 +41,12 @@ namespace WIGO.Core
     {
         public string stoken;
         public ProfileData profile;
+    }
+
+    [Serializable]
+    public class ErrorResult
+    {
+        public int code;
+        public string message;
     }
 }

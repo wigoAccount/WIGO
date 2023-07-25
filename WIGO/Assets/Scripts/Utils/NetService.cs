@@ -28,21 +28,28 @@ namespace WIGO.Core
             string json = JsonReader.Serialize(request);
             var resJson = await PostRequest(json, token);
 
+            Debug.LogFormat("Answer: {0}", resJson);
             if (string.IsNullOrEmpty(resJson))
             {
                 Debug.LogError("Register request is empty");
-                return string.Empty;
+                return null;
             }
 
             try
             {
                 RPCResult<RegisterResult> res = JsonReader.Deserialize<RPCResult<RegisterResult>>(resJson);
+                if (res != null && res.error != null)
+                {
+                    ReportError(res.error);
+                    return null;
+                }
+
                 return res.result.token;
             }
             catch (System.Exception ex)
             {
                 Debug.LogError(ex.Message);
-                return string.Empty;
+                return null;
             }
         }
 
@@ -69,6 +76,12 @@ namespace WIGO.Core
             try
             {
                 RPCResult<ConfirmRegisterResult> res = JsonReader.Deserialize<RPCResult<ConfirmRegisterResult>>(resJson);
+                if (res != null && res.error != null)
+                {
+                    ReportError(res.error);
+                    return new ConfirmRegisterResult();
+                }
+
                 return res.result;
             }
             catch (System.Exception ex)
@@ -101,6 +114,12 @@ namespace WIGO.Core
             try
             {
                 RPCResult<AuthorizeResult> res = JsonReader.Deserialize<RPCResult<AuthorizeResult>>(resJson);
+                if (res != null && res.error != null)
+                {
+                    ReportError(res.error);
+                    return null;
+                }
+
                 Debug.LogFormat("Short key: {0}", res.result.stoken);
                 return res.result.profile;
             }
@@ -111,10 +130,10 @@ namespace WIGO.Core
             }
         }
 
-        public static async Task<ProfileData> TryUpdateUser(string uid, string stoken, string email, string username, CancellationToken token = default)
+        public static async Task<ProfileData> TryUpdateUser(string uid, string stoken, string birthday, string username, CancellationToken token = default)
         {
             string userUpdJson = "{\"uid\":" + $"\"{uid}\"," +
-                                 "\"email\":" + $"\"{email}\"," +
+                                 "\"birthday\":" + $"\"{birthday}\"," +
                                  "\"nickname\":" + $"\"{username}\"}}";
             RPCRequest request = new RPCRequest()
             {
@@ -137,6 +156,12 @@ namespace WIGO.Core
             try
             {
                 RPCResult<List<ProfileData>> res = JsonReader.Deserialize<RPCResult<List<ProfileData>>>(resJson);
+                if (res != null && res.error != null)
+                {
+                    ReportError(res.error);
+                    return null;
+                }
+
                 return res.result[0];
             }
             catch (System.Exception ex)
@@ -179,6 +204,16 @@ namespace WIGO.Core
             }
             
             return string.Empty;
+        }
+
+        static void ReportError(ErrorResult error)
+        {
+            string message = error.message;
+            int startIndex = message.IndexOf("ERROR:") + 8;
+            int endIndex = message.IndexOf("\n");
+            int.TryParse(message.Substring(startIndex, endIndex - startIndex), out int errorId);
+            Debug.LogFormat("Received error with id: {0}", errorId);
+            ServiceLocator.Get<Userinterface.UIManager>().GetPopupManager().AddErrorNotification(errorId);
         }
 
         public static async Task<Texture2D> GetRemoteTexture(string url, CancellationToken token)

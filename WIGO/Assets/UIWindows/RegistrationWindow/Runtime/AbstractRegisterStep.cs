@@ -7,9 +7,11 @@ namespace WIGO.Userinterface
     {
         PhoneNumber,
         SmsAprove,
-        Email,
         Nickname,
-        Birthday
+        Birthday,
+        Gender,
+        Permissions,
+        Notification
     }
 
     public class AbstractRegisterStep : MonoBehaviour
