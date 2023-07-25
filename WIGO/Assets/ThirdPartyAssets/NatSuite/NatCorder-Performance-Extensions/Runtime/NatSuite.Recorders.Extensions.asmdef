@@ -1,0 +1,24 @@
+{
+    "name": "NatSuite.Recorders.Extensions",
+    "rootNamespace": "",
+    "references": [
+        "NatSuite.Recorders",
+        "NatSuite.Rendering",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Android",
+        "Editor",
+        "iOS",
+        "macOSStandalone",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

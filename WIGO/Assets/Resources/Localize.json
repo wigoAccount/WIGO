@@ -1,0 +1,240 @@
+{
+	"_texts": 
+	[
+		{
+			"key": "Common/PasteText",
+			"rusText": "Вставить текст",
+			"engText": "Paste text"
+		},
+		{
+			"key": "Common/Loading",
+			"rusText": "Загрузка...",
+			"engText": "Loading..."
+		},
+		{
+			"key": "Common/Search",
+			"rusText": "Поиск",
+			"engText": "Search"
+		},
+		{
+			"key": "Common/SelectLanguage",
+			"rusText": "Выбери язык",
+			"engText": "Select language"
+		},
+		{
+			"key": "Popup/AskQuitAccount",
+			"rusText": "Хочешь выйти из аккаунта?",
+			"engText": "Do you realy want to quit?"
+		},
+		{
+			"key": "Popup/NoAnswer",
+			"rusText": "Нет",
+			"engText": "No"
+		},
+		{
+			"key": "Popup/Quit",
+			"rusText": "Выйти",
+			"engText": "Quit"
+		},
+		{
+			"key": "Popup/AskProblem",
+			"rusText": "В чем твоя проблема?",
+			"engText": "What's wrong tiger?"
+		},
+		{
+			"key": "Popup/Spam",
+			"rusText": "Спам",
+			"engText": "Spam"
+		},
+		{
+			"key": "Popup/NotWorking",
+			"rusText": "Что-то не работает",
+			"engText": "Something broke"
+		},
+		{
+			"key": "Popup/SendFeedback",
+			"rusText": "Отправить фидбек",
+			"engText": "Send feedback"
+		},
+		{
+			"key": "Popup/Cancel",
+			"rusText": "Отменить",
+			"engText": "Cancel"
+		},
+		{
+			"key": "Settings/Settings",
+			"rusText": "Настройки",
+			"engText": "Settings"
+		},
+		{
+			"key": "Settings/Language",
+			"rusText": "Язык",
+			"engText": "Language"
+		},
+		{
+			"key": "Settings/Account",
+			"rusText": "Аккаунт",
+			"engText": "Account"
+		},
+		{
+			"key": "Settings/Community",
+			"rusText": "Сообщество",
+			"engText": "Community"
+		},
+		{
+			"key": "Settings/Security",
+			"rusText": "Безопасность",
+			"engText": "Privacy and security"
+		},
+		{
+			"key": "Settings/Support",
+			"rusText": "Служба поддержки",
+			"engText": "Support"
+		},
+		{
+			"key": "Settings/Information",
+			"rusText": "Информация",
+			"engText": "Information"
+		},
+		{
+			"key": "Settings/AddAccount",
+			"rusText": "Добавить аккаунт",
+			"engText": "Add account"
+		},
+		{
+			"key": "Settings/QuitAccount",
+			"rusText": "Выйти из аккаунта",
+			"engText": "Quit"
+		},
+		{
+			"key": "Settings/Country",
+			"rusText": "Страна",
+			"engText": "Country"
+		},
+		{
+			"key": "Settings/City",
+			"rusText": "Город",
+			"engText": "City"
+		},
+		{
+			"key": "Settings/LANG",
+			"rusText": "RU",
+			"engText": "EN"
+		},
+		{
+			"key": "Settings/Notifications",
+			"rusText": "Уведомления",
+			"engText": "Notifications"
+		},
+		{
+			"key": "Settings/Region",
+			"rusText": "Регион и язык",
+			"engText": "Region"
+		},
+		{
+			"key": "Main/Feed",
+			"rusText": "Главная",
+			"engText": "Main"
+		},
+		{
+			"key": "Main/Direct",
+			"rusText": "Сообщения",
+			"engText": "Direct"
+		},
+		{
+			"key": "Shop/Shop",
+			"rusText": "Магазин",
+			"engText": "Store"
+		},
+		{
+			"key": "Auth/Authorization",
+			"rusText": "Авторизация",
+			"engText": "Authorization"
+		},
+		{
+			"key": "Auth/SignUp",
+			"rusText": "Создать",
+			"engText": "Sign up"
+		},
+		{
+			"key": "Auth/Login",
+			"rusText": "Войти",
+			"engText": "Log In"
+		},
+		{
+			"key": "Auth/Continue",
+			"rusText": "Продолжить",
+			"engText": "Continue"
+		},
+		{
+			"key": "Create/Character",
+			"rusText": "Персонаж",
+			"engText": "Character"
+		},
+		{
+			"key": "Create/Fraction",
+			"rusText": "Фракция",
+			"engText": "Fraction"
+		},
+		{
+			"key": "Bonus/Get",
+			"rusText": "Получить",
+			"engText": "Get"
+		},
+		{
+			"key": "Dungeon/DungeonHeader",
+			"rusText": "Выберите подземелье",
+			"engText": "Select dungeon"
+		},
+		{
+			"key": "Dungeon/Easy",
+			"rusText": "Легко",
+			"engText": "Easy adventure"
+		},
+		{
+			"key": "Dungeon/Medium",
+			"rusText": "Средне",
+			"engText": "Medium adventure"
+		},
+		{
+			"key": "Dungeon/Hard",
+			"rusText": "Тяжело",
+			"engText": "Hard adventure"
+		},
+		{
+			"key": "Dungeon/Start",
+			"rusText": "Начать",
+			"engText": "Start"
+		},
+		{
+			"key": "Dungeon/Decline",
+			"rusText": "Отменить",
+			"engText": "Decline"
+		},
+		{
+			"key": "Inventory/InventoryHeader",
+			"rusText": "Инвентарь",
+			"engText": "Inventory"
+		},
+		{
+			"key": "Inventory/Empty",
+			"rusText": "Список вещей пуст",
+			"engText": "There's no any item"
+		},
+		{
+			"key": "Main/Level",
+			"rusText": "Ур. %val",
+			"engText": "Lvl. %val"
+		},
+		{
+			"key": "Main/Power",
+			"rusText": "Сила <color=#7CF3FF>%val</color>",
+			"engText": "Power <color=#7CF3FF>%val</color>"
+		},
+		{
+			"key": "Main/Go",
+			"rusText": "Вперед",
+			"engText": "Go"
+		}
+	]
+}

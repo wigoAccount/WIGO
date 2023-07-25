@@ -1,0 +1,25 @@
+{
+    "name": "api.natsuite.ncpx",
+    "version": "0.0.2",
+    "displayName": "NatCorder Performance Extensions",
+    "description": "Performance extensions for video recording in Unity Engine.",
+    "unity": "2019.3",
+    "dependencies": {
+        "api.natsuite.natrender": "1.0.2",
+        "com.unity.mathematics": "1.2.1"
+    },
+    "keywords": [
+        "recording",
+        "video",
+        "video recording",
+        "metal",
+        "opengles"
+    ],
+    "author": {
+        "name": "Yusuf Olokoba",
+        "email": "yusuf@natsuite.io",
+        "url": "https://github.com/natsuite"
+    },
+    "license": "MIT",
+    "repository": "github:natsuite/NatCorder-Performance-Extensions"
+}

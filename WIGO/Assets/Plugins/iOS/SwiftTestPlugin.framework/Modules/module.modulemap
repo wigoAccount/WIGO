@@ -1,0 +1,11 @@
+framework module SwiftTestPlugin {
+  umbrella header "SwiftTestPlugin.h"
+
+  export *
+  module * { export * }
+}
+
+module SwiftTestPlugin.Swift {
+  header "SwiftTestPlugin-Swift.h"
+  requires objc
+}
