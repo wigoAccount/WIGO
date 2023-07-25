@@ -111,6 +111,18 @@ namespace WIGO.Userinterface
             MessageRouter.onMessageReceive -= OnReceiveMessage;
         }
 
+        private void OnApplicationPause(bool pause)
+        {
+            string status = pause ? "PAUSED" : "UNPAUSED";
+            Debug.LogFormat("<color=yellow>APP {0}</color>", status);
+        }
+
+        private void OnApplicationFocus(bool focus)
+        {
+            string status = focus ? "ON" : "OFF";
+            Debug.LogFormat("<color=orange>FOCUS {0}</color>", status);
+        }
+
         void OnApplyFilterCategory()
         {
             _waitForLocation = false;
