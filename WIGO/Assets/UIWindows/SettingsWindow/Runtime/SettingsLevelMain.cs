@@ -10,7 +10,7 @@ namespace WIGO.Userinterface
             List<PopupOption> options = new List<PopupOption>
             {
                 new PopupOption("Popup/NoAnswer", () => popupManager.CloseCurrentPopup()),
-                new PopupOption("Popup/Quit", () => popupManager.CloseCurrentPopup(), UIGameColors.RED_HEX)
+                new PopupOption("Popup/Quit", OnDeleteAccount, UIGameColors.RED_HEX)
             };
             popupManager.AddPopup("Popup/AskQuitAccount", options);
         }
@@ -23,6 +23,16 @@ namespace WIGO.Userinterface
             }
 
             gameObject.SetActive(true);
+        }
+
+        async void OnDeleteAccount()
+        {
+            ServiceLocator.Get<UIManager>().GetPopupManager().CloseCurrentPopup();
+            ServiceLocator.Get<UIManager>().SwitchTo(WindowId.START_SCREEN);
+
+            var model = ServiceLocator.Get<GameModel>();
+            await Core.NetService.TryDeleteAccount(model.ShortToken);
+            model.Clear();
         }
     }
 }

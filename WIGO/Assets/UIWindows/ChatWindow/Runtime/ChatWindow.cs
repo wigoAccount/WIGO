@@ -37,12 +37,12 @@ namespace WIGO.Userinterface
         {
             await Task.Delay(100);
 
-            var profile = new UserProfile();
-            profile.SetUsername("User062137");
+            var profile = new ProfileData();
+            profile.nickname = "User062137";
             Setup(data, profile);
         }
 
-        public void Setup(ChatData data, UserProfile profile)
+        public void Setup(ChatData data, ProfileData profile)
         {
             _currentChatData = data;
             _view.SetupInfo(profile);

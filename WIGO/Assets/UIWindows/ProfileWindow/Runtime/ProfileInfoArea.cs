@@ -14,7 +14,7 @@ namespace WIGO.Userinterface
         [SerializeField] CategoryEventElement _tagPrefab;
         [SerializeField] RectTransform _tagsContent;
 
-        [SerializeField] RawImage[] _photoes;
+        //[SerializeField] RawImage[] _photoes;
 
         ProfileData _currentProfile;
 
@@ -23,17 +23,17 @@ namespace WIGO.Userinterface
 
         public float GetHeight() => ((RectTransform)transform).rect.height;
 
-        public void Setup(ProfileData profile, Action callback = null)
+        public void Setup(ProfileData profile)
         {
             _currentProfile = profile;
-            UpdateInfo(callback);
+            UpdateInfo();
         }
 
-        public async void UpdateInfo(Action callback = null)
+        public void UpdateInfo()
         {
             _displayNameLabel.text = _currentProfile.firstname;
             _usernameLabel.text = $"@{_currentProfile.nickname}";
-            _aboutLabel.text = string.IsNullOrEmpty(_currentProfile.about) ? "Информация о себе" : _currentProfile.about;
+            _aboutLabel.text = string.IsNullOrEmpty(_currentProfile.about) ? "Информация о себе" : _currentProfile.about;   // [TODO]: replace with configs
 
             float screenWidth = ServiceLocator.Get<UIManager>().GetCanvasSize().x;
             _tagsContent.DestroyChildren();
@@ -57,33 +57,31 @@ namespace WIGO.Userinterface
             }
             _tagsContent.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, -yPos + 32f);
 
-            foreach (var photo in _photoes)
-            {
-                Destroy(photo.texture);
-                photo.texture = null;
-                photo.transform.parent.gameObject.SetActive(false);
-            }
-            var photoes = _currentProfile.photos;
-            if (photoes == null || photoes.Length == 0)
-            {
-                callback?.Invoke();
-                return;
-            }
+            //foreach (var photo in _photoes)
+            //{
+            //    Destroy(photo.texture);
+            //    photo.texture = null;
+            //    photo.transform.parent.gameObject.SetActive(false);
+            //}
+            //var photoes = _currentProfile.photos;
+            //if (photoes == null || photoes.Length == 0)
+            //{
+            //    callback?.Invoke();
+            //    return;
+            //}
 
-            int index = 0;
-            foreach (var url in photoes)
-            {
-                var photo = await DownloadTextureAsync(url);
-                if (photo == null)
-                    continue;
+            //int index = 0;
+            //foreach (var url in photoes)
+            //{
+            //    var photo = await DownloadTextureAsync(url);
+            //    if (photo == null)
+            //        continue;
 
-                _photoes[index].texture = photo;
-                _photoes[index].transform.parent.gameObject.SetActive(true);
-                SetPhotoSize(_photoes[index], photo);
-                index++;
-            }
-
-            callback?.Invoke();
+            //    _photoes[index].texture = photo;
+            //    _photoes[index].transform.parent.gameObject.SetActive(true);
+            //    SetPhotoSize(_photoes[index], photo);
+            //    index++;
+            //}
         }
 
         async Task<Texture2D> DownloadTextureAsync(string url)

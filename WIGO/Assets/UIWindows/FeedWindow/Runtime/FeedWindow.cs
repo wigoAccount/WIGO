@@ -29,6 +29,8 @@ namespace WIGO.Userinterface
 
         public override void OnOpen(WindowId previous)
         {
+            var profile = ServiceLocator.Get<GameModel>().GetMyProfile();
+            _userProfileElement.Setup(profile);
             RefreshFeed();
         }
 
@@ -101,9 +103,6 @@ namespace WIGO.Userinterface
         {
             MessageRouter.onMessageReceive += OnReceiveMessage;
             _filtersController.Initialize(OnApplyFilterCategory);
-            //var allPhotos = _myProfile.GetPhotos().GetAllPhotos();
-            //int index = _myProfile.GetPhotos().GetSelectedIndex();
-            //_userProfileElement.Setup(allPhotos[index], _myProfile.GetDisplayName());
         }
 
         private void OnDestroy()

@@ -6,23 +6,31 @@ using WIGO.Core;
 [System.Serializable]
 public class GameModel
 {
+    public string ShortToken { get; private set; }
+    public string LongToken { get => _ltoken; }
+
     [SerializeField] string _ltoken;
     [SerializeField] NotificationSettings _notifications;
 
     ProfileData _myProfile;
     EventCard _myEvent;
+    LinksData _links;
 
-    public string GetRegisterToken() => _ltoken;
+    public LinksData GetUserLinks() => _links;
     public NotificationSettings GetNotifications() => _notifications;
     public ProfileData GetMyProfile() => _myProfile;
     public bool HasMyOwnEvent() => _myEvent != null;
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
 
-    public void SaveLongToken(string token)
+    public void SaveTokens(string ltoken, string stoken, LinksData links)
     {
-        _ltoken = token;
+        _ltoken = ltoken;
+        ShortToken = stoken;
+        _links = links;
         SaveData();
     }
+
+    public void SaveProfile(ProfileData profile) => _myProfile = profile;
 
     public void SaveNotifications(NotificationSettings settings)
     {
@@ -35,38 +43,33 @@ public class GameModel
         _myEvent = card;
     }
 
+    public void Clear()
+    {
+        _ltoken = string.Empty;
+        ShortToken = string.Empty;
+        _myProfile = null;
+        _myEvent = null;
+        _links = new LinksData();
+        PlayerPrefs.DeleteKey("SaveData");
+    }
+
     public async Task<bool> TryLogin()
     {
         if (string.IsNullOrEmpty(_ltoken))
         {
-            // temp
-            _myProfile = new ProfileData()
-            {
-                uid = "13",
-                lang = "ru",
-                nickname = "аpostal",
-                email = "аpostal_88@gmail.com",
-                phone = "79032222222",
-                firstname = "Tommy G",
-                birthday = "2000-01-01",
-                about = "Обо мне",
-                gender = new ContainerData() { uid = 0, name = "male" },
-                tags = new ContainerData[]
-                {
-                    new ContainerData() {uid = 0, name = "Рестораны" },
-                    new ContainerData() {uid = 1, name = "Кафе" },
-                    new ContainerData() {uid = 2, name = "Вечеринки" },
-                    new ContainerData() {uid = 3, name = "Свидания" },
-                    new ContainerData() {uid = 4, name = "Танцы" },
-                }
-            };
-            return true;
-
-            //return false;
+            return false;
         }
 
-        _myProfile = await NetService.TryLogin(_ltoken);
-        return _myProfile != null;
+        var data = await NetService.TryLogin(_ltoken);
+        if (string.IsNullOrEmpty(data.ltoken) || string.IsNullOrEmpty(data.stoken) || data.profile == null)
+        {
+            return false;
+        }
+
+        _ltoken = data.ltoken;
+        _myProfile = data.profile;
+        SaveData();
+        return true;
     }
 
     void SaveData()

@@ -1484,7 +1484,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiManager: {fileID: 195097867}
-  _clearSaveData: 1
+  _clearSaveData: 0
 --- !u!114 &1504452030
 MonoBehaviour:
   m_ObjectHideFlags: 0

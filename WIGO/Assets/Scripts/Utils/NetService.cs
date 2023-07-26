@@ -38,18 +38,25 @@ namespace WIGO.Core
             try
             {
                 RPCResult<RegisterResult> res = JsonReader.Deserialize<RPCResult<RegisterResult>>(resJson);
-                if (res != null && res.error != null)
-                {
-                    ReportError(res.error);
-                    return null;
-                }
-
                 return res.result.token;
             }
-            catch (System.Exception ex)
+            catch
             {
-                Debug.LogError(ex.Message);
-                return null;
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return null;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogErrorFormat("Error get token: {0}", e.Message);
+                    return null;
+                }
             }
         }
 
@@ -67,6 +74,7 @@ namespace WIGO.Core
             string json = JsonReader.Serialize(request);
             var resJson = await PostRequest(json, ctoken);
 
+            Debug.LogFormat("Answer: {0}", resJson);
             if (string.IsNullOrEmpty(resJson))
             {
                 Debug.LogError("Confirm register request is empty");
@@ -76,22 +84,74 @@ namespace WIGO.Core
             try
             {
                 RPCResult<ConfirmRegisterResult> res = JsonReader.Deserialize<RPCResult<ConfirmRegisterResult>>(resJson);
-                if (res != null && res.error != null)
-                {
-                    ReportError(res.error);
-                    return new ConfirmRegisterResult();
-                }
-
                 return res.result;
             }
-            catch (System.Exception ex)
+            catch
             {
-                Debug.LogError(ex.Message);
-                return new ConfirmRegisterResult();
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return new ConfirmRegisterResult();
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogErrorFormat("Error get keys: {0}", ex.Message);
+                    return new ConfirmRegisterResult();
+                }
             }
         }
 
-        public static async Task<ProfileData> TryLogin(string ltoken, CancellationToken token = default)
+        public static async Task<bool> CheckBirthdayInvalid(string birthday, string stoken, CancellationToken ctoken = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "userBirthdaysInvalid",
+                @params = new List<string> { birthday },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Check bday request is empty");
+                return true;
+            }
+
+            try
+            {
+                RPCResult<List<CheckBirthdayResult>> res = JsonReader.Deserialize<RPCResult<List<CheckBirthdayResult>>>(resJson);
+                return res.result[0].invalid;
+            }
+            catch
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return true;
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogErrorFormat("Error get keys: {0}", ex.Message);
+                    return true;
+                }
+            }
+        }
+
+        public static async Task<ConfirmRegisterResult> TryLogin(string ltoken, CancellationToken token = default)
         {
             var uid = SystemInfo.deviceUniqueIdentifier;
             RPCRequest request = new RPCRequest()
@@ -105,28 +165,115 @@ namespace WIGO.Core
             string json = JsonReader.Serialize(request);
             var resJson = await PostRequest(json, token);
 
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Log in request is empty");
+                return new ConfirmRegisterResult();
+            }
+
+            try
+            {
+                RPCResult<ConfirmRegisterResult> res = JsonReader.Deserialize<RPCResult<ConfirmRegisterResult>>(resJson);
+                return res.result;
+            }
+            catch
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return new ConfirmRegisterResult();
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogErrorFormat("Error login: {0}", ex.Message);
+                    return new ConfirmRegisterResult();
+                }
+            }
+        }
+
+        public static async Task TryDeleteAccount(string stoken, CancellationToken token = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "userRemove",
+                @params = new List<string>(),
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, token, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("User remove request is empty");
+            }
+
+            try
+            {
+                RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                if (error != null)
+                {
+                    ReportError(error.error);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogErrorFormat("Error user remove: {0}", ex.Message);
+                return;
+            }
+        }
+
+        public static async Task<ProfileData> TryUpdateUser(string userUpdJson, string stoken, CancellationToken token = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "userSet",
+                @params = new List<string> { userUpdJson },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, token, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
             if (string.IsNullOrEmpty(resJson))
             {
                 Debug.LogError("Log in request is empty");
                 return null;
             }
 
+            Debug.Log(resJson);
             try
             {
-                RPCResult<AuthorizeResult> res = JsonReader.Deserialize<RPCResult<AuthorizeResult>>(resJson);
-                if (res != null && res.error != null)
+                RPCResult<List<ProfileContainer>> res = JsonReader.Deserialize<RPCResult<List<ProfileContainer>>>(resJson);
+                return res.result[0].profile;
+            }
+            catch
+            {
+                try
                 {
-                    ReportError(res.error);
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
                     return null;
                 }
-
-                Debug.LogFormat("Short key: {0}", res.result.stoken);
-                return res.result.profile;
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError(ex.Message);
-                return null;
+                catch (System.Exception ex)
+                {
+                    Debug.LogErrorFormat("Error update user: {0}", ex.Message);
+                    return null;
+                }
             }
         }
 
@@ -156,18 +303,25 @@ namespace WIGO.Core
             try
             {
                 RPCResult<List<ProfileData>> res = JsonReader.Deserialize<RPCResult<List<ProfileData>>>(resJson);
-                if (res != null && res.error != null)
-                {
-                    ReportError(res.error);
-                    return null;
-                }
-
                 return res.result[0];
             }
-            catch (System.Exception ex)
+            catch
             {
-                Debug.LogError(ex.Message);
-                return null;
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return null;
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogErrorFormat("Error update user: {0}", ex.Message);
+                    return null;
+                }
             }
         }
 
@@ -184,6 +338,7 @@ namespace WIGO.Core
                 Content = new StringContent(request)
             };
 
+            Debug.LogFormat("Request: {0}", request);
             if (!string.IsNullOrEmpty(addHeader))
             {
                 httpRequestMessage.Headers.Add("rpcauth", addHeader);

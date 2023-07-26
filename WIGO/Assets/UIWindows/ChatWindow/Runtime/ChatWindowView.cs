@@ -23,9 +23,9 @@ namespace WIGO.Userinterface
             _bottomPanel.sizeDelta += Vector2.up * _safeArea.GetSafeAreaBottomPadding();
         }
 
-        public void SetupInfo(UserProfile profile)
+        public void SetupInfo(ProfileData profile)
         {
-            _usernameLabel.text = profile.GetUsername();
+            _usernameLabel.text = profile.nickname;
             _userProfile.Setup(profile);
         }
 

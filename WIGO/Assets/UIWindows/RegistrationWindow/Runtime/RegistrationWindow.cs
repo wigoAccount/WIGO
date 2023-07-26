@@ -3,7 +3,6 @@ using DG.Tweening;
 using WIGO.Core;
 using System.Threading;
 using WIGO.Utility;
-using System.Threading.Tasks;
 
 namespace WIGO.Userinterface
 {
@@ -25,8 +24,6 @@ namespace WIGO.Userinterface
         bool _switching;
 
         string _tempToken;
-        string _longToken;
-        string _shortToken;
         ProfileData _profile;
         CancellationTokenSource _cts;
 
@@ -34,6 +31,31 @@ namespace WIGO.Userinterface
         {
             _backButton.SetActive(false);
             _steps[0].SetPanelActive(true);
+        }
+
+        public override void OnClose(WindowId next, System.Action callback = null)
+        {
+            _currentStep = 0;
+            _switching = false;
+            _tempToken = string.Empty;
+            _profile = null;
+
+            for (int i = 0; i < _steps.Length; i++)
+            {
+                _steps[i].ResetPanel();
+                _steps[i].gameObject.SetActive(i == 0);
+            }
+
+            _nextButton.SetLoadingVisible(false);
+            _nextButton.SetEnabled(false);
+            _content.anchoredPosition = new Vector2(0f, _content.anchoredPosition.y);
+
+            _registrationWindow.SetActive(true);
+            _loadingWindow.SetActive(false);
+            _permissionsWindow.SetActive(false);
+            _notificationsWindow.SetActive(false);
+            _permissionsButton.SetActive(true);
+            _permissionsWaitStatus.SetActive(false);
         }
 
         public void OnBackButtonClick()
@@ -64,41 +86,7 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            if (_currentStep == _steps.Length - 1)
-            {
-                _cts = new CancellationTokenSource();
-                //string email = ((RegisterStepEmail)_steps[2]).GetEmail();
-                string username = ((RegisterStepUsername)_steps[2]).GetUsername();
-                _registrationWindow.SetActive(false);
-                _loadingWindow.SetActive(true);
-
-                await Task.Delay(600);
-                ProfileData updatedUser = new ProfileData();
-                //var updatedUser = await NetService.TryUpdateUser(_profile.uid, _shortToken, email, username, _cts.Token);
-
-                _loadingWindow.SetActive(false);
-                if (_cts.IsCancellationRequested)
-                {
-                    Debug.Log("User cancelled creating profile");
-                    _cts.Dispose();
-                    _registrationWindow.SetActive(true);
-                    return;
-                }
-
-                _cts.Dispose();
-                if (updatedUser == null)
-                {
-                    // [TODO]: Show popup
-                    _registrationWindow.SetActive(true);
-                    Debug.LogError("Error create profile");
-                    return;
-                }
-
-                _permissionsWindow.SetActive(true);
-                //ServiceLocator.Get<UIManager>().Open<FeedWindow>(WindowId.FEED_SCREEN);
-                return;
-            }
-
+            var model = ServiceLocator.Get<GameModel>();
             switch (_steps[_currentStep].GetStepType())
             {
                 case RegisterStep.PhoneNumber:
@@ -107,9 +95,6 @@ namespace WIGO.Userinterface
                     {
                         _cts = new CancellationTokenSource();
                         _nextButton.SetLoadingVisible(true);
-
-                        //await Task.Delay(600);
-                        //_tempToken = "iwue28347287ry";
 
                         _tempToken = await NetService.TryRegisterNewAccount(stepPhone.GetPhoneNumber(), _cts.Token);
                         _nextButton.SetLoadingVisible(false);
@@ -125,7 +110,6 @@ namespace WIGO.Userinterface
                         _cts = null;
                         if (string.IsNullOrEmpty(_tempToken))
                         {
-                            // [TODO]: Show popup
                             Debug.LogError("Wrong registration");
                             return;
                         }
@@ -138,18 +122,7 @@ namespace WIGO.Userinterface
                         _cts = new CancellationTokenSource();
                         _nextButton.SetLoadingVisible(true);
 
-                        await Task.Delay(600);
-                        ConfirmRegisterResult data = new ConfirmRegisterResult()
-                        {
-                            ltoken = "skdjhfs4ur",
-                            stoken = "s7dsgsgs988",
-                            profile = new ProfileData()
-                        };
-
-                        //var data = await NetService.TryConfirmRegister(_tempToken, stepAprove.GetInputCode(), _cts.Token);
-                        _longToken = data.ltoken;
-                        _shortToken = data.stoken;
-                        _profile = data.profile;
+                        var data = await NetService.TryConfirmRegister(_tempToken, stepAprove.GetInputCode(), _cts.Token);
                         _nextButton.SetLoadingVisible(false);
                         if (_cts.IsCancellationRequested)
                         {
@@ -161,21 +134,91 @@ namespace WIGO.Userinterface
 
                         _cts.Dispose();
                         _cts = null;
-                        if (string.IsNullOrEmpty(_longToken))
+                        if (string.IsNullOrEmpty(data.ltoken) || string.IsNullOrEmpty(data.stoken) || data.profile == null)
                         {
-                            // [TODO]: Show popup
                             Debug.LogError("Wrong confirm registration");
                             return;
                         }
 
-                        ServiceLocator.Get<GameModel>().SaveLongToken(_longToken);
-                        Debug.LogFormat("Long token: {0}\r\nShort token: {1}", _longToken, _shortToken);
+                        _profile = data.profile;
+                        model.SaveTokens(data.ltoken, data.stoken, data.links);
                     }
                     
                     break;
                 case RegisterStep.Nickname:
+                    RegisterStepUsername stepName = _steps[_currentStep] as RegisterStepUsername;
+                    if (stepName.CheckPanelComplete())
+                    {
+                        _profile.firstname = stepName.GetUsername();
+                    }
+                    break;
                 case RegisterStep.Birthday:
+                    RegisterStepBirthday stepBirthday = _steps[_currentStep] as RegisterStepBirthday;
+                    if (stepBirthday.CheckPanelComplete())
+                    {
+                        var birthday = stepBirthday.GetBirthday();
+                        _cts = new CancellationTokenSource();
+                        _nextButton.SetLoadingVisible(true);
+
+                        bool isInvalid = await NetService.CheckBirthdayInvalid(birthday, model.ShortToken, _cts.Token);
+                        _nextButton.SetLoadingVisible(false);
+                        if (_cts.IsCancellationRequested)
+                        {
+                            Debug.Log("User cancelled registration");
+                            _cts.Dispose();
+                            _cts = null;
+                            return;
+                        }
+
+                        _cts.Dispose();
+                        _cts = null;
+                        if (isInvalid)
+                        {
+                            Debug.LogError("Wrong birthday format");
+                            return;
+                        }
+
+                        _profile.birthday = birthday;
+                    }
+                    break;
                 case RegisterStep.Gender:
+                    RegisterStepGender stepGender = _steps[_currentStep] as RegisterStepGender;
+                    ContainerData gender = stepGender.GetSelectedGender();
+
+                    string userUpdJson = "{\"birthday\":" + $"\"{_profile.birthday}\"," +
+                                        "\"nickname\":" + $"\"MaryLi\"," +
+                                        "\"firstname\":" + $"\"{_profile.firstname}\"," +
+                                        "\"gender\":" + $"\"{gender.uid}\"}}";
+
+                    _cts = new CancellationTokenSource();
+                    _registrationWindow.SetActive(false);
+                    _loadingWindow.SetActive(true);
+                    Debug.LogFormat("<color=cyan>UPD: {0}</color>", userUpdJson);
+
+                    var updProfile = await NetService.TryUpdateUser(userUpdJson, model.ShortToken, _cts.Token);
+                    _loadingWindow.SetActive(false);
+                    if (_cts.IsCancellationRequested)
+                    {
+                        Debug.Log("User cancelled registration");
+                        _cts.Dispose();
+                        _cts = null;
+                        _registrationWindow.SetActive(true);
+                        return;
+                    }
+
+                    _cts.Dispose();
+                    _cts = null;
+                    if (updProfile == null)
+                    {
+                        Debug.LogError("Wrong update profile");
+                        _registrationWindow.SetActive(true);
+                        return;
+                    }
+
+                    _profile = updProfile;
+                    model.SaveProfile(updProfile);
+                    _permissionsWindow.SetActive(true);
+                    return;
                 case RegisterStep.Permissions:
                 case RegisterStep.Notification:
                     break;

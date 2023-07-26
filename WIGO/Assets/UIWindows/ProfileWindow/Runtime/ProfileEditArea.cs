@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using WIGO.Core;
 
 namespace WIGO.Userinterface
 {
@@ -17,7 +16,7 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _genderLabel;
         [Space]
         [SerializeField] ProfileSelectableTag[] _tags;
-        [SerializeField] ProfileGalleryItem[] _photos;
+        //[SerializeField] ProfileGalleryItem[] _photos;
 
         ProfileData _currentProfile;
         List<ContainerData> _tagsList = new List<ContainerData>();
@@ -42,7 +41,7 @@ namespace WIGO.Userinterface
             _aboutIF.SetTextWithoutNotify(profile.about);
             _phoneIF.SetTextWithoutNotify(profile.phone);
             _emailIF.SetTextWithoutNotify(profile.email);
-            _genderLabel.SetText(profile.gender.uid == 0 ? "Мужской" : "Женский");
+            _genderLabel.SetText(profile.gender.uid == 2 ? "Мужской" : "Женский");   // [TODO]: replace with configs
 
             _tagsList.Clear();
             foreach (var tag in _tags)
@@ -57,21 +56,21 @@ namespace WIGO.Userinterface
                 _tagsList.Add(profile.tags[i]);
             }
 
-            foreach (var photo in _photos)
-            {
-                photo.SetEmpty();
-            }
+            //foreach (var photo in _photos)
+            //{
+            //    photo.SetEmpty();
+            //}
 
-            if (profile.photos != null)
-            {
-                for (int i = 0; i < profile.photos.Length; i++)
-                {
-                    if (UnityEngine.Random.Range(0f, 1f) > 0.5f)// !string.IsNullOrEmpty(profile.photos[i]))
-                    {
-                        _photos[i].SetPhoto(profile.photos[i]);
-                    }
-                }
-            }
+            //if (profile.photos != null)
+            //{
+            //    for (int i = 0; i < profile.photos.Length; i++)
+            //    {
+            //        if (UnityEngine.Random.Range(0f, 1f) > 0.5f)// !string.IsNullOrEmpty(profile.photos[i]))
+            //        {
+            //            _photos[i].SetPhoto(profile.photos[i]);
+            //        }
+            //    }
+            //}
 
             //for (int i = 0; i < 4; i++)
             //{
@@ -82,7 +81,7 @@ namespace WIGO.Userinterface
             //}
         }
 
-        public async void UpdateInfo()
+        public void UpdateInfo()
         {
             _currentProfile.firstname = _displayNameIF.text;
             _currentProfile.nickname = _usernameIF.text;
@@ -91,15 +90,15 @@ namespace WIGO.Userinterface
             _currentProfile.email = _emailIF.text;
             _currentProfile.tags = _tagsList.ToArray();
 
-            List<string> photos = new List<string>();
-            foreach (var photo in _photos)
-            {
-                var url = await photo.UploadPhoto();
-                if (!string.IsNullOrEmpty(url))
-                    photos.Add(url);
-            }
+            //List<string> photos = new List<string>();
+            //foreach (var photo in _photos)
+            //{
+            //    var url = await photo.UploadPhoto();
+            //    if (!string.IsNullOrEmpty(url))
+            //        photos.Add(url);
+            //}
 
-            _currentProfile.photos = photos.ToArray();
+            //_currentProfile.photos = photos.ToArray();
 
         }
 
@@ -108,10 +107,10 @@ namespace WIGO.Userinterface
             var gender = _currentProfile.GetGender();
             ContainerData newGender = new ContainerData()
             {
-                uid = gender == Gender.male ? 1 : 0,
+                uid = gender == Gender.male ? 1 : 2,
                 name = gender == Gender.male ? "female" : "male"
             };
-            _genderLabel.SetText(newGender.uid == 0 ? "Мужской" : "Женский");
+            _genderLabel.SetText(newGender.uid == 2 ? "Мужской" : "Женский");   // [TODO]: replace with configs
             _currentProfile.gender = newGender;
         }
 

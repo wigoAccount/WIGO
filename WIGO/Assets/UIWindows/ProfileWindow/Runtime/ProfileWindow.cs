@@ -39,7 +39,8 @@ namespace WIGO.Userinterface
             _currentProfile = profile;
             _profileTemplate.sprite = profile.GetGender() == Gender.male ? _templates[0] : _templates[1];
             _avatar.Setup(profile);
-            _infoArea.Setup(profile, () => StartCoroutine(UpdateHeight(true)));
+            _infoArea.Setup(profile);
+            StartCoroutine(UpdateHeight(true));
 
             bool myProfile = ServiceLocator.Get<GameModel>().IsMyProfile(profile.uid);
             _editButton.SetActive(myProfile);
@@ -95,7 +96,8 @@ namespace WIGO.Userinterface
             _content.anchoredPosition = Vector2.zero;
             _editButton.SetActive(true);
             _doneButton.SetActive(false);
-            _infoArea.UpdateInfo(() => StartCoroutine(UpdateHeight(true)));
+            _infoArea.UpdateInfo();
+            StartCoroutine(UpdateHeight(true));
 
             await Task.Delay(400);
         }

@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -13,13 +12,7 @@ namespace WIGO.Userinterface
         [SerializeField] Image _button;
         [SerializeField] TMP_Text _btnLabel;
 
-        Action _onStartCallback;
         bool _animating;
-
-        public void Setup(Action callback)
-        {
-            _onStartCallback = callback;
-        }
 
         public void OnNextClick()
         {
@@ -28,8 +21,7 @@ namespace WIGO.Userinterface
 
             if (_placeholderScroll.GetCurrentIndex() >= _points.Length - 1)
             {
-                //ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
-                _onStartCallback?.Invoke();
+                ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
                 return;
             }
 
@@ -42,7 +34,6 @@ namespace WIGO.Userinterface
         public void OnSkipClick()
         {
             ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
-            //_onStartCallback?.Invoke();
         }
 
         protected override void Awake()
@@ -56,7 +47,7 @@ namespace WIGO.Userinterface
             int nextIndex = index;
 
             _button.color = index < _points.Length - 1 ? UIGameColors.transparent10 : UIGameColors.Blue;
-            _btnLabel.SetText(index < _points.Length - 1 ? "Далее" : "Давай начнем!");
+            _btnLabel.SetText(index < _points.Length - 1 ? "Далее" : "Давай начнем!");                      // [TODO]: replace with config
 
             _animating = true;
             DOTween.Sequence().Append(_points[prevIndex].DOFade(0.1f, 0.24f))

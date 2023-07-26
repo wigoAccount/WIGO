@@ -10,11 +10,21 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_InputField _monthIF;
         [SerializeField] TMP_InputField _yearIF;
         [SerializeField] Toggle _confirmToggle;
-        [SerializeField] GameObject _errorTip;
 
         bool _dayComplete;
         bool _monthComplete;
         bool _yearComplete;
+
+        public string GetBirthday()
+        {
+            string year = _yearIF.text;
+            string month = _monthIF.text.Length == 1 ? $"0{_monthIF.text}" : _monthIF.text;
+            string day = _dayIF.text.Length == 1 ? $"0{_dayIF.text}" : _dayIF.text;
+
+            string fullBirthday = $"{year}-{month}-{day}";
+            Debug.Log(fullBirthday);
+            return fullBirthday;
+        }
 
         public void OnEditDay(string text)
         {
@@ -72,6 +82,19 @@ namespace WIGO.Userinterface
             bool summaryComplete = _dayComplete && _monthComplete && _yearComplete && _confirmToggle.isOn;
             //_errorTip.SetActive(!summaryComplete);
             return summaryComplete;
+        }
+
+        public override void ResetPanel()
+        {
+            _dayIF.SetTextWithoutNotify(string.Empty);
+            _monthIF.SetTextWithoutNotify(string.Empty);
+            _yearIF.SetTextWithoutNotify(string.Empty);
+
+            _dayComplete = false;
+            _monthComplete = false;
+            _yearComplete = false;
+
+            _confirmToggle.SetIsOnWithoutNotify(false);
         }
     }
 }

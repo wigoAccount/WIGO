@@ -6,7 +6,6 @@ namespace WIGO.Userinterface
     public class RegisterStepUsername : AbstractRegisterStep
     {
         [SerializeField] TMP_InputField _usernameField;
-        [SerializeField] GameObject _errorTip;
 
         bool _isComplete;
 
@@ -29,7 +28,6 @@ namespace WIGO.Userinterface
         public override bool CheckPanelComplete()
         {
             bool complete = !string.IsNullOrEmpty(_usernameField.text);
-            //_errorTip.SetActive(!complete);
             return complete;
         }
 
@@ -41,6 +39,12 @@ namespace WIGO.Userinterface
                 _isComplete = false;
                 _isStepComplete?.Invoke(false);
             }
+        }
+
+        public override void ResetPanel()
+        {
+            _usernameField.SetTextWithoutNotify(string.Empty);
+            _isComplete = false;
         }
     }
 }

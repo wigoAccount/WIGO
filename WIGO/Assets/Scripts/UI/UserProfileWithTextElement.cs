@@ -7,10 +7,10 @@ namespace WIGO.Userinterface
     {
         [SerializeField] TMP_Text _username;
 
-        public void Setup(string url, string displayname)
+        public override void Setup(ProfileData profile)
         {
-            _username.text = displayname;
-            Setup(url);
+            _username.text = profile == null ? string.Empty : profile.firstname;
+            base.Setup(profile);
         }
     }
 }

@@ -17,8 +17,8 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _timeLabel;
         [SerializeField] TMP_Text _moreButton;
         [SerializeField] TMP_Text _locationLabel;
-        [SerializeField] TMP_Text _groupSizeLabel;
-        [SerializeField] Image _groupSizeIcon;
+        //[SerializeField] TMP_Text _groupSizeLabel;
+        //[SerializeField] Image _groupSizeIcon;
         [Space]
         [SerializeField] CategoryEventElement _categoryPrefab;
         [SerializeField] RectTransform _categoriesContent;
@@ -53,8 +53,8 @@ namespace WIGO.Userinterface
             _moreButton.gameObject.SetActive(_descLabel.preferredWidth > _descLabel.rectTransform.rect.width);
             _distanceTimeLabel.text = $"{card.CalculateDistanceTime()} min from me";
             _remainingSeconds = card.GetRemainingTime();
-            _groupSizeLabel.text = card.GetGroupSizeType().ToString();
-            _groupSizeIcon.color = card.GetGroupSizeType() == EventGroupSizeType.Single ? UIGameColors.Purple : UIGameColors.Blue;
+            //_groupSizeLabel.text = card.GetGroupSizeType().ToString();
+            //_groupSizeIcon.color = card.GetGroupSizeType() == EventGroupSizeType.Single ? UIGameColors.Purple : UIGameColors.Blue;
 
             foreach (var category in card.GetHashtags())
             {

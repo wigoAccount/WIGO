@@ -6,7 +6,6 @@ namespace WIGO.Userinterface
     public class RegisterStepSms : AbstractRegisterStep
     {
         [SerializeField] TMP_InputField _codeField;
-        [SerializeField] GameObject _errorTip;
 
         bool _isComplete;
 
@@ -29,8 +28,13 @@ namespace WIGO.Userinterface
         public override bool CheckPanelComplete()
         {
             bool complete = _codeField.text.Length == 4;
-            //_errorTip.SetActive(!complete);
             return complete;
+        }
+
+        public override void ResetPanel()
+        {
+            _codeField.SetTextWithoutNotify(string.Empty);
+            _isComplete = false;
         }
     }
 }

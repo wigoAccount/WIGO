@@ -17,6 +17,13 @@ namespace WIGO.Core
     public class RPCResult<TObj>
     {
         public TObj result;
+        public string jsonrpc;
+        public string id;
+    }
+
+    [Serializable]
+    public class RPCError
+    {
         public ErrorResult error;
         public string jsonrpc;
         public string id;
@@ -33,6 +40,7 @@ namespace WIGO.Core
     {
         public string ltoken;
         public string stoken;
+        public LinksData links;
         public ProfileData profile;
     }
 
@@ -44,9 +52,42 @@ namespace WIGO.Core
     }
 
     [Serializable]
-    public class ErrorResult
+    public struct CheckBirthdayResult
+    {
+        public bool invalid;
+    }
+
+    [Serializable]
+    public struct ErrorResult
     {
         public int code;
         public string message;
+    }
+
+    [Serializable]
+    public struct LinksData
+    {
+        public DataRequestAddress data;
+        public MediaLinks photo;
+        public MediaLinks video;
+    }
+
+    [Serializable]
+    public struct DataRequestAddress
+    {
+        public string address;
+    }
+
+    [Serializable]
+    public struct MediaLinks
+    {
+        public string download;
+        public string upload;
+    }
+
+    [Serializable]
+    public struct ProfileContainer
+    {
+        public ProfileData profile;
     }
 }

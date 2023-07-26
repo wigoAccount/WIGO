@@ -18,10 +18,10 @@ public class TestRPC : MonoBehaviour
     public async void OnTestBtnClick()
     {
         var res = await NetService.TryLogin(_ltoken);
-        if (res != null)
-        {
-            _text.text = string.Format("UID: {0}\r\n+7 {1}", res.uid, res.phone);
-        }
+        //if (res != null)
+        //{
+        //    _text.text = string.Format("UID: {0}\r\n+7 {1}", res.uid, res.phone);
+        //}
     }
 
     public void OnTestRequest()

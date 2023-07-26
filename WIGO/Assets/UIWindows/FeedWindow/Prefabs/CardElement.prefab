@@ -166,7 +166,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5579545513861712195
 RectTransform:
   m_ObjectHideFlags: 0
@@ -811,7 +811,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 00 min from me
+  m_text: "00 \u043C\u0438\u043D \u043E\u0442 \u043C\u0435\u043D\u044F"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 22d1c6bb6ff4528429e892619a59bcac, type: 2}
   m_sharedMaterial: {fileID: -1526984713497711304, guid: 22d1c6bb6ff4528429e892619a59bcac, type: 2}
@@ -1051,7 +1051,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: More
+  m_text: "\u0415\u0449\u0435"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a1459109e2504ad45b822bfb152ba7bf, type: 2}
   m_sharedMaterial: {fileID: -2601280516693721163, guid: a1459109e2504ad45b822bfb152ba7bf, type: 2}
@@ -1533,7 +1533,7 @@ RectTransform:
   - {fileID: 9096028665328910066}
   - {fileID: 7991002319101939398}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -1582,6 +1582,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _player: {fileID: 608063216851909607}
   _videoTexture: {fileID: 6390878028884917964}
+  _soundStatusIcon: {fileID: 2537968954205173757}
+  _soundSprites:
+  - {fileID: 21300000, guid: c22d21ab77c7c2b43836e9475cd8a092, type: 3}
+  - {fileID: 21300000, guid: 5a032d97470462b43ad45e72e14d39b6, type: 3}
   _overlay: {fileID: 1692483734301298905}
   _usernnameLabel: {fileID: 6390878027092127209}
   _descLabel: {fileID: 6390878027824346027}
@@ -1589,14 +1593,8 @@ MonoBehaviour:
   _timeLabel: {fileID: 6390878028197182555}
   _moreButton: {fileID: 6390878027622413222}
   _locationLabel: {fileID: 574725670510400371}
-  _groupSizeLabel: {fileID: 4011271630411860670}
-  _groupSizeIcon: {fileID: 132036385394431756}
   _categoryPrefab: {fileID: 5346076752537791801, guid: 06dee32e568474347a3f6cc8c5d57675, type: 3}
   _categoriesContent: {fileID: 6390878028962085930}
-  _soundStatusIcon: {fileID: 2537968954205173757}
-  _soundSprites:
-  - {fileID: 21300000, guid: c22d21ab77c7c2b43836e9475cd8a092, type: 3}
-  - {fileID: 21300000, guid: 5a032d97470462b43ad45e72e14d39b6, type: 3}
   _acceptColor: {r: 0.25490198, g: 0.7372549, b: 0.27450982, a: 1}
   _declineColor: {r: 0.99215686, g: 0.34117648, b: 0.22352941, a: 1}
 --- !u!225 &1562692731408572615
@@ -1989,6 +1987,7 @@ VideoPlayer:
   m_RenderMode: 2
   m_AspectRatio: 2
   m_DataSource: 1
+  m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 2
   m_TargetAudioSources:

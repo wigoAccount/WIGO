@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using WIGO.Core;
 using WIGO.Userinterface;
 using WIGO.Utility;
 
@@ -34,20 +31,17 @@ namespace WIGO
             string saveData = PlayerPrefs.GetString("SaveData");
             _model = string.IsNullOrEmpty(saveData) ? new GameModel() : JsonReader.Deserialize<GameModel>(saveData);
             LoadLanguageLocal();
+            ServiceLocator.Set(_model);
 
             if (string.IsNullOrEmpty(saveData))
             {
-                //_uiManager.Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
-                //Login();
-                _uiManager.Open<StartScreenWindow>(WindowId.START_SCREEN, window => window.Setup(Login));
+                _uiManager.Open<StartScreenWindow>(WindowId.START_SCREEN);
             }
             else
             {
-                //_uiManager.Open<FeedWindow>(WindowId.FEED_SCREEN);
                 Login();
             }
 
-            ServiceLocator.Set(_model);
             KeyboardManager keyboardManager = new KeyboardManager();
             ServiceLocator.Set(keyboardManager);
         }
@@ -58,12 +52,15 @@ namespace WIGO
             if (res)
             {
                 _uiManager.Open<FeedWindow>(WindowId.FEED_SCREEN);
+                return;
             }
+
+            _uiManager.GetPopupManager().AddErrorNotification(100);
         }
 
         void LoadLanguageLocal()
         {
-            Language lang = Language.ENG;// _model.GetLanguage();
+            Language lang = Language.RUS;// _model.GetLanguage();
 
             TextAsset mytxtData = (TextAsset)Resources.Load("Localize");
             string data = mytxtData.text;

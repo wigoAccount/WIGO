@@ -45,5 +45,10 @@ namespace WIGO.Userinterface
         {
             return true;
         }
+
+        public virtual void ResetPanel()
+        {
+
+        }
     }
 }
