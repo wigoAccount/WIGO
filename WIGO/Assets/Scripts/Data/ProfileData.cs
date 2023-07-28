@@ -31,15 +31,33 @@ namespace WIGO
 
         public Gender GetGender()
         {
-            if (Enum.TryParse(gender.name, out Gender enumType))
-            {
-                return enumType;
-            }
-
-            return Gender.male;
+            return gender.uid == 1 ? Gender.female : Gender.male;
         }
 
         public Color GetColor() => _userColor;
+
+        public static ProfileData CopyProfile(ProfileData origin)
+        {
+            ProfileData copy = new ProfileData()
+            {
+                uid = origin.uid,
+                lang = origin.lang,
+                firstname = origin.firstname,
+                lastname = origin.lastname,
+                birthday = origin.birthday,
+                nickname = origin.nickname,
+                email = origin.email,
+                phone = origin.phone,
+                about = origin.about,
+                gender = origin.gender,
+                tags = origin.tags,
+                avatar = origin.avatar,
+                photos = origin.photos,
+                rating = origin.rating
+            };
+
+            return copy;
+        }
     }
 
     [Serializable]

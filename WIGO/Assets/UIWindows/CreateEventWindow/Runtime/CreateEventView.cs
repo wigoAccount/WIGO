@@ -65,52 +65,11 @@ namespace WIGO.Userinterface
             _fullLocation.SetActive(false);
         }
 
-        public void SetLocation(string coordinates, string location)
+        public void SetLocation(string address)
         {
             _emptyLocation.SetActive(false);
             _fullLocation.SetActive(true);
-            //_locationLabel.text = placeName;
-            //_addressLabel.text = placeAddress;
-
-            Debug.LogFormat("1: {0}\r\n2: {1}", coordinates, location);
-            try
-            {
-                string[] splited = coordinates.Replace("\"", "").Split(",");
-                if (splited.Length > 1)
-                {
-                    var latitude = splited[0];
-                    var longitude = splited[1];
-                    Debug.LogFormat("<color=cyan>Latitude: {0}\r\nLongitude: {1}</color>", latitude, longitude);
-                }
-                else
-                    Debug.LogWarningFormat("Can't split coordinates: {0}", coordinates);
-            }
-            catch (System.Exception)
-            {
-                Debug.LogWarningFormat("Wrong coordinates format");
-            }
-
-            try
-            {
-                string address = string.Empty;
-                if (location.Contains("YandexMap"))
-                {
-                    int start = Mathf.Clamp(location.IndexOf(@"\") + 2, 0, int.MaxValue);
-                    int end = Mathf.Clamp(location.IndexOf(@"\", start) - 1, 0, int.MaxValue);
-                    address = location.Substring(start, end - start + 1);
-                }
-                else
-                {
-                    address = location.Replace("\"", "");
-                }
-                
-                Debug.LogFormat("<color=magenta>Location: {0}</color>", address);
-                _addressLabel.text = address;
-            }
-            catch (System.Exception)
-            {
-                Debug.LogWarningFormat("Wrong location format");
-            }
+            _addressLabel.text = address;
         }
 
         void CancelGenderAnimation()
@@ -130,12 +89,5 @@ namespace WIGO.Userinterface
                 _sizeSequence = null;
             }
         }
-    }
-
-    [System.Serializable]
-    public struct LocationParams
-    {
-        public double longitude;
-        public double latitude;
     }
 }

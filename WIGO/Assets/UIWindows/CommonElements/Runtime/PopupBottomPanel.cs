@@ -1,12 +1,13 @@
 using System;
 using UnityEngine;
-using WIGO.Utility;
 
 namespace WIGO.Userinterface
 {
     public class PopupBottomPanel : MonoBehaviour
     {
         [SerializeField] PanelDragHandler _dragHandler;
+
+        Action<bool> _onAnswer;
 
         public void Init(float padding, Action onClose)
         {
@@ -15,8 +16,9 @@ namespace WIGO.Userinterface
             _dragHandler.Init(onClose);
         }
 
-        public void OpenPanel()
+        public void OpenPanel(Action<bool> callback = null)
         {
+            _onAnswer = callback;
             _dragHandler.OnOpen();
         }
 
@@ -25,20 +27,25 @@ namespace WIGO.Userinterface
             _dragHandler.OnClose();
         }
 
-        public void OnSelectRU(bool value)
+        public void OnPositiveAnswer()
         {
-            if (value)
-            {
-                LocalizeManager.ChangeLanguage(Language.RUS);
-            }
+            _onAnswer?.Invoke(true);
         }
 
-        public void OnSelectEN(bool value)
-        {
-            if (value)
-            {
-                LocalizeManager.ChangeLanguage(Language.ENG);
-            }
-        }
+        //public void OnSelectRU(bool value)
+        //{
+        //    if (value)
+        //    {
+        //        LocalizeManager.ChangeLanguage(Language.RUS);
+        //    }
+        //}
+
+        //public void OnSelectEN(bool value)
+        //{
+        //    if (value)
+        //    {
+        //        LocalizeManager.ChangeLanguage(Language.ENG);
+        //    }
+        //}
     }
 }

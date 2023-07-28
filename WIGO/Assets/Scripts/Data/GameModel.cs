@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using WIGO;
 using WIGO.Core;
+using Event = WIGO.Core.Event;
 
 [System.Serializable]
 public class GameModel
@@ -13,7 +14,7 @@ public class GameModel
     [SerializeField] NotificationSettings _notifications;
 
     ProfileData _myProfile;
-    EventCard _myEvent;
+    Event _myEvent;
     LinksData _links;
 
     public LinksData GetUserLinks() => _links;
@@ -38,7 +39,7 @@ public class GameModel
         SaveData();
     }
 
-    public void SetMyEvent(EventCard card)
+    public void SetMyEvent(Event card)
     {
         _myEvent = card;
     }
@@ -67,6 +68,8 @@ public class GameModel
         }
 
         _ltoken = data.ltoken;
+        ShortToken = data.stoken;
+        _links = data.links;
         _myProfile = data.profile;
         SaveData();
         return true;

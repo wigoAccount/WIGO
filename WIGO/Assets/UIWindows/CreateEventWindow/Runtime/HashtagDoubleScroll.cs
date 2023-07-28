@@ -10,7 +10,7 @@ namespace WIGO.Userinterface
         [SerializeField] RectTransform _content;
         [SerializeField] string[] _tempTags;
 
-        Dictionary<UIHashtagElement, string> _selected = new Dictionary<UIHashtagElement, string>();
+        Dictionary<UIHashtagElement, int> _selected = new Dictionary<UIHashtagElement, int>();
         Action _onCategorySelect;
         //const float SPACING = 8f;
         //const float SECOND_LINE_POS = -36f;
@@ -32,7 +32,7 @@ namespace WIGO.Userinterface
             _content.DestroyChildren();
         }
 
-        public IEnumerable<string> GetSelectedCategories() => _selected.Values;
+        public IEnumerable<int> GetSelectedCategories() => _selected.Values;
 
         //float CreateHashtagsLine(int startIndex, int endIndex, float yPos)
         //{
@@ -67,7 +67,7 @@ namespace WIGO.Userinterface
             hashtag.SetSelected(selected);
             if (selected && !_selected.ContainsKey(hashtag))
             {
-                _selected.Add(hashtag, hashtag.GetTag());
+                _selected.Add(hashtag, 1);// hashtag.GetTag());     // [TODO]: add correct indexes
             }
             else if (!selected && _selected.ContainsKey(hashtag))
                 _selected.Remove(hashtag);

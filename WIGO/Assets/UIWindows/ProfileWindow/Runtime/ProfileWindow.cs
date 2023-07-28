@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using WIGO.Core;
 using System;
 using System.Collections;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace WIGO.Userinterface
 {
@@ -21,6 +21,7 @@ namespace WIGO.Userinterface
         [SerializeField] Sprite[] _templates;
 
         ProfileData _currentProfile;
+        CancellationTokenSource _cts;
 
         public override void OnClose(WindowId next, Action callback = null)
         {
@@ -90,16 +91,71 @@ namespace WIGO.Userinterface
 
         public async void OnDoneClick()
         {
-            _editArea.UpdateInfo();
+            var updatedProfile = _editArea.UpdateInfo();
             _editArea.gameObject.SetActive(false);
             _infoArea.gameObject.SetActive(true);
             _content.anchoredPosition = Vector2.zero;
             _editButton.SetActive(true);
             _doneButton.SetActive(false);
-            _infoArea.UpdateInfo();
+            _infoArea.Setup(updatedProfile);
             StartCoroutine(UpdateHeight(true));
 
-            await Task.Delay(400);
+            var oldTagList = _currentProfile.tags;
+            var newTagList = updatedProfile.tags;
+            string addTags = string.Empty;
+            string removeTags = string.Empty;
+            foreach (var tag in oldTagList)
+            {
+                bool exists = Array.Exists(newTagList, x => x.uid == tag.uid);
+                if (!exists)
+                    removeTags += $"{tag.uid},";
+            }
+
+            if (!string.IsNullOrEmpty(removeTags))
+                removeTags = removeTags[0..^1];
+
+            foreach (var tag in newTagList)
+            {
+                bool exists = Array.Exists(oldTagList, x => x.uid == tag.uid);
+                if (!exists)
+                    addTags += $"{tag.uid},";
+            }
+
+            if (!string.IsNullOrEmpty(addTags))
+                addTags = addTags[0..^1];
+
+            var genderUID = 2 - (int)updatedProfile.GetGender();
+            string userUpdJson = "{\"phone\":" + $"\"{updatedProfile.phone}\"," +
+                    "\"firstname\":" + $"\"{updatedProfile.firstname}\"," +
+                    "\"nickname\":" + $"\"{updatedProfile.nickname}\"," +
+                    "\"about\":" + $"\"{updatedProfile.about.Replace("\n", "\\n")}\"," +
+                    "\"gender\":" + $"\"{genderUID}\"," +
+                    "\"avatar\":" + $"\"{updatedProfile.avatar}\"," +
+                    "\"tags_add\":" + $"[{addTags}]," +// [1,2], // список тегов (интересов)
+                    "\"tags_remove\":" + $"[{removeTags}]}}";// [3]
+
+            var model = ServiceLocator.Get<GameModel>();
+            _cts = new CancellationTokenSource();
+            Debug.Log(model.ShortToken);
+            var profile = await NetService.TryUpdateUser(userUpdJson, model.ShortToken, _cts.Token);
+            if (_cts.IsCancellationRequested)
+            {
+                Debug.Log("User update cancelled");
+                _cts.Dispose();
+                _cts = null;
+                return;
+            }
+
+            _cts.Dispose();
+            _cts = null;
+            if (profile == null)
+            {
+                Debug.LogError("Wrong update profile");
+                return;
+            }
+
+            _currentProfile = profile;
+            model.SaveProfile(profile);
         }
 
         protected override void Awake()

@@ -31,7 +31,7 @@ namespace WIGO.Userinterface
             if (string.IsNullOrEmpty(url))
             {
                 _background.color = profile.GetColor();
-                _firstLetter.text = profile.nickname.Substring(0, 1);
+                _firstLetter.text = profile.firstname.Substring(0, 1);
                 _background.gameObject.SetActive(true);
                 _mask.SetActive(false);
                 return;

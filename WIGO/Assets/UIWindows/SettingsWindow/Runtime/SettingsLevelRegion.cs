@@ -8,7 +8,7 @@ namespace WIGO.Userinterface
     {
         public void OnLanguageSelect()
         {
-            ServiceLocator.Get<UIManager>().GetPopupManager().OpenBottomPanel();
+            ServiceLocator.Get<UIManager>().GetPopupManager().OpenBottomPanel(null);
         }
     }
 }

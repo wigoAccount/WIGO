@@ -6,6 +6,86 @@ using WIGO.Userinterface;
 namespace WIGO.Core
 {
     [Serializable]
+    public class AbstractEvent
+    {
+        public string uid;
+        public string created;
+        public string about;
+        public string video;
+        public string preview;
+        public ProfileData author;
+
+        public float AspectRatio { get
+            {
+                float.TryParse(preview, out float aspect);
+                if (aspect <= 0f)
+                    aspect = 9f / 16f;
+                return aspect;
+            } 
+        }
+    }
+
+    [Serializable]
+    public class Event : AbstractEvent
+    {
+        public enum EventStatus
+        {
+            active,
+            closed
+        }
+
+        public string status;
+        public string title;
+        public int waiting;
+        public int duration;
+        public Location location;
+        public string address;
+        public string area;
+        public int[] tags;
+
+        public EventStatus GetStatus()
+        {
+            if (Enum.TryParse(status, out EventStatus enumType))
+            {
+                return enumType;
+            }
+
+            return EventStatus.active;
+        }
+    }
+
+    [Serializable]
+    public class Request : AbstractEvent
+    {
+        public enum RequestStatus
+        {
+            decline,
+            wait,
+            accept
+        }
+
+        public string status;
+        public Event @event;
+
+        public RequestStatus GetStatus()
+        {
+            if (Enum.TryParse(status, out RequestStatus enumType))
+            {
+                return enumType;
+            }
+
+            return RequestStatus.wait;
+        }
+    }
+
+    [Serializable]
+    public struct Location
+    {
+        public string longitude;
+        public string latitude;
+    }
+
+    [Serializable]
     public class EventCard
     {
         [SerializeField] string _id;

@@ -41,9 +41,9 @@ namespace WIGO.Userinterface
             _overlay.DOFade(0.8f, 0.28f);
         }
 
-        public void OpenBottomPanel()
+        public void OpenBottomPanel(Action<bool> answerCallback)
         {
-            _bottomPanel.OpenPanel();
+            _bottomPanel.OpenPanel(answerCallback);
             UIGameColors.SetTransparent(_overlay);
             _overlay.gameObject.SetActive(true);
             _overlay.DOFade(0.8f, 0.28f);
@@ -57,6 +57,20 @@ namespace WIGO.Userinterface
                 _currentPopup = null;
                 _overlay.DOFade(0f, 0.28f).OnComplete(() => _overlay.gameObject.SetActive(false));
             }
+        }
+
+        public void ResetPopup()
+        {
+            UIGameColors.SetTransparent(_overlay);
+            _overlay.gameObject.SetActive(false);
+
+            if (_currentPopup != null)
+            {
+                Destroy(_currentPopup.gameObject);
+                _currentPopup = null;
+            }
+
+            _bottomPanel.gameObject.SetActive(false);
         }
 
         private void Start()

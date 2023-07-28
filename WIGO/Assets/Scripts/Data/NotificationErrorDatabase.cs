@@ -14,7 +14,7 @@ public class NotificationErrorDatabase : ScriptableObject
     }
 }
 
-[System.Serializable]
+[Serializable]
 public class NotificationErrorData
 {
     [SerializeField] int _id;

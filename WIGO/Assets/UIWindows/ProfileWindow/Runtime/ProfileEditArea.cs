@@ -23,6 +23,7 @@ namespace WIGO.Userinterface
         RectTransform _area;
 
         public float GetHeight() => _area.rect.height;
+        public ProfileData GetUpdatedProfile() => _currentProfile;
 
         public void Init()
         {
@@ -35,7 +36,7 @@ namespace WIGO.Userinterface
 
         public void Setup(ProfileData profile)
         {
-            _currentProfile = profile;
+            _currentProfile = ProfileData.CopyProfile(profile);
             _displayNameIF.SetTextWithoutNotify(profile.firstname);
             _usernameIF.SetTextWithoutNotify(profile.nickname);
             _aboutIF.SetTextWithoutNotify(profile.about);
@@ -81,7 +82,7 @@ namespace WIGO.Userinterface
             //}
         }
 
-        public void UpdateInfo()
+        public ProfileData UpdateInfo()
         {
             _currentProfile.firstname = _displayNameIF.text;
             _currentProfile.nickname = _usernameIF.text;
@@ -99,6 +100,8 @@ namespace WIGO.Userinterface
             //}
 
             //_currentProfile.photos = photos.ToArray();
+
+            return _currentProfile;
 
         }
 

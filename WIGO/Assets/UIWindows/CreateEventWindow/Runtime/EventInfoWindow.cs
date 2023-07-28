@@ -21,7 +21,8 @@ namespace WIGO.Userinterface
         [SerializeField] protected WindowAnimator _animator;
         [SerializeField] Texture2D _tempPreview;
 
-        string _videoPath;
+        protected string _videoPath;
+        protected float _videoAspect;
 
         const float MAX_PREVIEW_HEIGHT = 164f;
 
@@ -81,31 +82,15 @@ namespace WIGO.Userinterface
             }
         }
 
-        protected async Task<EventCard> CreateEventOrResponse()
+        protected virtual Task<AbstractEvent> CreateEventOrResponse()
         {
-            Debug.Log("Send new event");
+            Debug.Log("Send new event...");
+
             UIGameColors.SetTransparent(_overlay, 0.8f);
             _overlay.gameObject.SetActive(true);
             _loader.SetActive(true);
 
-            await Task.Delay(2000);
-
-            if (true)
-            {
-                UIGameColors.SetTransparent(_overlay, 1f);
-                _loader.SetActive(false);
-                _doneElement.SetActive(true);
-                if (File.Exists(_videoPath))
-                    File.Delete(_videoPath);
-
-                EventCard card = EventCard.CreateEmpty();
-                return card;
-            }
-            //else
-            //{
-            //    _overlay.gameObject.SetActive(false);
-            //    _loader.SetActive(false);
-            //}
+            return null;
         }
 
         protected virtual void ClearWindow()
@@ -127,6 +112,33 @@ namespace WIGO.Userinterface
         {
             float alpha = IsAvailable() ? 1f : 0.4f;
             UIGameColors.SetTransparent(_sendButton, alpha);
+        }
+
+        protected void ShowResult(bool success)
+        {
+            _overlay.gameObject.SetActive(false);
+            _loader.SetActive(false);
+
+            if (success)
+            {
+                UIGameColors.SetTransparent(_overlay, 1f);
+                _doneElement.SetActive(true);
+                if (File.Exists(_videoPath))
+                    File.Delete(_videoPath);
+
+                return;
+            }
+
+            // [TODO]: show notification
+            Debug.LogError("Fail create event");
+        }
+
+        protected async Task<string> UploadVideo()
+        {
+            await Task.Delay(1000);
+            string video = "my test video";
+            Debug.LogFormat("<color=green>Video loaded: {0}</color>", video);
+            return video;
         }
     }
 }

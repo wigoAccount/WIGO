@@ -56,6 +56,7 @@ namespace WIGO.Userinterface
             _notificationsWindow.SetActive(false);
             _permissionsButton.SetActive(true);
             _permissionsWaitStatus.SetActive(false);
+            callback?.Invoke();
         }
 
         public void OnBackButtonClick()
@@ -186,7 +187,6 @@ namespace WIGO.Userinterface
                     ContainerData gender = stepGender.GetSelectedGender();
 
                     string userUpdJson = "{\"birthday\":" + $"\"{_profile.birthday}\"," +
-                                        "\"nickname\":" + $"\"MaryLi\"," +
                                         "\"firstname\":" + $"\"{_profile.firstname}\"," +
                                         "\"gender\":" + $"\"{gender.uid}\"}}";
 
@@ -218,6 +218,7 @@ namespace WIGO.Userinterface
                     _profile = updProfile;
                     model.SaveProfile(updProfile);
                     _permissionsWindow.SetActive(true);
+                    await NetService.RequestGlobal(model.GetUserLinks().data.address, model.ShortToken);
                     return;
                 case RegisterStep.Permissions:
                 case RegisterStep.Notification:

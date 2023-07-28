@@ -30,6 +30,14 @@ namespace WIGO.Core
     }
 
     [Serializable]
+    public struct ErrorResult
+    {
+        public int code;
+        public string message;
+    }
+
+    #region Authorize
+    [Serializable]
     public struct RegisterResult
     {
         public string token;
@@ -58,13 +66,6 @@ namespace WIGO.Core
     }
 
     [Serializable]
-    public struct ErrorResult
-    {
-        public int code;
-        public string message;
-    }
-
-    [Serializable]
     public struct LinksData
     {
         public DataRequestAddress data;
@@ -89,5 +90,21 @@ namespace WIGO.Core
     public struct ProfileContainer
     {
         public ProfileData profile;
+    }
+    #endregion
+
+    [Serializable]
+    public struct CreateEventRequest
+    {
+        public string title;
+        public string about;
+        public int waiting;
+        public int duration;
+        public Location location;
+        public string address;
+        public string area;
+        public string video;
+        public string preview;
+        public int[] tags_add;
     }
 }

@@ -26,7 +26,31 @@ namespace WIGO.Userinterface
         public void Setup(ProfileData profile)
         {
             _currentProfile = profile;
-            UpdateInfo();
+            _displayNameLabel.text = _currentProfile.firstname;
+            _usernameLabel.text = $"@{_currentProfile.nickname}";
+            _aboutLabel.text = string.IsNullOrEmpty(_currentProfile.about) ? "Информация о себе" : _currentProfile.about;   // [TODO]: replace with configs
+
+            float screenWidth = ServiceLocator.Get<UIManager>().GetCanvasSize().x;
+            _tagsContent.DestroyChildren();
+            float xPos = 16f;
+            float yPos = -36f;
+            foreach (var tag in _currentProfile.tags)
+            {
+                var tagElement = Instantiate(_tagPrefab, _tagsContent);
+                tagElement.Setup(tag.name);
+                RectTransform tagRect = tagElement.transform as RectTransform;
+                float width = tagElement.GetWidth();
+
+                if (screenWidth - PADDINGS * 2 - xPos < width)
+                {
+                    xPos = 16f;
+                    yPos -= tagRect.sizeDelta.y + SPACING;
+                }
+
+                tagRect.anchoredPosition = new Vector2(xPos, yPos);
+                xPos += tagElement.GetWidth() + SPACING;
+            }
+            _tagsContent.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, -yPos + 32f);
         }
 
         public void UpdateInfo()

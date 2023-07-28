@@ -1,8 +1,10 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using WIGO.Core;
 using WIGO.Utility;
+using Event = WIGO.Core.Event;
 
 namespace WIGO.Userinterface
 {
@@ -16,6 +18,8 @@ namespace WIGO.Userinterface
 
         EventGenderType _selectedGender = EventGenderType.Any;
         EventGroupSizeType _selectedSizeType = EventGroupSizeType.None;
+        Location _location = new Location();
+        string _address;
         bool _locationSelected;
 
         public override void OnReopen(WindowId previous, UIWindowModel cachedModel)
@@ -66,8 +70,12 @@ namespace WIGO.Userinterface
             {
                 var myEvent = await CreateEventOrResponse();
                 if (myEvent != null)
-                    ServiceLocator.Get<GameModel>().SetMyEvent(myEvent);
-
+                {
+                    Event newEvent = (Event)myEvent;
+                    ServiceLocator.Get<GameModel>().SetMyEvent(newEvent);
+                }
+                
+                // show success status for 1.2 sec
                 await Task.Delay(1200);
                 ServiceLocator.Get<UIManager>().SwitchTo(WindowId.FEED_SCREEN);
             }
@@ -81,9 +89,6 @@ namespace WIGO.Userinterface
 #elif UNITY_IOS
             MessageIOSHandler.OnPressMapButton();
 #endif
-
-            //ServiceLocator.Get<UIManager>().Open<LocationSelectWindow>(WindowId.LOCATION_SELECT_SCREEN, (window) => window.Setup(OnLocationSelected));
-            //OnLocationSelected(true);
         }
 
         public void OnEndEditDesc(string text)
@@ -108,21 +113,59 @@ namespace WIGO.Userinterface
             _view.ResetView(_selectedGender, _selectedSizeType);
             _selectedSizeType = EventGroupSizeType.None;
             _selectedGender = EventGenderType.Any;
+            _location = new Location();
+            _address = string.Empty;
+        }
+
+        protected override async Task<AbstractEvent> CreateEventOrResponse()
+        {
+            base.CreateEventOrResponse();
+
+            string video = await UploadVideo();
+            if (string.IsNullOrEmpty(video))
+            {
+                Debug.LogError("Fail upload video");
+                return null;
+            }
+
+            CreateEventRequest request = new CreateEventRequest()       // [TODO]: set gender
+            {
+                title = "My new event",
+                about = _descIF.text,
+                waiting = 30,
+                duration = 120,
+                location = _location,
+                address = _address,
+                area = _address,
+                video = video,
+                preview = _videoAspect.ToString(),
+                tags_add = _hashtagScroll.GetSelectedCategories().ToArray()
+            };
+
+            var model = ServiceLocator.Get<GameModel>();
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(8000);
+            var myEvent = await NetService.TryCreateEvent(request, model.GetUserLinks().data.address, model.ShortToken, cts.Token);
+            ShowResult(myEvent != null);
+
+            return myEvent;
         }
 
         protected override bool IsAvailable()
         {
             int categoriesCount = _hashtagScroll.GetSelectedCategories().Count();
-            return _locationSelected && !string.IsNullOrEmpty(_descIF.text) && categoriesCount > 0 && _selectedSizeType != EventGroupSizeType.None;
+            return _locationSelected && !string.IsNullOrEmpty(_descIF.text) && categoriesCount > 0;// && _selectedSizeType != EventGroupSizeType.None;
         }
 
         void OnLocationSelected(string value)
         {
             _locationSelected = !string.IsNullOrEmpty(value);
-            string[] location = value.Split("\r\n");
-            if (location.Length > 1)
+            string[] splitData = value.Split("\r\n");
+            if (splitData.Length > 1)
             {
-                _view.SetLocation(location[1], location[0]);
+                var location = ParseLocation(splitData[1], splitData[0]);
+                _location = location.Item1;
+                _view.SetLocation(location.Item2);
                 CheckIfAvailable();
             }
             else
@@ -146,6 +189,52 @@ namespace WIGO.Userinterface
                 default:
                     break;
             }
+        }
+
+        (Location, string) ParseLocation(string coordinates, string location)
+        {
+            Location selectedLocation = new Location();
+            Debug.LogFormat("1: {0}\r\n2: {1}", coordinates, location);
+            try
+            {
+                string[] splited = coordinates.Replace("\"", "").Split(",");
+                if (splited.Length > 1)
+                {
+                    var longitude = splited[0];
+                    var latitude = splited[1];
+                    selectedLocation.latitude = latitude.ToString();
+                    selectedLocation.longitude = longitude.ToString();
+                    Debug.LogFormat("<color=cyan>Latitude: {0}\r\nLongitude: {1}</color>", latitude, longitude);
+                }
+                else
+                    Debug.LogWarningFormat("Can't split coordinates: {0}", coordinates);
+            }
+            catch (System.Exception)
+            {
+                Debug.LogWarningFormat("Wrong coordinates format");
+            }
+
+            try
+            {
+                if (location.Contains("YandexMap"))
+                {
+                    int start = Mathf.Clamp(location.IndexOf(@"\") + 2, 0, int.MaxValue);
+                    int end = Mathf.Clamp(location.IndexOf(@"\", start) - 1, 0, int.MaxValue);
+                    _address = location.Substring(start, end - start + 1);
+                }
+                else
+                {
+                    _address = location.Replace("\"", "");
+                }
+
+                Debug.LogFormat("<color=magenta>Location: {0}</color>", _address);
+            }
+            catch (System.Exception)
+            {
+                Debug.LogWarningFormat("Wrong location format");
+            }
+
+            return (selectedLocation, _address);
         }
     }
 }

@@ -13,6 +13,68 @@ namespace WIGO.Core
 
         const string URL = "http://v2.cerebrohq.com/testapi/rpc.php";
 
+        public static async Task RequestGlobal(string url, string stoken, CancellationToken ctoken = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "globals",
+                @params = new List<string>(),
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+            Debug.LogFormat("<color=cyan>GLOBALS: {0}</color>", resJson);
+        }
+
+        public static async Task<Event> TryCreateEvent(CreateEventRequest data, string url, string stoken, CancellationToken ctoken = default)
+        {
+            string jsonData = JsonReader.Serialize(data);
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "eventPost",
+                @params = new List<string> { jsonData },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Create event request is empty");
+                return null;
+            }
+
+            try
+            {
+                RPCResult<List<Event>> res = JsonReader.Deserialize<RPCResult<List<Event>>>(resJson);
+                return res.result[0];
+            }
+            catch
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return null;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogErrorFormat("Error create event: {0}", e.Message);
+                    return null;
+                }
+            }
+        }
+
+        #region USER
         public static async Task<string> TryRegisterNewAccount(string phoneNumber, CancellationToken token = default)
         {
             var uid = SystemInfo.deviceUniqueIdentifier;
@@ -224,10 +286,9 @@ namespace WIGO.Core
                     ReportError(error.error);
                 }
             }
-            catch (System.Exception ex)
+            catch
             {
-                Debug.LogErrorFormat("Error user remove: {0}", ex.Message);
-                return;
+                Debug.Log("User successfully deleted");
             }
         }
 
@@ -276,61 +337,19 @@ namespace WIGO.Core
                 }
             }
         }
-
-        public static async Task<ProfileData> TryUpdateUser(string uid, string stoken, string birthday, string username, CancellationToken token = default)
-        {
-            string userUpdJson = "{\"uid\":" + $"\"{uid}\"," +
-                                 "\"birthday\":" + $"\"{birthday}\"," +
-                                 "\"nickname\":" + $"\"{username}\"}}";
-            RPCRequest request = new RPCRequest()
-            {
-                jsonrpc = "2.0",
-                method = "userSet",
-                @params = new List<string> { userUpdJson },
-                id = "0"
-            };
-
-            string json = JsonReader.Serialize(request);
-            var resJson = await PostRequest(json, token, stoken);
-
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Log in request is empty");
-                return null;
-            }
-
-            Debug.Log(resJson);
-            try
-            {
-                RPCResult<List<ProfileData>> res = JsonReader.Deserialize<RPCResult<List<ProfileData>>>(resJson);
-                return res.result[0];
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return null;
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogErrorFormat("Error update user: {0}", ex.Message);
-                    return null;
-                }
-            }
-        }
+        #endregion
 
         static async Task<string> PostRequest(string request, CancellationToken token, string addHeader = null)
+        {
+            return await PostRequest(request, URL, token, addHeader);
+        }
+
+        static async Task<string> PostRequest(string request, string url, CancellationToken token, string addHeader = null)
         {
             var httpRequestMessage = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new System.Uri(URL),
+                RequestUri = new System.Uri(url),
                 Headers = {
                     { HttpRequestHeader.ContentType.ToString(), "application/json" }//,
                     //{ "rpcauth", "adg463df" }
@@ -361,6 +380,7 @@ namespace WIGO.Core
             return string.Empty;
         }
 
+        #region HELPERS
         static void ReportError(ErrorResult error)
         {
             string message = error.message;
@@ -391,5 +411,6 @@ namespace WIGO.Core
 
             return null;
         }
+        #endregion
     }
 }
