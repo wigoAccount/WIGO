@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using WIGO.Core;
+using WIGO.Utility;
 
 using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
@@ -126,9 +127,8 @@ namespace WIGO.Userinterface
                 : _currentCard.location;
             string theirLocation = loc.ToString();
 
-#if UNITY_EDITOR
-            Debug.Log("Open map");
-#elif UNITY_IOS
+            Debug.LogFormat("Open map: {0}", theirLocation);
+#if UNITY_IOS && !UNITY_EDITOR
             MessageIOSHandler.OnViewMap(theirLocation);
 #endif
         }
