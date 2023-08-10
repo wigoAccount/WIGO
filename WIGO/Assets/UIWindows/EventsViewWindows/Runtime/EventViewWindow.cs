@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using WIGO.Core;
 using WIGO.Utility;
+using DG.Tweening;
 
 using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
@@ -26,11 +27,13 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _loadingWindow;
         [SerializeField] Image _soundStatusIcon;
         [SerializeField] Sprite[] _soundSprites;
+        [SerializeField] CanvasGroup _copiedLabel;
         [SerializeField] EventCard _tempCard;
 
         EventViewModel _model;
         EventScreenView _view;
         AbstractEvent _currentCard;
+        Sequence _copyAnimation;
 
         RenderTexture _videoTexture;
         Coroutine _videoLoadRoutine;
@@ -137,7 +140,24 @@ namespace WIGO.Userinterface
         {
             string phoneNumber = _currentCard.author == null ? "9998887766" : _currentCard.author.phone;
             GUIUtility.systemCopyBuffer = phoneNumber;
-            // [TODO]: show popup
+            
+            if (_copyAnimation == null)
+            {
+                _copiedLabel.gameObject.SetActive(true);
+                RectTransform label = _copiedLabel.transform as RectTransform;
+                label.anchoredPosition = Vector2.down * 48f;
+                _copiedLabel.alpha = 0f;
+
+                _copyAnimation = DOTween.Sequence().Append(_copiedLabel.DOFade(1f, 0.28f))
+                    .Join(label.DOAnchorPosY(-40f, 0.28f))
+                    .AppendInterval(1.5f)
+                    .Append(_copiedLabel.DOFade(0f, 0.28f))
+                    .OnComplete(() =>
+                    {
+                        _copiedLabel.gameObject.SetActive(false);
+                        _copyAnimation = null;
+                    });
+            }
         }
 
         protected override void Awake()
@@ -179,6 +199,7 @@ namespace WIGO.Userinterface
             _preview.texture = null;
             _videoTexture.Release();
             _loader.SetActive(false);
+            CancelAnimation();
         }
 
         void SetupCardTextureSize(float aspect)
@@ -206,6 +227,16 @@ namespace WIGO.Userinterface
             }
 
             Debug.LogFormat("<color=orange>Error received: {0}</color>", message);
+        }
+
+        void CancelAnimation()
+        {
+            if (_copyAnimation != null)
+            {
+                _copyAnimation.Kill();
+                _copyAnimation = null;
+                _copiedLabel.gameObject.SetActive(false);
+            }
         }
 
         IEnumerator LoadVideoContent(string url)

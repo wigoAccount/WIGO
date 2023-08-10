@@ -13,7 +13,7 @@ namespace WIGO.Core
 
         const string URL = "http://v2.cerebrohq.com/testapi/rpc.php";
 
-        public static async Task RequestGlobal(string url, string stoken, CancellationToken ctoken = default)
+        public static async Task<GlobalsData> RequestGlobal(string url, string stoken, CancellationToken ctoken = default)
         {
             RPCRequest request = new RPCRequest()
             {
@@ -26,6 +26,36 @@ namespace WIGO.Core
             string json = JsonReader.Serialize(request);
             var resJson = await PostRequest(json, url, ctoken, stoken);
             Debug.LogFormat("<color=cyan>GLOBALS: {0}</color>", resJson);
+
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Globals request is empty");
+                return null;
+            }
+
+            try
+            {
+                RPCResult<List<GlobalsData>> res = JsonReader.Deserialize<RPCResult<List<GlobalsData>>>(resJson);
+                return res.result[0];
+            }
+            catch
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return null;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogErrorFormat("Error create event: {0}", e.Message);
+                    return null;
+                }
+            }
         }
 
         public static async Task<Event> TryCreateEvent(CreateEventRequest data, string url, string stoken, CancellationToken ctoken = default)

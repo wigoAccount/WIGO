@@ -9,7 +9,7 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_InputField _dayIF;
         [SerializeField] TMP_InputField _monthIF;
         [SerializeField] TMP_InputField _yearIF;
-        [SerializeField] Toggle _confirmToggle;
+        //[SerializeField] Toggle _confirmToggle;
 
         bool _dayComplete;
         bool _monthComplete;
@@ -36,7 +36,7 @@ namespace WIGO.Userinterface
             else if (!string.IsNullOrEmpty(text) && !_dayComplete)
             {
                 _dayComplete = true;
-                bool summaryComplete = _dayComplete && _monthComplete && _yearComplete && _confirmToggle.isOn;
+                bool summaryComplete = _dayComplete && _monthComplete && _yearComplete;// && _confirmToggle.isOn;
                 _isStepComplete?.Invoke(summaryComplete);
             }
         }
@@ -51,7 +51,7 @@ namespace WIGO.Userinterface
             else if (!string.IsNullOrEmpty(text) && !_monthComplete)
             {
                 _monthComplete = true;
-                bool summaryComplete = _dayComplete && _monthComplete && _yearComplete && _confirmToggle.isOn;
+                bool summaryComplete = _dayComplete && _monthComplete && _yearComplete;// && _confirmToggle.isOn;
                 _isStepComplete?.Invoke(summaryComplete);
             }
         }
@@ -66,7 +66,7 @@ namespace WIGO.Userinterface
             else if (!string.IsNullOrEmpty(text) && !_yearComplete)
             {
                 _yearComplete = true;
-                bool summaryComplete = _dayComplete && _monthComplete && _yearComplete && _confirmToggle.isOn;
+                bool summaryComplete = _dayComplete && _monthComplete && _yearComplete;// && _confirmToggle.isOn;
                 _isStepComplete?.Invoke(summaryComplete);
             }
         }
@@ -79,7 +79,7 @@ namespace WIGO.Userinterface
 
         public override bool CheckPanelComplete()
         {
-            bool summaryComplete = _dayComplete && _monthComplete && _yearComplete && _confirmToggle.isOn;
+            bool summaryComplete = _dayComplete && _monthComplete && _yearComplete;// && _confirmToggle.isOn;
             //_errorTip.SetActive(!summaryComplete);
             return summaryComplete;
         }
@@ -94,7 +94,7 @@ namespace WIGO.Userinterface
             _monthComplete = false;
             _yearComplete = false;
 
-            _confirmToggle.SetIsOnWithoutNotify(false);
+            //_confirmToggle.SetIsOnWithoutNotify(false);
         }
     }
 }

@@ -217,8 +217,8 @@ namespace WIGO.Userinterface
 
                     _profile = updProfile;
                     model.SaveProfile(updProfile);
+                    model.FinishRegister();
                     _permissionsWindow.SetActive(true);
-                    await NetService.RequestGlobal(model.GetUserLinks().data.address, model.ShortToken);
                     return;
                 case RegisterStep.Permissions:
                 case RegisterStep.Notification:

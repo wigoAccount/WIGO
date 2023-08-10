@@ -107,4 +107,28 @@ namespace WIGO.Core
         public string preview;
         public int[] tags_add;
     }
+
+    #region Globals
+    [Serializable]
+    public class GlobalsData
+    {
+        public LanguageData[] langs;
+        public GeneralData[] tags;
+        public GeneralData[] genders;
+    }
+
+    [Serializable]
+    public struct LanguageData
+    {
+        public string code;
+        public string name;
+    }
+
+    [Serializable]
+    public struct GeneralData
+    {
+        public int uid;
+        public string name;
+    }
+    #endregion
 }

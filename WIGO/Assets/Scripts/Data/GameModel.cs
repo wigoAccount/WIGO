@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using WIGO;
@@ -18,6 +19,7 @@ public class GameModel
     Event _myEvent;
     LinksData _links;
     Location _myLocation;
+    IEnumerable<GeneralData> _availableTags;
     float _timer;
 
     public LinksData GetUserLinks() => _links;
@@ -26,6 +28,7 @@ public class GameModel
     public bool HasMyOwnEvent() => _myEvent != null;
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
     public Location GetMyCurrentLocation() => _myLocation;
+    public IEnumerable<GeneralData> GetAvailableTags() => _availableTags;
 
     public void Initialize()
     {
@@ -64,6 +67,12 @@ public class GameModel
         PlayerPrefs.DeleteKey("SaveData");
     }
 
+    public async void FinishRegister()
+    {
+        var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
+        _availableTags = res?.tags;
+    }
+
     public async Task<bool> TryLogin()
     {
         if (string.IsNullOrEmpty(_ltoken))
@@ -81,6 +90,10 @@ public class GameModel
         ShortToken = data.stoken;
         _links = data.links;
         _myProfile = data.profile;
+
+        var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
+        _availableTags = res?.tags;
+
         SaveData();
         return true;
     }
