@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using WIGO.Core;
 
+using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
 {
     public enum VideoMode
@@ -28,7 +29,7 @@ namespace WIGO.Userinterface
 
         EventViewModel _model;
         EventScreenView _view;
-        EventCard _currentCard;
+        AbstractEvent _currentCard;
 
         RenderTexture _videoTexture;
         Coroutine _videoLoadRoutine;
@@ -43,22 +44,24 @@ namespace WIGO.Userinterface
             callback?.Invoke();
         }
 
-        public void Setup(EventCard card)
+        public void Setup(AbstractEvent card)
         {
             //card = _tempCard;       // remove
             _currentCard = card;
             UIGameColors.SetTransparent(_preview, 0.1f);
-            SetupCardTextureSize(card.GetVideoAspect());
+            SetupCardTextureSize(card.AspectRatio);
             _loader.SetActive(true);
-            var videoSize = GetVideoSize(card.GetVideoAspect());
+            var videoSize = GetVideoSize(card.AspectRatio);
             _videoTexture = new RenderTexture(videoSize.x, videoSize.y, 32);
             UIGameColors.SetTransparent(_preview, 1f);
             _preview.texture = _videoTexture;
-            _fullInfoView = card.GetStatus() == EventStatus.Accepted;
+            _fullInfoView = card.IsResponse() 
+                ? ((Request)card).GetStatus() == Request.RequestStatus.accept 
+                : ((Event)card).GetStatus() == Event.EventStatus.active;
 
-            _videoLoadRoutine = StartCoroutine(LoadVideoContent(card.GetVideoPath()));
+            _videoLoadRoutine = StartCoroutine(LoadVideoContent(card.video));
             _view.SetView(card);
-            _seconds = card.GetRemainingTime();
+            _seconds = card.waiting;
             _timer = 0f;
         }
 
@@ -99,7 +102,7 @@ namespace WIGO.Userinterface
             await Task.Delay(1000);
 
             _loadingWindow.SetActive(false);
-            _currentCard.UpdateStatus(EventStatus.Accepted);
+            //_currentCard.UpdateStatus(EventStatus.Accepted);
             _fullInfoView = true;
             _view.SetView(_currentCard);
         }
@@ -111,8 +114,27 @@ namespace WIGO.Userinterface
             await Task.Delay(1000);
 
             _loadingWindow.SetActive(false);
-            _currentCard.UpdateStatus(EventStatus.Denied);
+            //_currentCard.UpdateStatus(EventStatus.Denied);
             ServiceLocator.Get<UIManager>().CloseCurrent();
+        }
+
+        public void OnViewMapClick()
+        {
+            string myLocation = ServiceLocator.Get<GameModel>().GetMyCurrentLocation().ToString();
+            string theirLocation = _currentCard.location.ToString();
+
+#if UNITY_EDITOR
+            Debug.Log("Open map");
+#elif UNITY_IOS
+            MessageIOSHandler.OnViewMap(myLocation, theirLocation);
+#endif
+        }
+
+        public void OnCopyPhoneNumber()
+        {
+            string phoneNumber = _currentCard.author == null ? "9998887766" : _currentCard.author.phone;
+            GUIUtility.systemCopyBuffer = phoneNumber;
+            // [TODO]: show popup
         }
 
         protected override void Awake()
@@ -121,11 +143,6 @@ namespace WIGO.Userinterface
             _view = GetComponent<EventScreenView>();
             _view.Init(_model);
         }
-
-        //private void Start()
-        //{
-        //    Setup(_tempCard);
-        //}
 
         private void Update()
         {
@@ -190,9 +207,9 @@ namespace WIGO.Userinterface
 
         IEnumerator LoadVideoContent(string url)
         {
-            string path = System.IO.Path.Combine(Application.streamingAssetsPath, url);
             if (!string.IsNullOrEmpty(url))
             {
+                string path = System.IO.Path.Combine(Application.streamingAssetsPath, url);
                 _videoPlayer.targetTexture = _videoTexture;
                 _videoPlayer.errorReceived += OnErrorReceived;
                 _videoPlayer.url = path;

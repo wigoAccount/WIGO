@@ -22,7 +22,7 @@ namespace WIGO.Userinterface
 
             if (profile == null)
             {
-                Debug.LogError("User profile is null");
+                Debug.LogWarning("User profile is null");
                 return;
             }
 

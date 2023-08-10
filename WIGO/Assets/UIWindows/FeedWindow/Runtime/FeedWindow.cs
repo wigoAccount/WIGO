@@ -236,12 +236,19 @@ namespace WIGO.Userinterface
 
         void OnReceiveMessage(NativeMessageType type, string message)
         {
+            if (!gameObject.activeSelf)
+            {
+                return;
+            }
+
             switch (type)
             {
                 case NativeMessageType.Video:
                     OnRecordComplete(message);
                     break;
                 case NativeMessageType.Location:
+                    break;
+                case NativeMessageType.MyLocation:
                     OnGetLocation(message);
                     break;
                 case NativeMessageType.Other:
@@ -269,7 +276,7 @@ namespace WIGO.Userinterface
             if (_waitForLocation)
             {
                 _waitForLocation = false;
-                Debug.LogFormat("Location: {0}", location);
+                Debug.LogFormat("Location REG: {0}", location);
 
                 // fake loading posts
                 var category = _filtersController.GetFilterCategory();

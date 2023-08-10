@@ -14,6 +14,9 @@ namespace WIGO.Core
         public string video;
         public string preview;
         public ProfileData author;
+        public Location location;
+        public string address;
+        public int waiting;
 
         public float AspectRatio { get
             {
@@ -23,6 +26,8 @@ namespace WIGO.Core
                 return aspect;
             } 
         }
+
+        public virtual bool IsResponse() => false;
     }
 
     [Serializable]
@@ -36,10 +41,7 @@ namespace WIGO.Core
 
         public string status;
         public string title;
-        public int waiting;
         public int duration;
-        public Location location;
-        public string address;
         public string area;
         public int[] tags;
 
@@ -76,6 +78,8 @@ namespace WIGO.Core
 
             return RequestStatus.wait;
         }
+
+        public override bool IsResponse() => true;
     }
 
     [Serializable]
@@ -83,6 +87,11 @@ namespace WIGO.Core
     {
         public string longitude;
         public string latitude;
+
+        public override string ToString()
+        {
+            return $"{longitude},{latitude}";
+        }
     }
 
     [Serializable]

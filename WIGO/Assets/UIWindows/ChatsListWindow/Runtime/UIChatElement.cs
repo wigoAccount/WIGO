@@ -7,28 +7,30 @@ using WIGO.RecyclableScroll;
 using System;
 using WIGO.Core;
 
+using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
 {
     public class UIChatInfo : ContactInfo
     {
         public Action onInfoLoaded;
 
-        EventCard _cardData;
+        AbstractEvent _cardData;
         //ChatData _chatData;
         ProfileData _profile;
-        Action<EventCard> _onSelectChat;
+        Action<AbstractEvent> _onSelectChat;
 
-        bool _loaded;
+        bool _loaded = true;
 
-        public UIChatInfo(EventCard data, Action<EventCard> onSelectChat)
+        public UIChatInfo(AbstractEvent data, Action<AbstractEvent> onSelectChat)
         {
             _cardData = data;
             _onSelectChat = onSelectChat;
-            SetupUser(data.GetUser());
+            _profile = data.author;
+            //SetupUser(data.author);
         }
 
         //public ChatData GetData() => _chatData;
-        public EventCard GetCard() => _cardData;
+        public AbstractEvent GetCard() => _cardData;
         public ProfileData GetProfile() => _profile;
         public bool IsLoaded() => _loaded;
 
@@ -141,22 +143,25 @@ namespace WIGO.Userinterface
 
             //SetLastMessageStatus(lastMessage.GetStatus());
             var card = _info.GetCard();
-            _nameLabel.text = _info.GetProfile().firstname;
+            _nameLabel.text = _info.GetProfile() == null ? "username" : _info.GetProfile().firstname;
             //_nameLabel.rectTransform.sizeDelta = new Vector2(_nameLabel.preferredWidth, _nameLabel.rectTransform.sizeDelta.y);
             _profilePhoto.Setup(_info.GetProfile());
-            _messageLabel.SetText(card.GetDescription());
+            _messageLabel.SetText(card.about);
             _frame.SetActive(card.IsResponse());
             UIGameColors.SetTransparent(_background, card.IsResponse() ? 0.05f : 0.1f);
 
+            var status = GetViewStatus(card);
+
+            // [TODO]: replace with configs localization
             if (card.IsResponse())
             {
-                _statusIcon.color = card.GetStatus() == EventStatus.Watched ? UIGameColors.transparentBlue : UIGameColors.Blue;
-                _statusLabel.text = card.GetStatus() == EventStatus.Watched ? "Просмотрено" : "Новая заявка";
+                _statusIcon.color = status == EventStatus.Watched ? UIGameColors.transparentBlue : UIGameColors.Blue;
+                _statusLabel.text = status == EventStatus.Watched ? "Просмотрено" : "Новая заявка";
             }
             else
             {
-                _statusIcon.color = card.GetStatus() == EventStatus.Accepted ? UIGameColors.Green : UIGameColors.transparent20;
-                _statusLabel.text = card.GetStatus() == EventStatus.Accepted ? "Заявка одобрена" : "Заявка отправлена";
+                _statusIcon.color = status == EventStatus.Accepted ? UIGameColors.Green : UIGameColors.transparent20;
+                _statusLabel.text = status == EventStatus.Accepted ? "Заявка одобрена" : "Заявка отправлена";
             }
 
             //_messageLabel.text = lastMessage.GetText();
@@ -210,6 +215,31 @@ namespace WIGO.Userinterface
             if (_info != null)
             {
                 _info.onInfoLoaded -= SetupInfo;
+            }
+        }
+
+        EventStatus GetViewStatus(AbstractEvent card)
+        {
+            if (card.IsResponse())
+            {
+                Request request = (Request)card;
+                return (request.GetStatus()) switch
+                {
+                    Request.RequestStatus.decline => EventStatus.Denied,
+                    Request.RequestStatus.wait => EventStatus.Watched,
+                    Request.RequestStatus.accept => EventStatus.Accepted,
+                    _ => EventStatus.NotAccepted,
+                };
+            }
+            else
+            {
+                Event cardEvent = (Event)card;
+                return (cardEvent.GetStatus()) switch
+                {
+                    Event.EventStatus.active => EventStatus.Accepted,
+                    Event.EventStatus.closed => EventStatus.Denied,
+                    _ => EventStatus.NotAccepted,
+                };
             }
         }
     }

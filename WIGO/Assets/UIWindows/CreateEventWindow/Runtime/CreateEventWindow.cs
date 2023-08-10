@@ -183,6 +183,7 @@ namespace WIGO.Userinterface
                 case NativeMessageType.Location:
                     OnLocationSelected(message);
                     break;
+                case NativeMessageType.MyLocation:
                 case NativeMessageType.Other:
                     Debug.LogFormat("Message: {0}", message);
                     break;

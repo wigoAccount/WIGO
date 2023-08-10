@@ -6,6 +6,7 @@ namespace WIGO.Utility
     {
         Video,
         Location,
+        MyLocation,
         Other
     }
 

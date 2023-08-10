@@ -32,6 +32,7 @@ namespace WIGO
             _model = string.IsNullOrEmpty(saveData) ? new GameModel() : JsonReader.Deserialize<GameModel>(saveData);
             LoadLanguageLocal();
             ServiceLocator.Set(_model);
+            _model.Initialize();
 
             if (string.IsNullOrEmpty(saveData))
             {
@@ -44,6 +45,11 @@ namespace WIGO
 
             KeyboardManager keyboardManager = new KeyboardManager();
             ServiceLocator.Set(keyboardManager);
+        }
+
+        private void Update()
+        {
+            _model.Tick();
         }
 
         async void Login()

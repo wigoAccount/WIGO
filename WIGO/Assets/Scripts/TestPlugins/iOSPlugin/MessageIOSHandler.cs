@@ -17,8 +17,11 @@ namespace WIGO.Utility
         [DllImport("__Internal")]
         private static extern void startSwiftTestController();
 
-        //[DllImport("__Internal")]
-        //private static extern void startSwiftTestUserLocationController();
+        [DllImport("__Internal")]
+        private static extern void swiftTestPluginNearestLocations();
+
+        [DllImport("__Internal")]
+        private static extern void startSwiftCalcTimeController(string myLocation, string theirLocation);
         #endregion
 
         #region delegates
@@ -30,9 +33,13 @@ namespace WIGO.Utility
         [DllImport("__Internal")]
         private static extern void setSwiftTestPluginLocationDidSend(SwiftTestPluginLocationDidSend callBack);
 
-        //public delegate void SwiftTestPluginUserLocation(string value);
-        //[DllImport("__Internal")]
-        //private static extern void setSwiftTestPluginUserLocation(SwiftTestPluginUserLocation callBack);
+        public delegate void SwiftTestPluginNearestLocations(string value);
+        [DllImport("__Internal")]
+        private static extern void setSwiftTestPluginNearestLocations(SwiftTestPluginNearestLocations callBack);
+
+        public delegate void SwiftTestPluginCalculateTime();
+        [DllImport("__Internal")]
+        private static extern void setSwiftTestPluginCalculateTime(SwiftTestPluginCalculateTime callBack);
         #endregion
 
         #region delegate handlers
@@ -50,11 +57,11 @@ namespace WIGO.Utility
             MessageRouter.RouteMessage(NativeMessageType.Location, message);
         }
 
-        //[MonoPInvokeCallback(typeof(SwiftTestPluginUserLocation))]
-        //public static void setSwiftTestPluginUserLocation(string value)
-        //{
-        //    MessageRouter.RouteMessage(NativeMessageType.Location, value);
-        //}
+        [MonoPInvokeCallback(typeof(SwiftTestPluginNearestLocations))]
+        public static void setSwiftTestPluginNearestLocations(string value)
+        {
+            MessageRouter.RouteMessage(NativeMessageType.MyLocation, value);
+        }
         #endregion
 
         [RuntimeInitializeOnLoadMethod]
@@ -62,7 +69,8 @@ namespace WIGO.Utility
         {
             setSwiftTestPluginVideoDidSave(setSwiftTestPluginVideoDidSave);
             setSwiftTestPluginLocationDidSend(setSwiftTestPluginLocationDidSend);
-            //setSwiftTestPluginUserLocation(setSwiftTestPluginUserLocation);
+            setSwiftTestPluginNearestLocations(setSwiftTestPluginNearestLocations);
+            setSwiftTestPluginCalculateTime(() => Debug.Log("Map was opened and closed!"));
         }
 
         public static void OnPressCameraButton()
@@ -80,10 +88,15 @@ namespace WIGO.Utility
             startSwiftTestController();
         }
 
-        //public static void OnGetUserLocation()
-        //{
-        //    startSwiftTestUserLocationController();
-        //}
+        public static void OnGetUserLocation()
+        {
+            swiftTestPluginNearestLocations();
+        }
+
+        public static void OnViewMap(string myLocation, string theirLocation)
+        {
+            startSwiftCalcTimeController(myLocation, theirLocation);
+        }
 #endif
     }
 }

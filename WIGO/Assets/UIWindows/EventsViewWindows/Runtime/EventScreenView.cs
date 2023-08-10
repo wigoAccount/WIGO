@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using WIGO.Core;
 
+using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
 {
     public class EventScreenView : UIWindowView<EventViewModel>
@@ -21,6 +22,7 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _timerLabel;
         [SerializeField] TMP_Text _eventDescription;
         [SerializeField] TMP_Text _location;
+        [SerializeField] UIGradient _locationBtnGradient;
         [SerializeField] TMP_Text _usernameLabel;
         [SerializeField] TMP_Text _phoneNumber;
         [SerializeField] TMP_Text _fullDescription;
@@ -54,15 +56,17 @@ namespace WIGO.Userinterface
             _acceptEventInfoViewport.offsetMin += Vector2.up * bottomPadding;
         }
 
-        public async void SetView(EventCard card)
+        public async void SetView(AbstractEvent card)
         {
             _eventInfoContent.anchoredPosition = Vector2.zero;
             _acceptEventInfoContent.anchoredPosition = Vector2.zero;
-            _eventDescription.SetText(card.GetDescription());
-            _fullDescription.SetText(card.GetDescription());
-            _location.SetText(card.GetLocation());
+            _eventDescription.SetText(card.about);
+            _fullDescription.SetText(card.about);
+            _location.SetText(card.address);
 
-            switch (card.GetStatus())
+            EventStatus status = GetViewStatus(card);
+            
+            switch (status)
             {
                 case EventStatus.NotAccepted:
                 case EventStatus.Watched:
@@ -88,11 +92,13 @@ namespace WIGO.Userinterface
                     _eventCreatorTitle.SetText(card.IsResponse() ? _creatorTitleText[0] : _creatorTitleText[1]);
                     _eventDescTitle.SetText(card.IsResponse() ? _descTitleText[0] : _descTitleText[1]);
                     var preset = card.IsResponse() ? _gradients[1] : _gradients[0];
+                    _locationBtnGradient.m_color1 = preset.bottomLeft;
+                    _locationBtnGradient.m_color2 = preset.bottomRight;
                     _timerLabel.colorGradient = new VertexGradient(preset.bottomLeft, preset.bottomRight, preset.topLeft, preset.topRight);
-                    SetTime(card.GetRemainingTime());
+                    SetTime(card.waiting);
                     break;
                 case EventStatus.Denied:
-                    Debug.LogWarningFormat("Event denied: {0}", card.GetId());
+                    Debug.LogWarningFormat("Event denied: {0}", card.uid);
                     return;
                 default:
                     break;
@@ -115,6 +121,31 @@ namespace WIGO.Userinterface
         {
             await Task.Delay(200);
             return _tmpProfile;
+        }
+
+        EventStatus GetViewStatus(AbstractEvent card)
+        {
+            if (card.IsResponse())
+            {
+                Request request = (Request)card;
+                return (request.GetStatus()) switch
+                {
+                    Request.RequestStatus.decline => EventStatus.Denied,
+                    Request.RequestStatus.wait => EventStatus.Watched,
+                    Request.RequestStatus.accept => EventStatus.Accepted,
+                    _ => EventStatus.NotAccepted,
+                };
+            }
+            else
+            {
+                Event cardEvent = (Event)card;
+                return (cardEvent.GetStatus()) switch
+                {
+                    Event.EventStatus.active => EventStatus.Accepted,
+                    Event.EventStatus.closed => EventStatus.Denied,
+                    _ => EventStatus.NotAccepted,
+                };
+            }
         }
     }
 }

@@ -95,7 +95,15 @@ namespace WIGO.Userinterface
             for (int i = 0; i < _chatsCount; i++)
             {
                 //ChatData data = ChatData.CreateRandom(_tempContainer);
-                EventCard card = EventCard.CreateEmpty();
+                AbstractEvent card;
+                if (UnityEngine.Random.Range(0f, 1f) > 0.5f)
+                {
+                    card = new Request();
+                }
+                else
+                {
+                    card = new Core.Event();
+                }
                 UIChatInfo info = new UIChatInfo(card, OnSelectChat);
                 _eventsData.Add(info);
                 //_chatsData.Add(info);
@@ -134,7 +142,7 @@ namespace WIGO.Userinterface
             }
         }
 
-        void OnSelectChat(EventCard card)
+        void OnSelectChat(AbstractEvent card)
         {
             ServiceLocator.Get<UIManager>().Open<EventViewWindow>(WindowId.EVENT_VIEW_SCREEN, window => window.Setup(card));
         }
