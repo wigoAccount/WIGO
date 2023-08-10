@@ -121,12 +121,15 @@ namespace WIGO.Userinterface
         public void OnViewMapClick()
         {
             string myLocation = ServiceLocator.Get<GameModel>().GetMyCurrentLocation().ToString();
-            string theirLocation = _currentCard.location.ToString();
+            Location loc = string.IsNullOrEmpty(_currentCard.location.longitude)
+                ? new Location() { longitude = "14.88", latitude = "29.2929" }
+                : _currentCard.location;
+            string theirLocation = loc.ToString();
 
 #if UNITY_EDITOR
             Debug.Log("Open map");
 #elif UNITY_IOS
-            MessageIOSHandler.OnViewMap(myLocation, theirLocation);
+            MessageIOSHandler.OnViewMap(theirLocation);
 #endif
         }
 
