@@ -3,6 +3,9 @@ using DG.Tweening;
 using WIGO.Core;
 using System.Threading;
 using WIGO.Utility;
+using AppleAuth;
+using AppleAuth.Enums;
+using AppleAuth.Extensions;
 
 namespace WIGO.Userinterface
 {
@@ -13,19 +16,24 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _backButton;
         [SerializeField] RectTransform _content;
         [Space]
+        [SerializeField] GameObject _signInAppleScreen;
         [SerializeField] GameObject _registrationWindow;
         [SerializeField] GameObject _loadingWindow;
         [SerializeField] GameObject _permissionsWindow;
         [SerializeField] GameObject _notificationsWindow;
         [SerializeField] GameObject _permissionsWaitStatus;
         [SerializeField] GameObject _permissionsButton;
+        [Space]
+        [SerializeField] GameObject[] _signInButtonStates;
 
         int _currentStep;
         bool _switching;
 
+        string _appleId;
         string _tempToken;
         ProfileData _profile;
         CancellationTokenSource _cts;
+        IAppleAuthManager _appleAuthManager;
 
         public override void OnOpen(WindowId previous)
         {
@@ -50,12 +58,15 @@ namespace WIGO.Userinterface
             _nextButton.SetEnabled(false);
             _content.anchoredPosition = new Vector2(0f, _content.anchoredPosition.y);
 
-            _registrationWindow.SetActive(true);
+            _signInAppleScreen.SetActive(true);
+            _registrationWindow.SetActive(false);
             _loadingWindow.SetActive(false);
             _permissionsWindow.SetActive(false);
             _notificationsWindow.SetActive(false);
             _permissionsButton.SetActive(true);
             _permissionsWaitStatus.SetActive(false);
+            _signInButtonStates[0].SetActive(true);
+            _signInButtonStates[1].SetActive(false);
             callback?.Invoke();
         }
 
@@ -80,6 +91,44 @@ namespace WIGO.Userinterface
             MoveStep(-1);
         }
 
+        public void OnSignInClick()
+        {
+            if (_switching)
+            {
+                return;
+            }
+
+            _switching = true;
+            _signInButtonStates[0].SetActive(false);
+            _signInButtonStates[1].SetActive(true);
+
+#if UNITY_IOS && !UNITY_EDITOR
+            var loginArgs = new AppleAuthLoginArgs(LoginOptions.IncludeEmail | LoginOptions.IncludeFullName);
+            _appleAuthManager.LoginWithAppleId(
+                loginArgs,
+                credential =>
+                {
+                    _appleId = credential.User;
+                    _switching = false;
+                    _signInAppleScreen.SetActive(false);
+                    _registrationWindow.SetActive(true);
+                },
+                error =>
+                {
+                    _switching = false;
+                    _signInButtonStates[0].SetActive(true);
+                    _signInButtonStates[1].SetActive(false);
+                    var authorizationErrorCode = error.GetAuthorizationErrorCode();
+                    Debug.LogWarning("Sign in with Apple failed " + authorizationErrorCode.ToString() + " " + error.ToString());
+                });
+#else
+            _appleId = "Unity test apple id";
+            _switching = false;
+            _signInAppleScreen.SetActive(false);
+            _registrationWindow.SetActive(true);
+#endif
+        }
+
         public async void OnNextButtonClick()
         {
             if (_switching)
@@ -97,7 +146,7 @@ namespace WIGO.Userinterface
                         _cts = new CancellationTokenSource();
                         _nextButton.SetLoadingVisible(true);
 
-                        _tempToken = await NetService.TryRegisterNewAccount(stepPhone.GetPhoneNumber(), _cts.Token);
+                        var data = await NetService.TryRegisterNewAccount(stepPhone.GetPhoneNumber(), _appleId, _cts.Token);
                         _nextButton.SetLoadingVisible(false);
                         if (_cts.IsCancellationRequested)
                         {
@@ -109,11 +158,14 @@ namespace WIGO.Userinterface
 
                         _cts.Dispose();
                         _cts = null;
-                        if (string.IsNullOrEmpty(_tempToken))
+                        if (string.IsNullOrEmpty(data.ltoken) || string.IsNullOrEmpty(data.stoken) || data.profile == null)
                         {
-                            Debug.LogError("Wrong registration");
+                            Debug.LogError("Wrong confirm registration");
                             return;
                         }
+
+                        _profile = data.profile;
+                        model.SaveTokens(data.ltoken, data.stoken, data.links);
                     }
                     break;
                 case RegisterStep.SmsAprove:
@@ -218,7 +270,12 @@ namespace WIGO.Userinterface
                     _profile = updProfile;
                     model.SaveProfile(updProfile);
                     model.FinishRegister();
-                    _permissionsWindow.SetActive(true);
+                    //_permissionsWindow.SetActive(true);
+
+                    _notificationsWindow.SetActive(true);
+#if UNITY_IOS && !UNITY_EDITOR
+                    MessageIOSHandler.OnAllowLocationPermission();
+#endif
                     return;
                 case RegisterStep.Permissions:
                 case RegisterStep.Notification:

@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using WIGO.Core;
 
+using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
 {
     public class EventsPart : AbstractPart
@@ -18,8 +19,9 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _myEventContent;
         [SerializeField] bool _isEmpty;
         [Space]
-        [SerializeField] EventCard _myEventData;
+        [SerializeField] GameObject _loadingWindow;
 
+        Event _myEvent;
         float _timer;
         int _remainingSeconds;
 
@@ -54,9 +56,17 @@ namespace WIGO.Userinterface
             base.ResetPart();
         }
 
-        public void OnDeleteEventClick()
+        public async void OnDeleteEventClick()
         {
+            _loadingWindow.SetActive(true);
+            var model = ServiceLocator.Get<GameModel>();
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(8000);
+            await NetService.TryRemoveEvent(_myEvent.uid, model.GetUserLinks().data.address, _myEvent.IsResponse(), model.ShortToken, cts.Token);
 
+            _loadingWindow.SetActive(false);
+            DeleteEvent();
+            ServiceLocator.Get<UIManager>().CloseCurrent();
         }
 
         void Update()
@@ -80,8 +90,11 @@ namespace WIGO.Userinterface
             _myEventContent.SetActive(false);
             _emptyEventContent.SetActive(false);
             _categoriesContent.DestroyChildren();
-            // set loading
-            await Task.Delay(200);
+
+            var model = ServiceLocator.Get<GameModel>();
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(8000);
+            _myEvent = await NetService.TryGetMyEvent(model.GetUserLinks().data.address, model.ShortToken, cts.Token);
 
             _loaded = true;
             if (_isEmpty)
@@ -94,18 +107,20 @@ namespace WIGO.Userinterface
             _myEventContent.SetActive(true);
             _emptyEventContent.SetActive(false);
 
-            _remainingSeconds = _myEventData.GetRemainingTime();
+            _remainingSeconds = _myEvent.waiting;
             _timer = 0f;
-            _eventDescLabel.text = _myEventData.GetDescription();
-            _addressLabel.text = _myEventData.GetLocation();
+            _eventDescLabel.text = _myEvent.about;
+            _addressLabel.text = _myEvent.address;
 
-            foreach (var category in _myEventData.GetHashtags())
+            foreach (var index in _myEvent.tags)
             {
+                string category = model.GetCategoryNameWithIndex(index);
                 var categoryBlock = Instantiate(_categoryPrefab, _categoriesContent);
                 categoryBlock.Setup(category);
             }
 
-            _videoElement.SetupVideo(_myEventData.GetVideoPath(), _myEventData.GetVideoAspect());
+            float.TryParse(_myEvent.preview, out float aspect);
+            _videoElement.SetupVideo(_myEvent.video, aspect < 0f ? 0.5625f : aspect);
         }
 
         void DeleteEvent()

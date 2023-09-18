@@ -82,8 +82,8 @@ namespace WIGO.Userinterface
 
         public async Task<string> UploadPhoto()
         {
-            await Task.Delay(400);
-            return null;
+            await Task.Delay(1400);
+            return "updated photo";
         }
 
         async Task<Texture2D> DownloadTextureAsync(string url)

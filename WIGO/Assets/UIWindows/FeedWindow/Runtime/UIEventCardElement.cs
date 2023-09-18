@@ -171,6 +171,7 @@ namespace WIGO.Userinterface
         {
             float pos = 320f * direction;
             bool accept = direction > 0;
+            _onCardSkip?.Invoke(accept);
 
             var animation = DOTween.Sequence();
             animation.Append(_cardRect.DOAnchorPosX(pos, 0.28f))
@@ -180,7 +181,6 @@ namespace WIGO.Userinterface
                 .OnComplete(() =>
                 {
                     Clear();
-                    _onCardSkip?.Invoke(accept);
                 });
         }
 

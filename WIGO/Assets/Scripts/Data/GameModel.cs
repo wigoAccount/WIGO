@@ -4,7 +4,9 @@ using UnityEngine;
 using WIGO;
 using WIGO.Core;
 using WIGO.Utility;
+using System.Linq;
 using Event = WIGO.Core.Event;
+using System.Threading;
 
 [System.Serializable]
 public class GameModel
@@ -21,6 +23,7 @@ public class GameModel
     Location _myLocation;
     IEnumerable<GeneralData> _availableTags;
     float _timer;
+    bool _login;
 
     public LinksData GetUserLinks() => _links;
     public NotificationSettings GetNotifications() => _notifications;
@@ -29,11 +32,9 @@ public class GameModel
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
     public Location GetMyCurrentLocation() => _myLocation;
     public IEnumerable<GeneralData> GetAvailableTags() => _availableTags;
-
-    public void Initialize()
+    public string GetCategoryNameWithIndex(int uid)
     {
-        MessageRouter.onMessageReceive += OnReceiveMessage;
-        _timer = 58f;
+        return _availableTags.FirstOrDefault(x => x.uid == uid).name;
     }
 
     public void SaveTokens(string ltoken, string stoken, LinksData links)
@@ -59,18 +60,26 @@ public class GameModel
 
     public void Clear()
     {
+        _login = false;
         _ltoken = string.Empty;
         ShortToken = string.Empty;
         _myProfile = null;
         _myEvent = null;
         _links = new LinksData();
         PlayerPrefs.DeleteKey("SaveData");
+        MessageRouter.onMessageReceive -= OnReceiveMessage;
     }
 
     public async void FinishRegister()
     {
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
+        MessageRouter.onMessageReceive += OnReceiveMessage;
+#if UNITY_IOS && !UNITY_EDITOR
+        MessageIOSHandler.OnGetUserLocation();
+#endif
+        _login = true;
+        _timer = 58f;
     }
 
     public async Task<bool> TryLogin()
@@ -91,15 +100,39 @@ public class GameModel
         _links = data.links;
         _myProfile = data.profile;
 
+        await UpdateMyEvent();
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
 
         SaveData();
+        MessageRouter.onMessageReceive += OnReceiveMessage;
+#if UNITY_IOS && !UNITY_EDITOR
+        MessageIOSHandler.OnGetUserLocation();
+#endif
+        _login = true;
+        _timer = 58f;
         return true;
+    }
+
+    public async Task UpdateMyEvent()
+    {
+        var cts = new CancellationTokenSource();
+        cts.CancelAfter(8000);
+        var myEvent = await NetService.TryGetMyEvent(_links.data.address, ShortToken, cts.Token);
+        if (!cts.IsCancellationRequested)
+        {
+            _myEvent = myEvent;
+        }
+        cts.Dispose();
     }
 
     public void Tick()
     {
+        if (!_login)
+        {
+            return;
+        }
+
         _timer += Time.unscaledDeltaTime;
         if (_timer >= 60f)
         {

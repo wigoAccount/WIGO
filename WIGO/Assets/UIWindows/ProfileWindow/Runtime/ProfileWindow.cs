@@ -51,7 +51,7 @@ namespace WIGO.Userinterface
         {
             if (_editArea.gameObject.activeSelf)
             {
-                _editArea.gameObject.SetActive(false);
+                _editArea.Close();
                 _infoArea.gameObject.SetActive(true);
                 _content.anchoredPosition = Vector2.zero;
                 _editButton.SetActive(true);
@@ -91,8 +91,8 @@ namespace WIGO.Userinterface
 
         public async void OnDoneClick()
         {
-            var updatedProfile = _editArea.UpdateInfo();
-            _editArea.gameObject.SetActive(false);
+            var updatedProfile = await _editArea.UpdateInfo();
+            _editArea.Close();
             _infoArea.gameObject.SetActive(true);
             _content.anchoredPosition = Vector2.zero;
             _editButton.SetActive(true);
@@ -131,7 +131,7 @@ namespace WIGO.Userinterface
                     "\"about\":" + $"\"{updatedProfile.about.Replace("\n", "\\n")}\"," +
                     "\"gender\":" + $"\"{genderUID}\"," +
                     "\"avatar\":" + $"\"{updatedProfile.avatar}\"," +
-                    "\"tags_add\":" + $"[{addTags}]," +// [1,2], // список тегов (интересов)
+                    "\"tags_add\":" + $"[{addTags}]," +// [1,2], // ?????? ????? (?????????)
                     "\"tags_remove\":" + $"[{removeTags}]}}";// [3]
 
             var model = ServiceLocator.Get<GameModel>();

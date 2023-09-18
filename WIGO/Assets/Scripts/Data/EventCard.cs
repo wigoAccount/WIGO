@@ -175,8 +175,8 @@ namespace WIGO.Core
     public enum EventGenderType
     {
         Any,
-        Male,
-        Female
+        Female,
+        Male
     }
 
     public enum EventStatus

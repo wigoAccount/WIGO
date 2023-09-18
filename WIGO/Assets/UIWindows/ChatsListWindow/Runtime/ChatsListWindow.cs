@@ -13,11 +13,9 @@ namespace WIGO.Userinterface
         [SerializeField] RecyclableChatsListScroll _chatsScroll;
         [SerializeField] ChatCategoriesPanel _categoriesPanel;
         [SerializeField] WindowAnimator _animator;
+
         [SerializeField] int _chatsCount;
 
-        [SerializeField] TempMessagesContainer _tempContainer;
-
-        //List<UIChatInfo> _chatsData = new List<UIChatInfo>();
         List<UIChatInfo> _eventsData = new List<UIChatInfo>();
         Coroutine _loadingCoroutine;
 
@@ -73,6 +71,11 @@ namespace WIGO.Userinterface
         async void CreateChats()
         {
             _loadingCoroutine = StartCoroutine(ActivateLoadingWithDelay());
+
+            // [TODO]: update my event
+            // get requests from my event and check them as Response
+            // get my requests to other events
+            // show both types in list
             await Task.Delay(600);
 
             // [TODO]: temp solution. Use cts
@@ -94,7 +97,6 @@ namespace WIGO.Userinterface
 
             for (int i = 0; i < _chatsCount; i++)
             {
-                //ChatData data = ChatData.CreateRandom(_tempContainer);
                 AbstractEvent card;
                 if (UnityEngine.Random.Range(0f, 1f) > 0.5f)
                 {

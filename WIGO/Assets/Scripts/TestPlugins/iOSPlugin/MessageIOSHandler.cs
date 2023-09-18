@@ -7,7 +7,7 @@ namespace WIGO.Utility
     public static class MessageIOSHandler
     {
 #if UNITY_IOS && !UNITY_EDITOR
-#region open controllers
+        #region open controllers
         [DllImport("__Internal")]
         private static extern void startSwiftCameraController();
 
@@ -17,11 +17,14 @@ namespace WIGO.Utility
         [DllImport("__Internal")]
         private static extern void startSwiftTestController();
 
-        //[DllImport("__Internal")]
-        //private static extern void swiftTestPluginNearestLocations();
+        [DllImport("__Internal")]
+        private static extern void swiftTestPluginNearestLocations();
 
         [DllImport("__Internal")]
         private static extern void startSwiftRouteController(string theirLocation);
+
+        [DllImport("__Internal")]
+        private static extern void startTurnGeolocationController();
         #endregion
 
         #region delegates
@@ -36,10 +39,6 @@ namespace WIGO.Utility
         public delegate void SwiftTestPluginNearestLocations(string value);
         [DllImport("__Internal")]
         private static extern void swiftTestPluginNearestLocations(SwiftTestPluginNearestLocations callBack);
-
-        //public delegate void SwiftTestPluginCalculateTime();
-        //[DllImport("__Internal")]
-        //private static extern void setSwiftTestPluginCalculateRoute(SwiftTestPluginCalculateTime callBack);
         #endregion
 
         #region delegate handlers
@@ -58,7 +57,7 @@ namespace WIGO.Utility
         }
 
         [MonoPInvokeCallback(typeof(SwiftTestPluginNearestLocations))]
-        public static void onGetNearestLocations(string value)
+        public static void onGetMyLocation(string value)
         {
             MessageRouter.RouteMessage(NativeMessageType.MyLocation, value);
         }
@@ -69,8 +68,7 @@ namespace WIGO.Utility
         {
             setSwiftTestPluginVideoDidSave(onGetVideoPath);
             setSwiftTestPluginLocationDidSend(onGetFullLocation);
-            swiftTestPluginNearestLocations(onGetNearestLocations);
-            //setSwiftTestPluginCalculateRoute(() => Debug.Log("Map was opened and closed!"));
+            swiftTestPluginNearestLocations(onGetMyLocation);
         }
 
         public static void OnPressCameraButton()
@@ -90,13 +88,17 @@ namespace WIGO.Utility
 
         public static void OnGetUserLocation()
         {
-            //swiftTestPluginNearestLocations();
-            swiftTestPluginNearestLocations(onGetNearestLocations);
+            swiftTestPluginNearestLocations();
         }
 
         public static void OnViewMap(string theirLocation)
         {
             startSwiftRouteController(theirLocation);
+        }
+
+        public static void OnAllowLocationPermission()
+        {
+            startTurnGeolocationController();
         }
 #endif
     }

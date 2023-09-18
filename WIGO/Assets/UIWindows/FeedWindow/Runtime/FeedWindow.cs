@@ -1,8 +1,11 @@
+using DG.Tweening;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 using WIGO.Core;
 using WIGO.Utility;
 
@@ -16,6 +19,7 @@ namespace WIGO.Userinterface
         [SerializeField] RectTransform _cardsdContent;
         [SerializeField] EndOfPostsController _endOfPostsController;
         [SerializeField] GameObject _loadingLabel;
+        [SerializeField] Image _overlay;
         [SerializeField] EventCard[] _testCards;
         [SerializeField] bool _eventCreated;
         [SerializeField] string _editorVideoPath;
@@ -43,6 +47,7 @@ namespace WIGO.Userinterface
             _currentCardIndex = 0;
             _endOfPostsController.Deactivate();
             _loadingLabel.SetActive(false);
+            _overlay.gameObject.SetActive(false);
             callback?.Invoke();
         }
 
@@ -63,6 +68,7 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
+            _eventCreated = ServiceLocator.Get<GameModel>().HasMyOwnEvent();
             if (_eventCreated)
             {
                 ServiceLocator.Get<UIManager>().Open<EventsRequestsWindow>(WindowId.EVENTS_REQUESTS_SCREEN);
@@ -186,7 +192,35 @@ namespace WIGO.Userinterface
             _currentCardIndex++;
 
             _currentCard = Instantiate(_cardPrefab, _cardsdContent);
-            _currentCard.Setup(card, OnCardSkip);
+            _currentCard.Setup(card, OnCardSwipe);
+        }
+
+        void OnCardSwipe(bool accept)
+        {
+            if (accept)
+            {
+                _isResponse = true;
+                UIGameColors.SetTransparent(_overlay);
+                _overlay.gameObject.SetActive(true);
+                _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
+
+                return;
+            }
+
+            CreateNextCard();
+        }
+
+        IEnumerator DelayLaunchRecord()
+        {
+            _currentCard = null;
+            yield return new WaitForEndOfFrame();
+
+#if UNITY_EDITOR
+            string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
+            OnRecordComplete(path);
+#elif UNITY_IOS
+            MessageIOSHandler.OnPressCameraButton();
+#endif
         }
 
         void OnCardSkip(bool accept)
@@ -195,12 +229,18 @@ namespace WIGO.Userinterface
             {
                 //ServiceLocator.Get<UIManager>().Open<ResponseInfoWindow>(WindowId.RESPONSE_INFO_SCREEN, (window) => window.Setup(true));
                 _isResponse = true;
+                UIGameColors.SetTransparent(_overlay);
+                _overlay.gameObject.SetActive(false);
+                _overlay.DOFade(1f, 0.12f).OnComplete(() =>
+                {
 #if UNITY_EDITOR
-                string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
-                OnRecordComplete(path);
+                    string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
+                    OnRecordComplete(path);
 #elif UNITY_IOS
-                MessageIOSHandler.OnPressCameraButton();
+                    MessageIOSHandler.OnPressCameraButton();
 #endif
+                });
+
                 return;
             }
 

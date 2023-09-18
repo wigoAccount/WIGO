@@ -4,13 +4,17 @@
 <dict>
 	<key>files</key>
 	<dict>
+		<key>.DS_Store</key>
+		<data>
+		hVrCIYuE0MgFVTgJmPy8bH8F4hE=
+		</data>
 		<key>Assets.car</key>
 		<data>
-		nZeIvTZb0ggQAtdRwjI4+I2Xn1U=
+		sE702RxB/kyyzw3m31GQn8sSDDU=
 		</data>
 		<key>Headers/SwiftTestPlugin-Swift.h</key>
 		<data>
-		acA53G/4z/88rKDC49KRy8q6Z4I=
+		xbLHHbRTNbt+1fOe+Gr+hSpvaTE=
 		</data>
 		<key>Headers/SwiftTestPlugin.h</key>
 		<data>
@@ -22,7 +26,7 @@
 		</data>
 		<key>Modules/SwiftTestPlugin.swiftmodule/Project/arm64-apple-ios.swiftsourceinfo</key>
 		<data>
-		f7svr3zNp819A5+ljDtvP1gXLmo=
+		RMlMCgbIpI4TOqi1N1AmIBIP3yw=
 		</data>
 		<key>Modules/SwiftTestPlugin.swiftmodule/arm64-apple-ios.abi.json</key>
 		<data>
@@ -34,7 +38,7 @@
 		</data>
 		<key>Modules/SwiftTestPlugin.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<data>
-		6GIDKHmRlX1w9GuKFOJocT1walM=
+		SFId44L8naDxxku3fdt/Sd6uRY4=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -211,14 +215,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			HFZOcSWU4L0fq5pm+5qb6ekKIDbgM7e2oYKtGnEAJTk=
+			zry4dU2jDtUbvfiR45gENe7L0W9f7ui/UlVL7DBUjlE=
 			</data>
 		</dict>
 		<key>Headers/SwiftTestPlugin-Swift.h</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			CHVNDIeVv1EIQ7ENY0oYTQT/Z0VIJTscnNXSzCc8EWs=
+			RPGI58TcyPrs4Yl2eUK2sczoByp2MIMthB7LkyNFwxc=
 			</data>
 		</dict>
 		<key>Headers/SwiftTestPlugin.h</key>
@@ -232,7 +236,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			eR7ABpXs4itAvrhIAVprUfPEtG279ywoaFg8zlHzbpY=
+			7P9dtaITbJuT2w9Oitp4GNtBt2v1ZlxK0wvHHPqYY9o=
 			</data>
 		</dict>
 		<key>Modules/SwiftTestPlugin.swiftmodule/arm64-apple-ios.abi.json</key>
@@ -253,7 +257,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			0m5l5w45KidO3U2H7BUmdBjClCQHN69eeXpfdEkv7Jk=
+			pDG8GATYWnk8uY5fW1oEj7dJ8jTFXdSpA3HLgO9n6Ss=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>

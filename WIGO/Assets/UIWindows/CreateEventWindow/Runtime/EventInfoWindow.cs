@@ -20,6 +20,7 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _doneElement;
         [SerializeField] protected WindowAnimator _animator;
         [SerializeField] Texture2D _tempPreview;
+        [SerializeField] CreateEventFailMessage _failMessage;
 
         protected string _videoPath;
         protected float _videoAspect;
@@ -76,10 +77,20 @@ namespace WIGO.Userinterface
         {
             if (IsAvailable())
             {
-                await CreateEventOrResponse();
+                var created = await CreateEventOrResponse();
+                if (created == null)
+                {
+                    return;
+                }
+
                 await Task.Delay(1200);
                 ServiceLocator.Get<UIManager>().SwitchTo(WindowId.FEED_SCREEN);
             }
+        }
+
+        protected override void Awake()
+        {
+            _failMessage.Init();
         }
 
         protected virtual Task<AbstractEvent> CreateEventOrResponse()
@@ -101,6 +112,7 @@ namespace WIGO.Userinterface
             _videoPath = null;
             _overlay.gameObject.SetActive(false);
             _doneElement.SetActive(false);
+            _failMessage.Close(true);
         }
 
         protected virtual bool IsAvailable()
@@ -129,7 +141,7 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            // [TODO]: show notification
+            _failMessage.Show();
             Debug.LogError("Fail create event");
         }
 

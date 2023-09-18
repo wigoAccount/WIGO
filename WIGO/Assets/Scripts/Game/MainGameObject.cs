@@ -32,7 +32,6 @@ namespace WIGO
             _model = string.IsNullOrEmpty(saveData) ? new GameModel() : JsonReader.Deserialize<GameModel>(saveData);
             LoadLanguageLocal();
             ServiceLocator.Set(_model);
-            _model.Initialize();
 
             if (string.IsNullOrEmpty(saveData))
             {

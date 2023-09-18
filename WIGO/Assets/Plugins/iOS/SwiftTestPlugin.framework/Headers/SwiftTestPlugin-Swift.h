@@ -343,10 +343,16 @@ SWIFT_EXTERN void startSwiftCameraController(void);
 SWIFT_EXTERN void startSwiftMapController(void);
 
 
+SWIFT_EXTERN void startSwiftRouteController(char const * _Nullable theirLocation);
+
+
 SWIFT_EXTERN void startSwiftTestController(void);
 
 
-SWIFT_EXTERN void swiftTestPluginNearestLocations(void (* _Nonnull delegate)(char const * _Nullable, char const * _Nullable));
+SWIFT_EXTERN void startTurnGeolocationController(void);
+
+
+SWIFT_EXTERN void swiftTestPluginNearestLocations(void (* _Nonnull delegate)(char const * _Nullable));
 
 #endif
 #if defined(__cplusplus)

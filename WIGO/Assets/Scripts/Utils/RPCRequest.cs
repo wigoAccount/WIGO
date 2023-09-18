@@ -94,12 +94,20 @@ namespace WIGO.Core
     #endregion
 
     [Serializable]
+    public struct FeedRequest
+    {
+        public int[] tags;
+        public int gender;
+    }
+
+    [Serializable]
     public struct CreateEventRequest
     {
         public string title;
         public string about;
         public int waiting;
         public int duration;
+        public int gender;
         public Location location;
         public string address;
         public string area;

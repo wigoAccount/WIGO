@@ -9,6 +9,8 @@ using WIGO.Utility;
 using DG.Tweening;
 
 using Event = WIGO.Core.Event;
+using System.Threading;
+
 namespace WIGO.Userinterface
 {
     public enum VideoMode
@@ -28,9 +30,8 @@ namespace WIGO.Userinterface
         [SerializeField] Image _soundStatusIcon;
         [SerializeField] Sprite[] _soundSprites;
         [SerializeField] CanvasGroup _copiedLabel;
-        [SerializeField] EventCard _tempCard;
 
-        EventViewModel _model;
+        new EventViewModel _model;
         EventScreenView _view;
         AbstractEvent _currentCard;
         Sequence _copyAnimation;
@@ -50,7 +51,6 @@ namespace WIGO.Userinterface
 
         public void Setup(AbstractEvent card)
         {
-            //card = _tempCard;       // remove
             _currentCard = card;
             UIGameColors.SetTransparent(_preview, 0.1f);
             SetupCardTextureSize(card.AspectRatio);
@@ -101,21 +101,36 @@ namespace WIGO.Userinterface
 
         public async void OnAcceptClick()
         {
-            // wait server response
             _loadingWindow.SetActive(true);
-            await Task.Delay(1000);
+            var model = ServiceLocator.Get<GameModel>();
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(8000);
+            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, true, model.ShortToken, cts.Token);
 
             _loadingWindow.SetActive(false);
-            //_currentCard.UpdateStatus(EventStatus.Accepted);
             _fullInfoView = true;
             _view.SetView(_currentCard);
         }
 
         public async void OnDenyClick()
         {
-            // wait server response
             _loadingWindow.SetActive(true);
-            await Task.Delay(1000);
+            var model = ServiceLocator.Get<GameModel>();
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(8000);
+            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, false, model.ShortToken, cts.Token);
+
+            _loadingWindow.SetActive(false);
+            ServiceLocator.Get<UIManager>().CloseCurrent();
+        }
+
+        public async void OnRemoveClick()
+        {
+            _loadingWindow.SetActive(true);
+            var model = ServiceLocator.Get<GameModel>();
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(8000);
+            await NetService.TryRemoveEvent(_currentCard.uid, model.GetUserLinks().data.address, _currentCard.IsResponse(), model.ShortToken, cts.Token);
 
             _loadingWindow.SetActive(false);
             //_currentCard.UpdateStatus(EventStatus.Denied);
@@ -124,11 +139,14 @@ namespace WIGO.Userinterface
 
         public void OnViewMapClick()
         {
+            if (_currentCard.location.Equals(default(Location)))
+            {
+                Debug.LogError("Card is empty");
+                return;
+            }
+
             string myLocation = ServiceLocator.Get<GameModel>().GetMyCurrentLocation().ToString();
-            Location loc = string.IsNullOrEmpty(_currentCard.location.longitude)
-                ? new Location() { longitude = "14.88", latitude = "29.2929" }
-                : _currentCard.location;
-            string theirLocation = loc.ToString();
+            string theirLocation = _currentCard.location.ToString();
 
             Debug.LogFormat("Open map: {0}", theirLocation);
 #if UNITY_IOS && !UNITY_EDITOR

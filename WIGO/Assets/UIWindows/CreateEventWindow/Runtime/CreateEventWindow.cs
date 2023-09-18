@@ -73,11 +73,9 @@ namespace WIGO.Userinterface
                 {
                     Event newEvent = (Event)myEvent;
                     ServiceLocator.Get<GameModel>().SetMyEvent(newEvent);
+                    await Task.Delay(1200);                                                 // show success status for 1.2 sec
+                    ServiceLocator.Get<UIManager>().SwitchTo(WindowId.FEED_SCREEN);
                 }
-                
-                // show success status for 1.2 sec
-                await Task.Delay(1200);
-                ServiceLocator.Get<UIManager>().SwitchTo(WindowId.FEED_SCREEN);
             }
         }
 
@@ -98,6 +96,7 @@ namespace WIGO.Userinterface
 
         protected override void Awake()
         {
+            base.Awake();
             MessageRouter.onMessageReceive += OnReceiveMessage;
         }
 
@@ -128,12 +127,14 @@ namespace WIGO.Userinterface
                 return null;
             }
 
-            CreateEventRequest request = new CreateEventRequest()       // [TODO]: set gender
+            int genderIndex = (int)_selectedGender;
+            CreateEventRequest request = new CreateEventRequest()
             {
                 title = "My new event",
                 about = _descIF.text,
                 waiting = 30,
                 duration = 120,
+                gender = genderIndex,
                 location = _location,
                 address = _address,
                 area = _address,
