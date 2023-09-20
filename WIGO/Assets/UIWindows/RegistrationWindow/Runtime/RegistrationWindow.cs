@@ -6,6 +6,7 @@ using WIGO.Utility;
 using AppleAuth;
 using AppleAuth.Enums;
 using AppleAuth.Extensions;
+using AppleAuth.Native;
 
 namespace WIGO.Userinterface
 {
@@ -321,6 +322,14 @@ namespace WIGO.Userinterface
 
         protected override void Awake()
         {
+            if (AppleAuthManager.IsCurrentPlatformSupported)
+            {
+                // Creates a default JSON deserializer, to transform JSON Native responses to C# instances
+                var deserializer = new PayloadDeserializer();
+                // Creates an Apple Authentication manager with the deserializer
+                _appleAuthManager = new AppleAuthManager(deserializer);
+            }
+
             foreach (var step in _steps)
             {
                 step.Initialize(_nextButton.SetEnabled);
