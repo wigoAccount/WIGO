@@ -102,13 +102,16 @@ namespace WIGO.Userinterface
             _switching = true;
             _signInButtonStates[0].SetActive(false);
             _signInButtonStates[1].SetActive(true);
+            Debug.Log("Registration started");
 
 #if UNITY_IOS && !UNITY_EDITOR
+            Debug.Log("Registration started");
             var loginArgs = new AppleAuthLoginArgs(LoginOptions.IncludeEmail | LoginOptions.IncludeFullName);
             _appleAuthManager.LoginWithAppleId(
                 loginArgs,
                 credential =>
                 {
+                    Debug.Log("Registration success");
                     _appleId = credential.User;
                     _switching = false;
                     _signInAppleScreen.SetActive(false);
