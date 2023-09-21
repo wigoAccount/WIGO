@@ -336,6 +336,16 @@ namespace WIGO.Userinterface
             }
         }
 
+        private void Update()
+        {
+            // Updates the AppleAuthManager instance to execute
+            // pending callbacks inside Unity's execution loop
+            if (_appleAuthManager != null)
+            {
+                _appleAuthManager.Update();
+            }
+        }
+
         void MoveStep(int direction)
         {
             _steps[_currentStep + direction].gameObject.SetActive(true);
