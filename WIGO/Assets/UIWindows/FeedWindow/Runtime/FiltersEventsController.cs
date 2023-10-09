@@ -9,34 +9,35 @@ namespace WIGO.Userinterface
     {
         [SerializeField] CategoryFilterElement _categoryPrefab;
         [SerializeField] RectTransform _categoriesContent;
-        [SerializeField] EventsFilterDatabase _database;
+        [SerializeField] string _categoryAllName;
 
         List<CategoryFilterElement> _categories = new List<CategoryFilterElement>();
         CategoryFilterElement _selectedCategory;
         Action _onApplyCategory;
-        EventCategory _appliedCategory = EventCategory.All;
+        int _appliedCategory = 0;
 
-        public EventCategory GetFilterCategory() => _appliedCategory;
+        public int GetFilterCategory() => _appliedCategory;
         public bool FiltersApplied()
         {
-            return _appliedCategory != EventCategory.All;
+            return _appliedCategory != 0;
         }
 
         public void Initialize(Action onApplyCategory)
         {
             _onApplyCategory = onApplyCategory;
 
+            var model = ServiceLocator.Get<GameModel>();
             var all = Instantiate(_categoryPrefab, _categoriesContent);
-            all.Setup(EventCategory.All, GameConsts.GetCategoryLabel(EventCategory.All), OnSelectCategory);
+            all.Setup(0, _categoryAllName, OnSelectCategory);
             _categories.Add(all);
             all.SetSelected(true, false);
             _selectedCategory = all;
 
-            foreach (var category in _database.GetAllCategories())
+            foreach (var category in model.GetAvailableTags())
             {
-                string label = GameConsts.GetCategoryLabel(category);
+                string label = category.name;
                 var element = Instantiate(_categoryPrefab, _categoriesContent);
-                element.Setup(category, label, OnSelectCategory);
+                element.Setup(category.uid, label, OnSelectCategory);
                 _categories.Add(element);
             }
         }
@@ -48,7 +49,7 @@ namespace WIGO.Userinterface
                 category.SetSelected(false, false);
             }
 
-            _appliedCategory = EventCategory.All;
+            _appliedCategory = 0;
             _selectedCategory = _categories[0];
             _selectedCategory.SetSelected(true, false);
         }

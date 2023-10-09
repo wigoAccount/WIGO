@@ -15,10 +15,9 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _descLabel;
         [SerializeField] TMP_Text _distanceLabel;
 
-        CancellationTokenSource _profileCts;
         Action<OpeningVideoRequestElement, bool> _onManageRequest;
 
-        public void Setup(EventCard card, Action<OpeningVideoRequestElement, bool> onManageRequest)
+        public void Setup(Request card, Action<OpeningVideoRequestElement, bool> onManageRequest)
         {
             if (card == null)
             {
@@ -27,10 +26,10 @@ namespace WIGO.Userinterface
             }
 
             _onManageRequest = onManageRequest;
-            _descLabel.text = card.GetDescription();
-            _distanceLabel.text = string.Format("{0} min from me", card.CalculateDistanceTime());
-            SetupUserInfo(card.GetUser());
-            SetupVideo(card.GetVideoPath(), card.GetVideoAspect());
+            _descLabel.text = card.about;
+            _distanceLabel.text = string.Format("{0} min from me", card.waiting);       // [TODO]: change with config
+            SetupUserInfo(card.author);
+            SetupVideo(card.video, card.AspectRatio);
         }
 
         public override void OnVideoClick()
@@ -63,10 +62,6 @@ namespace WIGO.Userinterface
         {
             base.Clear();
             _soundStatusIcon.sprite = _soundSprites[0];
-            if (_profileCts != null)
-            {
-                _profileCts.Cancel();
-            }
         }
 
         public void OnManageRequest(bool accept)
@@ -74,23 +69,14 @@ namespace WIGO.Userinterface
             _onManageRequest?.Invoke(this, accept);
         }
 
-        async void SetupUserInfo(string userId)
+        void SetupUserInfo(ProfileData profile)
         {
-            _profileCts = new CancellationTokenSource();
-            await Task.Delay(100);
+            _usernameLabel.text = profile.nickname;
+            var scoreEvents = Math.Round(UnityEngine.Random.Range(0f, 5f), 1).ToString();
+            var scoreRequests = Math.Round(UnityEngine.Random.Range(0f, 5f), 1).ToString();
 
-            if (!_profileCts.IsCancellationRequested)
-            {
-                // fake data
-                _usernameLabel.text = userId;
-                var scoreEvents = Math.Round(UnityEngine.Random.Range(0f, 5f), 1).ToString();
-                var scoreRequests = Math.Round(UnityEngine.Random.Range(0f, 5f), 1).ToString();
-
-                _scoreEventLabel.text = scoreEvents;
-                _scoreRequestLabel.text = scoreRequests;
-            }
-
-            _profileCts = null;
+            _scoreEventLabel.text = scoreEvents;
+            _scoreRequestLabel.text = scoreRequests;
         }
     }
 }

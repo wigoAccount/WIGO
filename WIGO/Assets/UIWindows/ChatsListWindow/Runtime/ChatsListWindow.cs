@@ -100,7 +100,11 @@ namespace WIGO.Userinterface
                 AbstractEvent card;
                 if (UnityEngine.Random.Range(0f, 1f) > 0.5f)
                 {
-                    card = new Request();
+                    int status = UnityEngine.Random.Range(1, 3);
+                    card = new Request()
+                    {
+                        status = ((Request.RequestStatus)status).ToString()
+                    };
                 }
                 else
                 {
@@ -144,9 +148,11 @@ namespace WIGO.Userinterface
             }
         }
 
+        // [TODO]: set isMyRequest in Request class
         void OnSelectChat(AbstractEvent card)
         {
-            ServiceLocator.Get<UIManager>().Open<EventViewWindow>(WindowId.EVENT_VIEW_SCREEN, window => window.Setup(card));
+            Request request = (Request)card;
+            ServiceLocator.Get<UIManager>().Open<EventViewWindow>(WindowId.EVENT_VIEW_SCREEN, window => window.Setup(request, false));
         }
 
         void ClearWindow()

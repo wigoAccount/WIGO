@@ -131,12 +131,11 @@ namespace WIGO.Userinterface
                     "\"about\":" + $"\"{updatedProfile.about.Replace("\n", "\\n")}\"," +
                     "\"gender\":" + $"\"{genderUID}\"," +
                     "\"avatar\":" + $"\"{updatedProfile.avatar}\"," +
-                    "\"tags_add\":" + $"[{addTags}]," +// [1,2], // ?????? ????? (?????????)
-                    "\"tags_remove\":" + $"[{removeTags}]}}";// [3]
+                    "\"tags_add\":" + $"[{addTags}]," +
+                    "\"tags_remove\":" + $"[{removeTags}]}}";
 
             var model = ServiceLocator.Get<GameModel>();
             _cts = new CancellationTokenSource();
-            Debug.Log(model.ShortToken);
             var profile = await NetService.TryUpdateUser(userUpdJson, model.ShortToken, _cts.Token);
             if (_cts.IsCancellationRequested)
             {

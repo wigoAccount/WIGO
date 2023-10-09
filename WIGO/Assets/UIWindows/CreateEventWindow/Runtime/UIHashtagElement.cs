@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using WIGO.Core;
 
 namespace WIGO.Userinterface
 {
@@ -7,19 +8,19 @@ namespace WIGO.Userinterface
     {
         [SerializeField] TMP_Text _label;
 
-        string _tag;
+        GeneralData _tag;
 
-        public void SetHashtag(string tag)
+        public void SetHashtag(GeneralData data)
         {
             RectTransform hashtag = transform as RectTransform;
 
-            _tag = tag;
-            _label.text = tag;
+            _tag = data;
+            _label.text = data.name;
             float textWidth = _label.preferredWidth + 2f;
             float width = textWidth + 32f;
             hashtag.sizeDelta = new Vector2(width, hashtag.sizeDelta.y);
         }
 
-        public string GetTag() => _tag;
+        public GeneralData GetTag() => _tag;
     }
 }

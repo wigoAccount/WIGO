@@ -7,6 +7,8 @@ using AppleAuth;
 using AppleAuth.Enums;
 using AppleAuth.Extensions;
 using AppleAuth.Native;
+using Amazon.S3;
+using Amazon.Runtime;
 
 namespace WIGO.Userinterface
 {

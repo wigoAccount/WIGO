@@ -22,6 +22,8 @@ namespace WIGO.Userinterface
         string _address;
         bool _locationSelected;
 
+        const int EVENT_WAITING_SECONDS = 1800;
+
         public override void OnReopen(WindowId previous, UIWindowModel cachedModel)
         {
             _animator.OnReopen();
@@ -120,7 +122,7 @@ namespace WIGO.Userinterface
         {
             base.CreateEventOrResponse();
 
-            string video = await UploadVideo();
+            string video = await UploadVideo(_videoPath);
             if (string.IsNullOrEmpty(video))
             {
                 Debug.LogError("Fail upload video");
@@ -132,7 +134,7 @@ namespace WIGO.Userinterface
             {
                 title = "My new event",
                 about = _descIF.text,
-                waiting = 30,
+                waiting = EVENT_WAITING_SECONDS,
                 duration = 120,
                 gender = genderIndex,
                 location = _location,
@@ -147,6 +149,7 @@ namespace WIGO.Userinterface
             var cts = new CancellationTokenSource();
             cts.CancelAfter(8000);
             var myEvent = await NetService.TryCreateEvent(request, model.GetUserLinks().data.address, model.ShortToken, cts.Token);
+            model.SetMyEvent(myEvent);
             ShowResult(myEvent != null);
 
             return myEvent;

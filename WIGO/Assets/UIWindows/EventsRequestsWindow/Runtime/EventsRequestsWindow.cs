@@ -7,12 +7,12 @@ namespace WIGO.Userinterface
     {
         [SerializeField] EventsRequestsHeader _header;
         [SerializeField] EventsPart _eventsPart;
-        [SerializeField] RequestsPart _requestsPart;
+        //[SerializeField] RequestsPart _requestsPart;
 
         public override void OnOpen(WindowId previous)
         {
             _eventsPart.SetPartActive(true);
-            _requestsPart.SetPartActive(false);
+            //_requestsPart.SetPartActive(false);
         }
 
         public override void OnClose(WindowId next, Action callback = null)
@@ -21,9 +21,9 @@ namespace WIGO.Userinterface
             {
                 _header.ResetHeader();
                 _eventsPart.ResetPart();
-                _requestsPart.ResetPart();
-                _eventsPart.SetPartActive(true, false);
-                _requestsPart.SetPartActive(false, false);
+                //_requestsPart.ResetPart();
+                //_eventsPart.SetPartActive(true, false);
+                //_requestsPart.SetPartActive(false, false);
             }
             base.OnClose(next, callback);
         }
@@ -32,9 +32,9 @@ namespace WIGO.Userinterface
         {
             _header.ResetHeader();
             _eventsPart.ResetPart();
-            _requestsPart.ResetPart();
-            _eventsPart.SetPartActive(true, false);
-            _requestsPart.SetPartActive(false, false);
+            //_requestsPart.ResetPart();
+            //_eventsPart.SetPartActive(true, false);
+            //_requestsPart.SetPartActive(false, false);
             
             callback?.Invoke();
         }
@@ -63,14 +63,14 @@ namespace WIGO.Userinterface
         {
             _header.Initialize(OnChangeCategory);
             _eventsPart.Initialize();
-            _requestsPart.Initialize();
+            //_requestsPart.Initialize();
         }
 
         void OnChangeCategory(int category)
         {
             _header.ChangeCategory(category);
             _eventsPart.SetPartActive(category == 0);
-            _requestsPart.SetPartActive(category == 1);
+            //_requestsPart.SetPartActive(category == 1);
         }
     }
 }

@@ -3,11 +3,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using WIGO.Core;
 using WIGO.Utility;
+using Event = WIGO.Core.Event;
+using TMPro;
 
 namespace WIGO.Userinterface
 {
@@ -20,11 +22,14 @@ namespace WIGO.Userinterface
         [SerializeField] EndOfPostsController _endOfPostsController;
         [SerializeField] GameObject _loadingLabel;
         [SerializeField] Image _overlay;
-        [SerializeField] EventCard[] _testCards;
+        [Space]
+        [SerializeField] GameObject _createEventButton;
+        [SerializeField] GameObject _myEventButton;
+        [SerializeField] TMP_Text _remainingTimeLabel;
         [SerializeField] bool _eventCreated;
         [SerializeField] string _editorVideoPath;
 
-        List<EventCard> _loadedCards = new List<EventCard>();
+        List<Event> _loadedCards = new List<Event>();
         UIEventCardElement _currentCard;
         CancellationTokenSource _cts;
         int _currentCardIndex;
@@ -33,7 +38,11 @@ namespace WIGO.Userinterface
 
         public override void OnOpen(WindowId previous)
         {
-            var profile = ServiceLocator.Get<GameModel>().GetMyProfile();
+            var model = ServiceLocator.Get<GameModel>();
+            var profile = model.GetMyProfile();
+            _eventCreated = model.HasMyOwnEvent();
+            _createEventButton.SetActive(!_eventCreated);
+            _myEventButton.SetActive(_eventCreated);
             _userProfileElement.Setup(profile);
             RefreshFeed();
         }
@@ -68,22 +77,18 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            _eventCreated = ServiceLocator.Get<GameModel>().HasMyOwnEvent();
-            if (_eventCreated)
-            {
-                ServiceLocator.Get<UIManager>().Open<EventsRequestsWindow>(WindowId.EVENTS_REQUESTS_SCREEN);
-            }
-            else
-            {
-                //ServiceLocator.Get<UIManager>().Open<ResponseInfoWindow>(WindowId.RESPONSE_INFO_SCREEN, (window) => window.Setup());
-                _isResponse = false;
+            _isResponse = false;
 #if UNITY_EDITOR
-                string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
-                OnRecordComplete(path);
+            string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
+            OnRecordComplete(path);
 #elif UNITY_IOS
-                MessageIOSHandler.OnPressCameraButton();
+            MessageIOSHandler.OnPressCameraButton();
 #endif
-            }
+        }
+
+        public void OnOpenMyEvent()
+        {
+            ServiceLocator.Get<UIManager>().Open<EventsRequestsWindow>(WindowId.EVENTS_REQUESTS_SCREEN);
         }
 
         public void OnRefreshFeedClick()
@@ -109,11 +114,13 @@ namespace WIGO.Userinterface
         {
             MessageRouter.onMessageReceive += OnReceiveMessage;
             _filtersController.Initialize(OnApplyFilterCategory);
+            ServiceLocator.Get<GameModel>().OnChangeMyEventTime += OnSetRemainingTime;
         }
 
         private void OnDestroy()
         {
             MessageRouter.onMessageReceive -= OnReceiveMessage;
+            ServiceLocator.Get<GameModel>().OnChangeMyEventTime -= OnSetRemainingTime;
         }
 
         private void OnApplicationPause(bool pause)
@@ -143,39 +150,14 @@ namespace WIGO.Userinterface
             _currentCard = null;
             _endOfPostsController.Deactivate();
             _loadingLabel.SetActive(true);
-            _cts = new CancellationTokenSource();
             _waitForLocation = true;
 
-//#if UNITY_EDITOR
+#if UNITY_EDITOR
             string location = "Longitude: -294.67 Latitude: 81.62";
             OnGetLocation(location);
-//#elif UNITY_IOS
-//            MessageIOSHandler.OnGetUserLocation();
-//#endif
-
-            //// fake loading posts
-            //var category = _filtersController.GetFilterCategory();
-            //await Task.Delay(600, _cts.Token);
-
-            //if (_cts.IsCancellationRequested)
-            //{
-            //    return;
-            //}
-
-            //_cts = null;
-            //_loadingLabel.SetActive(false);
-            //_loadedCards = category == EventCategory.All
-            //    ? new List<EventCard>(_testCards)
-            //    : new List<EventCard>(Array.FindAll(_testCards, x => x.HasCategory(category)));
-            //_currentCardIndex = 0;
-
-            //if (_loadedCards.Count == 0)
-            //{
-            //    SetEndOfPosts();
-            //    return;
-            //}
-
-            //CreateNextCard();
+#elif UNITY_IOS
+            MessageIOSHandler.OnGetUserLocation();
+#endif
         }
 
         void CreateNextCard()
@@ -223,30 +205,6 @@ namespace WIGO.Userinterface
 #endif
         }
 
-        void OnCardSkip(bool accept)
-        {
-            if (accept)
-            {
-                //ServiceLocator.Get<UIManager>().Open<ResponseInfoWindow>(WindowId.RESPONSE_INFO_SCREEN, (window) => window.Setup(true));
-                _isResponse = true;
-                UIGameColors.SetTransparent(_overlay);
-                _overlay.gameObject.SetActive(false);
-                _overlay.DOFade(1f, 0.12f).OnComplete(() =>
-                {
-#if UNITY_EDITOR
-                    string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
-                    OnRecordComplete(path);
-#elif UNITY_IOS
-                    MessageIOSHandler.OnPressCameraButton();
-#endif
-                });
-
-                return;
-            }
-
-            CreateNextCard();
-        }
-
         void SetEndOfPosts()
         {
             var model = ServiceLocator.Get<GameModel>();
@@ -272,6 +230,12 @@ namespace WIGO.Userinterface
             }
 
             _endOfPostsController.Activate(EndOfPostsType.EmptyFeed);
+        }
+
+        void OnSetRemainingTime(int seconds)
+        {
+            int minutes = Mathf.FloorToInt(seconds / 60f);
+            _remainingTimeLabel.SetText(minutes.ToString());
         }
 
         void OnReceiveMessage(NativeMessageType type, string message)
@@ -318,20 +282,29 @@ namespace WIGO.Userinterface
                 _waitForLocation = false;
                 Debug.LogFormat("Location REG: {0}", location);
 
-                // fake loading posts
-                var category = _filtersController.GetFilterCategory();
-                await Task.Delay(600, _cts.Token);
+                int categoryUid = _filtersController.GetFilterCategory();
+                var model = ServiceLocator.Get<GameModel>();
+                _cts = new CancellationTokenSource();
+                _cts.CancelAfter(8000);
+
+                int[] tags = categoryUid == 0 ? new int[0] : new int[] { categoryUid };
+                FeedRequest request = new FeedRequest()
+                {
+                    tags = tags
+                };
+                IEnumerable<Event> cards = await NetService.TryGetFeedEvents(request, model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
 
                 if (_cts.IsCancellationRequested)
                 {
                     return;
                 }
 
+                _cts.Dispose();
                 _cts = null;
                 _loadingLabel.SetActive(false);
-                _loadedCards = category == EventCategory.All
-                    ? new List<EventCard>(_testCards)
-                    : new List<EventCard>(Array.FindAll(_testCards, x => x.HasCategory(category)));
+                _loadedCards = categoryUid == 0
+                    ? new List<Event>(cards)
+                    : new List<Event>(cards.Where(x => x.ContainsTag(categoryUid)));
                 _currentCardIndex = 0;
 
                 if (_loadedCards.Count == 0)

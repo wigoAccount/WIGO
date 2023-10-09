@@ -1,4 +1,5 @@
 using UnityEngine;
+using WIGO.Core;
 using WIGO.Userinterface;
 using WIGO.Utility;
 
@@ -7,6 +8,7 @@ namespace WIGO
     public class MainGameObject : MonoBehaviour
     {
         [SerializeField] UIManager _uiManager;
+        [SerializeField] S3DataConfig _s3DataConfig;
         [SerializeField] bool _clearSaveData;
 
         GameModel _model;
@@ -32,10 +34,12 @@ namespace WIGO
             _model = string.IsNullOrEmpty(saveData) ? new GameModel() : JsonReader.Deserialize<GameModel>(saveData);
             LoadLanguageLocal();
             ServiceLocator.Set(_model);
+            S3ContentClient s3Client = new S3ContentClient(_s3DataConfig);
+            ServiceLocator.Set(s3Client);
 
             if (string.IsNullOrEmpty(saveData))
             {
-                _uiManager.Open<StartScreenWindow>(WindowId.START_SCREEN);
+                _uiManager.Open<StartScreenWindow>(WindowId.START_SCREEN, window => window.Setup(true));
             }
             else
             {

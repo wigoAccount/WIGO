@@ -6,15 +6,6 @@ using System;
 
 namespace WIGO.Userinterface
 {
-    public enum EventCategory
-    {
-        All,
-        Party,
-        Outside,
-        Sport,
-        Other
-    }
-
     public class CategoryFilterElement : MonoBehaviour
     {
         [SerializeField] Image _background;
@@ -22,14 +13,14 @@ namespace WIGO.Userinterface
 
         Tween _selectTween;
         Action<CategoryFilterElement> _onCategorySelect;
-        EventCategory _category;
+        int _category;
 
         const float MIN_WIDTH = 58f;
         const float PADDING = 20f;
 
-        public EventCategory GetCategory() => _category;
+        public int GetCategory() => _category;
 
-        public void Setup(EventCategory category, string label, Action<CategoryFilterElement> onCategorySelect)
+        public void Setup(int category, string label, Action<CategoryFilterElement> onCategorySelect)
         {
             _onCategorySelect = onCategorySelect;
             _category = category;

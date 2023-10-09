@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
+using System;
 
 namespace WIGO.Userinterface
 {
@@ -13,6 +14,26 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _btnLabel;
 
         bool _animating;
+        bool _startOnboarding;
+
+        public void Setup(bool inStart)
+        {
+            _startOnboarding = inStart;
+        }
+
+        public override void OnClose(WindowId next, Action callback = null)
+        {
+            _placeholderScroll.Clear();
+            _button.color = UIGameColors.transparent10;
+            _btnLabel.SetText("Далее");                      // [TODO]: replace with config
+            for (int i = 0; i < _points.Length; i++)
+            {
+                float alpha = i == 0 ? 1f : 0.1f;
+                UIGameColors.SetTransparent(_points[i], alpha);
+            }
+            _animating = false;
+            callback?.Invoke();
+        }
 
         public void OnNextClick()
         {
@@ -21,7 +42,14 @@ namespace WIGO.Userinterface
 
             if (_placeholderScroll.GetCurrentIndex() >= _points.Length - 1)
             {
-                ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
+                if (_startOnboarding)
+                {
+                    ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
+                }
+                else
+                {
+                    ServiceLocator.Get<UIManager>().CloseCurrent();
+                }
                 return;
             }
 
@@ -33,8 +61,16 @@ namespace WIGO.Userinterface
 
         public void OnSkipClick()
         {
-            ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
+            if (_startOnboarding)
+            {
+                ServiceLocator.Get<UIManager>().Open<RegistrationWindow>(WindowId.REGISTRATION_SCREEN);
+            }
+            else
+            {
+                ServiceLocator.Get<UIManager>().CloseCurrent();
+            }
         }
+            
 
         protected override void Awake()
         {

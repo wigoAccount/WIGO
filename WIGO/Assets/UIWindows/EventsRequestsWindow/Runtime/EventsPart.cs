@@ -17,7 +17,6 @@ namespace WIGO.Userinterface
         [SerializeField] CategoryEventElement _categoryPrefab;
         [SerializeField] GameObject _emptyEventContent;
         [SerializeField] GameObject _myEventContent;
-        [SerializeField] bool _isEmpty;
         [Space]
         [SerializeField] GameObject _loadingWindow;
 
@@ -76,7 +75,7 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            _timer += Time.deltaTime;
+            _timer += Time.unscaledDeltaTime;
             if (_timer >= 1f)
             {
                 _timer -= 1f;
@@ -97,7 +96,7 @@ namespace WIGO.Userinterface
             _myEvent = await NetService.TryGetMyEvent(model.GetUserLinks().data.address, model.ShortToken, cts.Token);
 
             _loaded = true;
-            if (_isEmpty)
+            if (_myEvent == null)
             {
                 _myEventContent.SetActive(false);
                 _emptyEventContent.SetActive(true);
@@ -119,8 +118,7 @@ namespace WIGO.Userinterface
                 categoryBlock.Setup(category);
             }
 
-            float.TryParse(_myEvent.preview, out float aspect);
-            _videoElement.SetupVideo(_myEvent.video, aspect < 0f ? 0.5625f : aspect);
+            _videoElement.SetupVideo(_myEvent.video, _myEvent.AspectRatio);
         }
 
         void DeleteEvent()
@@ -128,7 +126,7 @@ namespace WIGO.Userinterface
             _videoElement.Clear();
             _myEventContent.SetActive(false);
             _emptyEventContent.SetActive(true);
-            _isEmpty = true;
+            ServiceLocator.Get<GameModel>().SetMyEvent(null);
         }
 
         void UpdateRemainingTime(int time)

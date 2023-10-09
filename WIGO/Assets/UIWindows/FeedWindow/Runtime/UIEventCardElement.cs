@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using WIGO.Core;
 using DG.Tweening;
+using Event = WIGO.Core.Event;
 
 namespace WIGO.Userinterface
 {
@@ -25,6 +26,8 @@ namespace WIGO.Userinterface
         [Space]
         [SerializeField] Color _acceptColor;
         [SerializeField] Color _declineColor;
+        [Space]
+        [SerializeField] string _editorVideoPath;
 
         CanvasGroup _cardGroup;
         Action<bool> _onCardSkip;
@@ -40,29 +43,36 @@ namespace WIGO.Userinterface
         const float SWIPE_BACK_VALUE = 64f;
         const float MIN_DESC_HEIGHT = 16f;
 
-        public void Setup(EventCard card, Action<bool> onCardSkip)
+        public void Setup(Event card, Action<bool> onCardSkip)
         {
             _onCardSkip = onCardSkip;
             _cardGroup = GetComponent<CanvasGroup>();
 
-            _usernnameLabel.text = card.GetUser();
+            _usernnameLabel.text = card.author.nickname;
             float nameWidth = Mathf.Min(_usernnameLabel.preferredWidth + 0.4f, 128f);
             _usernnameLabel.rectTransform.sizeDelta = new Vector2(nameWidth, _usernnameLabel.rectTransform.sizeDelta.y);
-            _descLabel.text = card.GetDescription();
-            _locationLabel.text = card.GetLocation();
+            _descLabel.text = card.about;
+            _locationLabel.text = card.address;
             _moreButton.gameObject.SetActive(_descLabel.preferredWidth > _descLabel.rectTransform.rect.width);
-            _distanceTimeLabel.text = $"{card.CalculateDistanceTime()} min from me";
-            _remainingSeconds = card.GetRemainingTime();
+            _distanceTimeLabel.text = $"{card.waiting} min from me";        // [TODO]: change with config
+            _remainingSeconds = card.waiting;
             //_groupSizeLabel.text = card.GetGroupSizeType().ToString();
             //_groupSizeIcon.color = card.GetGroupSizeType() == EventGroupSizeType.Single ? UIGameColors.Purple : UIGameColors.Blue;
 
-            foreach (var category in card.GetHashtags())
+            var model = ServiceLocator.Get<GameModel>();
+            foreach (var category in card.tags)
             {
                 var categoryBlock = Instantiate(_categoryPrefab, _categoriesContent);
-                categoryBlock.Setup(category);
+                categoryBlock.Setup(model.GetCategoryNameWithIndex(category));
             }
 
-            SetupVideo(card.GetVideoPath(), card.GetVideoAspect());
+            string url;
+#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
+            url = ServiceLocator.Get<S3ContentClient>().GetVideoURL(card.video);
+#else
+            url = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
+#endif
+            SetupVideo(card.video, card.AspectRatio);
             OnOpen();
         }
 
@@ -138,7 +148,7 @@ namespace WIGO.Userinterface
             float height = _isFullDesc ? MIN_DESC_HEIGHT : _descLabel.preferredHeight + 0.4f;
             float pos = _descLabel.rectTransform.anchoredPosition.y + height + 16f;
             _isFullDesc = !_isFullDesc;
-            _moreButton.text = _isFullDesc ? "Less" : "More";
+            _moreButton.text = _isFullDesc ? "Less" : "More";       // [TODO]: change with config
             CancelSqueeze();
 
             _squeezeTween = DOTween.Sequence().Append(_descLabel.rectTransform.DOSizeDelta(new Vector2(_descLabel.rectTransform.sizeDelta.x, height), 0.2f))

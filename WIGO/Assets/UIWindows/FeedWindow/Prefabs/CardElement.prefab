@@ -1597,6 +1597,7 @@ MonoBehaviour:
   _categoriesContent: {fileID: 6390878028962085930}
   _acceptColor: {r: 0.25490198, g: 0.7372549, b: 0.27450982, a: 1}
   _declineColor: {r: 0.99215686, g: 0.34117648, b: 0.22352941, a: 1}
+  _editorVideoPath: FakeProfile/IMG_9675.MP4
 --- !u!225 &1562692731408572615
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -1993,7 +1994,7 @@ VideoPlayer:
   m_TargetAudioSources:
   - {fileID: 0}
   m_DirectAudioVolumes:
-  - 1
+  - 0
   m_Url: 
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 01

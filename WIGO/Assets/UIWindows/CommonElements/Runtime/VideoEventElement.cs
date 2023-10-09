@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
@@ -22,6 +23,7 @@ namespace WIGO.Userinterface
         protected VideoMode _currentMode = VideoMode.Muted;
         protected RenderTexture _renderTexture;
         protected RectTransform _cardRect;
+        Coroutine _videoLoadRoutine;
 
         const int VIDEO_SIZE = 720;
 
@@ -32,6 +34,11 @@ namespace WIGO.Userinterface
 
         public virtual void OnVideoClick()
         {
+            if (!_player.isPrepared)
+            {
+                return;
+            }
+
             switch (_currentMode)
             {
                 case VideoMode.Muted:
@@ -55,29 +62,36 @@ namespace WIGO.Userinterface
 
         public virtual void Clear()
         {
+            if (_videoLoadRoutine != null)
+            {
+                StopCoroutine(_videoLoadRoutine);
+                _videoLoadRoutine = null;
+            }
+
             _player.SetDirectAudioMute(0, true);
             _player.Stop();
             _player.targetTexture = null;
             _videoTexture.texture = null;
-            _renderTexture.Release();
+            _renderTexture?.Release();
         }
 
-        public virtual void SetupVideo(string path, float aspect)
+        public virtual void SetupVideo(string url, float aspect)
         {
             if (_cardRect == null)
             {
                 _cardRect = transform as RectTransform;
             }
 
+            aspect = aspect <= 0f ? 9f / 16f : aspect;
             _currentMode = VideoMode.Muted;
-            string fullPath = System.IO.Path.Combine(Application.streamingAssetsPath, path);
-            _player.url = fullPath;
-
+            string path = url;
+#if UNITY_EDITOR
+            path = System.IO.Path.Combine(Application.streamingAssetsPath, Core.GameConsts.EDITOR_TEST_VIDEO);
+#endif
             int height = Mathf.RoundToInt(VIDEO_SIZE / aspect);
 
             _renderTexture = RenderTexture.GetTemporary(VIDEO_SIZE, height, 32, GraphicsFormat.R16G16B16A16_SFloat);
             _renderTexture.Create();
-            //RenderTexture.active = _renderTexture;
             _player.targetTexture = _renderTexture;
             _videoTexture.texture = _renderTexture;
 
@@ -92,7 +106,7 @@ namespace WIGO.Userinterface
             }
 
             _videoTexture.rectTransform.sizeDelta = new Vector2(videoWidth, videoHeight);
-            _player.Play();
+            _videoLoadRoutine = StartCoroutine(LoadVideoContent(path));
         }
 
         public void Play()
@@ -110,14 +124,45 @@ namespace WIGO.Userinterface
 
         public void ResetVideo()
         {
-            //if (_player.isPrepared)
-            //{
+            if (_player.isPrepared)
+            {
                 _player.Pause();
                 _player.time = 0f;
                 _player.SetDirectAudioMute(0, true);
                 _currentMode = VideoMode.Muted;
                 _soundStatusIcon.sprite = _soundSprites[0];
-            //}
+            }
+        }
+
+        void OnErrorReceived(VideoPlayer vp, string message)
+        {
+            _player.errorReceived -= OnErrorReceived;
+            if (_videoLoadRoutine != null)
+            {
+                StopCoroutine(_videoLoadRoutine);
+                _videoLoadRoutine = null;
+            }
+
+            Debug.LogFormat("<color=orange>Error received: {0}</color>", message);
+        }
+
+        IEnumerator LoadVideoContent(string url)
+        {
+            if (!string.IsNullOrEmpty(url))
+            {
+                _player.errorReceived += OnErrorReceived;
+                _player.url = url;
+                _player.Prepare();
+
+                while (!_player.isPrepared)
+                {
+                    yield return null;
+                }
+
+                _player.Play();
+                _player.errorReceived -= OnErrorReceived;
+                _videoLoadRoutine = null;
+            }
         }
     }
 }

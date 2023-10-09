@@ -1,3 +1,5 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -545,8 +547,7 @@ namespace WIGO.Core
                 Method = HttpMethod.Post,
                 RequestUri = new System.Uri(url),
                 Headers = {
-                    { HttpRequestHeader.ContentType.ToString(), "application/json" }//,
-                    //{ "rpcauth", "adg463df" }
+                    { HttpRequestHeader.ContentType.ToString(), "application/json" }
                 },
                 Content = new StringContent(request)
             };

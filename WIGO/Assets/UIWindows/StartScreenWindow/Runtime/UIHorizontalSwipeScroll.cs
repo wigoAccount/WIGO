@@ -36,6 +36,16 @@ namespace WIGO.Userinterface
             }
         }
 
+        public void Clear()
+        {
+            _currentIndex = 0;
+            content.anchoredPosition = Vector2.zero;
+            foreach (var item in _created)
+            {
+                item.gameObject.SetActive(true);
+            }
+        }
+
         public override void OnBeginDrag(PointerEventData eventData)
         {
             if ((_currentIndex == 0 && eventData.delta.x > 0f)

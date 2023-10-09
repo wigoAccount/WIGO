@@ -5,10 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using WIGO.Core;
-using WIGO.Utility;
 using DG.Tweening;
 
-using Event = WIGO.Core.Event;
 using System.Threading;
 
 namespace WIGO.Userinterface
@@ -33,8 +31,9 @@ namespace WIGO.Userinterface
 
         new EventViewModel _model;
         EventScreenView _view;
-        AbstractEvent _currentCard;
+        Request _currentCard;
         Sequence _copyAnimation;
+        CancellationTokenSource _cts;
 
         RenderTexture _videoTexture;
         Coroutine _videoLoadRoutine;
@@ -49,7 +48,7 @@ namespace WIGO.Userinterface
             callback?.Invoke();
         }
 
-        public void Setup(AbstractEvent card)
+        public void Setup(Request card, bool isMyRequest)
         {
             _currentCard = card;
             UIGameColors.SetTransparent(_preview, 0.1f);
@@ -59,18 +58,17 @@ namespace WIGO.Userinterface
             _videoTexture = new RenderTexture(videoSize.x, videoSize.y, 32);
             UIGameColors.SetTransparent(_preview, 1f);
             _preview.texture = _videoTexture;
-            _fullInfoView = card.IsResponse() 
-                ? ((Request)card).GetStatus() == Request.RequestStatus.accept 
-                : ((Event)card).GetStatus() == Event.EventStatus.active;
+            _fullInfoView = card.GetStatus() == Request.RequestStatus.accept;
 
             _videoLoadRoutine = StartCoroutine(LoadVideoContent(card.video));
-            _view.SetView(card);
+            _view.SetupView(card, isMyRequest);
             _seconds = card.waiting;
             _timer = 0f;
         }
 
         public void OnBackButtonClick()
         {
+            _cts?.Cancel();
             ServiceLocator.Get<UIManager>().CloseCurrent();
         }
 
@@ -103,24 +101,44 @@ namespace WIGO.Userinterface
         {
             _loadingWindow.SetActive(true);
             var model = ServiceLocator.Get<GameModel>();
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(8000);
-            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, true, model.ShortToken, cts.Token);
+            _cts = new CancellationTokenSource();
+            _cts.CancelAfter(8000);
+            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, true, model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
+            if (_cts.IsCancellationRequested)
+            {
+                _cts.Dispose();
+                _cts = null;
+                return;
+            }
+
+            _cts.Dispose();
+            _cts = null;
+            _currentCard.status = "accept";
             _fullInfoView = true;
-            _view.SetView(_currentCard);
+            _view.SetupView(_currentCard, false);
         }
 
         public async void OnDenyClick()
         {
             _loadingWindow.SetActive(true);
             var model = ServiceLocator.Get<GameModel>();
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(8000);
-            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, false, model.ShortToken, cts.Token);
+            _cts = new CancellationTokenSource();
+            _cts.CancelAfter(8000);
+            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, false, model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
+            if (_cts.IsCancellationRequested)
+            {
+                _cts.Dispose();
+                _cts = null;
+                return;
+            }
+
+            _cts.Dispose();
+            _cts = null;
+            _currentCard.status = "decline";
             ServiceLocator.Get<UIManager>().CloseCurrent();
         }
 
@@ -128,12 +146,21 @@ namespace WIGO.Userinterface
         {
             _loadingWindow.SetActive(true);
             var model = ServiceLocator.Get<GameModel>();
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(8000);
-            await NetService.TryRemoveEvent(_currentCard.uid, model.GetUserLinks().data.address, _currentCard.IsResponse(), model.ShortToken, cts.Token);
+            _cts = new CancellationTokenSource();
+            _cts.CancelAfter(8000);
+            // [TODO]: check isMyRequest                                                                here
+            await NetService.TryRemoveEvent(_currentCard.uid, model.GetUserLinks().data.address, _currentCard.IsResponse(), model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
-            //_currentCard.UpdateStatus(EventStatus.Denied);
+            if (_cts.IsCancellationRequested)
+            {
+                _cts.Dispose();
+                _cts = null;
+                return;
+            }
+
+            _cts.Dispose();
+            _cts = null;
             ServiceLocator.Get<UIManager>().CloseCurrent();
         }
 
@@ -265,11 +292,6 @@ namespace WIGO.Userinterface
                 _videoPlayer.targetTexture = _videoTexture;
                 _videoPlayer.errorReceived += OnErrorReceived;
                 _videoPlayer.url = path;
-                //_videoPlayer.loopPointReached += (player) =>
-                //{
-                //    player.Stop();
-                //    _playButton.SetActive(true);
-                //};
                 _videoPlayer.Prepare();
 
                 while (!_videoPlayer.isPrepared)
@@ -278,12 +300,8 @@ namespace WIGO.Userinterface
                 }
 
                 _videoPlayer.Play();
-                //yield return new WaitForEndOfFrame();
-                //_videoPlayer.Pause();
-
                 UIGameColors.SetTransparent(_preview, 1f);
                 _loader.SetActive(false);
-                //_playButton.SetActive(true);
 
                 _videoPlayer.errorReceived -= OnErrorReceived;
                 _videoLoadRoutine = null;

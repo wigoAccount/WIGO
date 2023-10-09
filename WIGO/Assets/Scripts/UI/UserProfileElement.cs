@@ -1,3 +1,5 @@
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -11,6 +13,8 @@ namespace WIGO.Userinterface
         [SerializeField] RawImage _avatarImage;
         [SerializeField] Image _background;
         [SerializeField] TMP_Text _firstLetter;
+
+        CancellationTokenSource _cts;
 
         public virtual async void Setup(ProfileData profile)
         {
@@ -28,10 +32,10 @@ namespace WIGO.Userinterface
 
             string url = profile.avatar;
 
+            _background.color = profile.GetColor();
+            _firstLetter.text = profile.firstname.Substring(0, 1);
             if (string.IsNullOrEmpty(url))
             {
-                _background.color = profile.GetColor();
-                _firstLetter.text = profile.firstname.Substring(0, 1);
                 _background.gameObject.SetActive(true);
                 _mask.SetActive(false);
                 return;
@@ -41,13 +45,54 @@ namespace WIGO.Userinterface
             _mask.SetActive(true);
 
             var avatar = await DownloadTextureAsync(url);
+            SetPhotoSize(avatar);
             _avatarImage.texture = avatar;
+        }
+
+        public async void ChangeAvatar(string path)
+        {
+            var photo = await DownloadLocalTextureAsync(path);
+            if (photo != null)
+            {
+                SetPhotoSize(photo);
+                _avatarImage.texture = photo;
+                _background.gameObject.SetActive(false);
+                _mask.SetActive(true);
+            }
+            else
+            {
+                _background.gameObject.SetActive(true);
+                _mask.SetActive(false);
+            }
         }
 
         async Task<Texture2D> DownloadTextureAsync(string url)
         {
-            string fullPath = System.IO.Path.Combine(Application.streamingAssetsPath, url);
-            var textureBytes = await System.IO.File.ReadAllBytesAsync(fullPath);
+            _cts = new CancellationTokenSource();
+            var texture = await ServiceLocator.Get<Core.S3ContentClient>().GetTexture(url, _cts.Token);
+
+            if (_cts.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            _cts.Dispose();
+            _cts = null;
+            return texture != null ? texture : null;
+        }
+
+        async Task<Texture2D> DownloadLocalTextureAsync(string url)
+        {
+            _cts = new CancellationTokenSource();
+            var textureBytes = await File.ReadAllBytesAsync(url, _cts.Token);
+
+            if (_cts.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            _cts.Dispose();
+            _cts = null;
 
             if (textureBytes != null && textureBytes.Length > 0)
             {
@@ -57,6 +102,16 @@ namespace WIGO.Userinterface
             }
 
             return null;
+        }
+
+        void SetPhotoSize(Texture2D texture)
+        {
+            var size = _avatarImage.rectTransform.rect.size;
+            float aspect = (float)texture.width / texture.height;
+            float width = aspect > 1f ? aspect * size.y : size.x;
+            float height = aspect > 1f ? size.y : size.x / aspect;
+            _avatarImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            _avatarImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
         }
     }
 }

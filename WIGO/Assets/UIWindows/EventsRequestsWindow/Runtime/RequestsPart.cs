@@ -11,8 +11,9 @@ namespace WIGO.Userinterface
         [SerializeField] RectTransform _content;
         [SerializeField] GameObject _emptyRequestsContent;
         [SerializeField] GameObject _requestsContent;
-        [Space]
-        [SerializeField] EventCard[] _requestsData;
+        //[Space]
+        //[SerializeField] EventCard[] _requestsData;
+        Request[] _requestsData;
 
         List<OpeningVideoRequestElement> _requests = new List<OpeningVideoRequestElement>();
 

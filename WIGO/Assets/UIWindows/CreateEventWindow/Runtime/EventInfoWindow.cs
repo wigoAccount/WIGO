@@ -48,8 +48,8 @@ namespace WIGO.Userinterface
 #elif UNITY_ANDROID || UNITY_IOS
                 var preview = NativeCamera.GetVideoThumbnail(_videoPath);
 #endif
-                float aspect = (float)preview.width / preview.height;
-                float previewHeight = _previewMask.rect.width / aspect;
+                _videoAspect = (float)preview.width / preview.height;
+                float previewHeight = _previewMask.rect.width / _videoAspect;
                 float height = Mathf.Min(previewHeight, MAX_PREVIEW_HEIGHT);
                 _previewMask.sizeDelta = new Vector2(_previewMask.sizeDelta.x, height);
                 _preview.texture = preview;
@@ -128,29 +128,28 @@ namespace WIGO.Userinterface
 
         protected void ShowResult(bool success)
         {
-            _overlay.gameObject.SetActive(false);
             _loader.SetActive(false);
 
             if (success)
             {
                 UIGameColors.SetTransparent(_overlay, 1f);
                 _doneElement.SetActive(true);
+#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
                 if (File.Exists(_videoPath))
                     File.Delete(_videoPath);
-
+#endif
                 return;
             }
 
+            _overlay.gameObject.SetActive(false);
             _failMessage.Show();
             Debug.LogError("Fail create event");
         }
 
-        protected async Task<string> UploadVideo()
+        protected async Task<string> UploadVideo(string filePath)
         {
-            await Task.Delay(1000);
-            string video = "my test video";
-            Debug.LogFormat("<color=green>Video loaded: {0}</color>", video);
-            return video;
+            string videoName = await ServiceLocator.Get<S3ContentClient>().UploadFile(filePath, ContentType.VIDEO);
+            return videoName;
         }
     }
 }

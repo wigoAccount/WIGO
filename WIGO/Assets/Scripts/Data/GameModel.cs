@@ -7,10 +7,12 @@ using WIGO.Utility;
 using System.Linq;
 using Event = WIGO.Core.Event;
 using System.Threading;
+using System;
 
-[System.Serializable]
+[Serializable]
 public class GameModel
 {
+    public Action<int> OnChangeMyEventTime;
     public string ShortToken { get; private set; }
     public string LongToken { get => _ltoken; }
 
@@ -23,6 +25,7 @@ public class GameModel
     Location _myLocation;
     IEnumerable<GeneralData> _availableTags;
     float _timer;
+    float _myEventTimer;
     bool _login;
 
     public LinksData GetUserLinks() => _links;
@@ -32,6 +35,7 @@ public class GameModel
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
     public Location GetMyCurrentLocation() => _myLocation;
     public IEnumerable<GeneralData> GetAvailableTags() => _availableTags;
+
     public string GetCategoryNameWithIndex(int uid)
     {
         return _availableTags.FirstOrDefault(x => x.uid == uid).name;
@@ -56,6 +60,7 @@ public class GameModel
     public void SetMyEvent(Event card)
     {
         _myEvent = card;
+        _myEventTimer = 0f;
     }
 
     public void Clear()
@@ -72,6 +77,8 @@ public class GameModel
 
     public async void FinishRegister()
     {
+
+
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
         MessageRouter.onMessageReceive += OnReceiveMessage;
@@ -101,6 +108,7 @@ public class GameModel
         _myProfile = data.profile;
 
         await UpdateMyEvent();
+
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
 
@@ -122,6 +130,7 @@ public class GameModel
         if (!cts.IsCancellationRequested)
         {
             _myEvent = myEvent;
+            _myEventTimer = 0f;
         }
         cts.Dispose();
     }
@@ -143,6 +152,17 @@ public class GameModel
 #elif UNITY_IOS
             MessageIOSHandler.OnGetUserLocation();
 #endif
+        }
+
+        if (_myEvent != null)
+        {
+            _myEventTimer += Time.unscaledDeltaTime;
+            if (_myEventTimer >= 1f)
+            {
+                _myEventTimer -= 1f;
+                _myEvent.waiting = Mathf.Clamp(_myEvent.waiting - 1, 0, int.MaxValue);
+                OnChangeMyEventTime?.Invoke(_myEvent.waiting);
+            }
         }
     }
 

@@ -1,16 +1,15 @@
 using Crystal;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using WIGO.Core;
 
-using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
 {
     public class EventScreenView : UIWindowView<EventViewModel>
     {
         [SerializeField] SafeArea _safeArea;
         [SerializeField] RectTransform _eventInfo;
+        [SerializeField] RectTransform _unaprovedEventInfo;
         [SerializeField] RectTransform _acceptEventInfo;
         [SerializeField] RectTransform _eventInfoViewport;
         [SerializeField] RectTransform _acceptEventInfoViewport;
@@ -35,8 +34,6 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _eventDescTitle;
         [SerializeField] RectTransform _descBlock;
         [Space]
-        [SerializeField] UserProfile _tempProfile;
-        [SerializeField] ProfileData _tmpProfile;
         [SerializeField] TMP_ColorGradient[] _gradients;
         [SerializeField] string[] _infoTitleText;
         [SerializeField] string[] _acceptTitleText;
@@ -50,39 +47,41 @@ namespace WIGO.Userinterface
 
             float bottomPadding = _safeArea.GetSafeAreaBottomPadding();
             _eventInfo.sizeDelta += Vector2.up * bottomPadding;
+            _unaprovedEventInfo.sizeDelta += Vector2.up * bottomPadding;
             _acceptEventInfo.sizeDelta += Vector2.up * bottomPadding;
             _bottomGradient.sizeDelta += Vector2.up * bottomPadding;
             _eventInfoViewport.offsetMin += Vector2.up * bottomPadding;
             _acceptEventInfoViewport.offsetMin += Vector2.up * bottomPadding;
         }
 
-        public async void SetView(AbstractEvent card)
+        public void SetupView(Request request, bool isMyRequest)
         {
+            AbstractEvent card = isMyRequest ? (AbstractEvent)request.@event : request;
             _eventInfoContent.anchoredPosition = Vector2.zero;
             _acceptEventInfoContent.anchoredPosition = Vector2.zero;
             _eventDescription.SetText(card.about);
             _fullDescription.SetText(card.about);
             _location.SetText(card.address);
 
-            EventStatus status = GetViewStatus(card);
-            
-            switch (status)
+            switch (request.GetStatus())
             {
-                case EventStatus.NotAccepted:
-                case EventStatus.Watched:
-                    _eventInfo.gameObject.SetActive(true);
+                case Request.RequestStatus.decline:
+                    Debug.LogWarningFormat("Request denied: {0}", request.uid);
+                    break;
+                case Request.RequestStatus.wait:
+                    _eventInfo.gameObject.SetActive(!isMyRequest);
+                    _unaprovedEventInfo.gameObject.SetActive(isMyRequest);
                     _acceptEventInfo.gameObject.SetActive(false);
 
-                    //_eventDescription.SetText(card.GetDescription());
                     float height = _eventDescription.preferredHeight + 16f;
                     _descriptionBackground.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
                     _infoTitle.SetText(card.IsResponse() ? _infoTitleText[1] : _infoTitleText[0]);
                     break;
-                case EventStatus.Accepted:
+                case Request.RequestStatus.accept:
                     _eventInfo.gameObject.SetActive(false);
+                    _unaprovedEventInfo.gameObject.SetActive(false);
                     _acceptEventInfo.gameObject.SetActive(true);
 
-                    //_fullDescription.SetText(card.GetDescription());
                     float size = _fullDescription.preferredHeight + 16f;
                     _acceptDescriptionBackground.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
                     _descBlock.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size + 64f);
@@ -97,14 +96,11 @@ namespace WIGO.Userinterface
                     _timerLabel.colorGradient = new VertexGradient(preset.bottomLeft, preset.bottomRight, preset.topLeft, preset.topRight);
                     SetTime(card.waiting);
                     break;
-                case EventStatus.Denied:
-                    Debug.LogWarningFormat("Event denied: {0}", card.uid);
-                    return;
                 default:
                     break;
             }
 
-            var profile = await GetProfile();
+            var profile = card.author;
             _usernameLabel.SetText(profile.firstname);
             _phoneNumber.SetText(profile.phone);
         }
@@ -115,37 +111,6 @@ namespace WIGO.Userinterface
             int seconds = time - minutes * 60;
             _timerLabel.text = string.Format("00:{0:00}:{1:00}", minutes, seconds);
             _timerView.ApplyGradient();
-        }
-
-        async Task<ProfileData> GetProfile()
-        {
-            await Task.Delay(200);
-            return _tmpProfile;
-        }
-
-        EventStatus GetViewStatus(AbstractEvent card)
-        {
-            if (card.IsResponse())
-            {
-                Request request = (Request)card;
-                return (request.GetStatus()) switch
-                {
-                    Request.RequestStatus.decline => EventStatus.Denied,
-                    Request.RequestStatus.wait => EventStatus.Watched,
-                    Request.RequestStatus.accept => EventStatus.Accepted,
-                    _ => EventStatus.NotAccepted,
-                };
-            }
-            else
-            {
-                Event cardEvent = (Event)card;
-                return (cardEvent.GetStatus()) switch
-                {
-                    Event.EventStatus.active => EventStatus.Accepted,
-                    Event.EventStatus.closed => EventStatus.Denied,
-                    _ => EventStatus.NotAccepted,
-                };
-            }
         }
     }
 }

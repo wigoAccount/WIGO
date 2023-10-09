@@ -51,9 +51,6 @@ namespace WIGO.Test
             try
             {
                 _player.targetTexture = _videoTexture;
-                //_player.url = path;
-                //_player.Play();
-                //StartCoroutine(StopVideoAfterFrame());
                 _videoLoadRoutine = StartCoroutine(LoadVideoContent(path));
             }
             catch (Exception)

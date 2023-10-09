@@ -37,7 +37,7 @@ namespace WIGO.Userinterface
 
         public void OnOnboardingClick()
         {
-
+            ServiceLocator.Get<UIManager>().Open<StartScreenWindow>(WindowId.START_SCREEN, window => window.Setup(false));
         }
 
         public void OnFeedbackClick()
