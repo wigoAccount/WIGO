@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Threading.Tasks;
-using System.Linq;
 using WIGO.RecyclableScroll;
 using System;
 using WIGO.Core;
@@ -15,54 +14,25 @@ namespace WIGO.Userinterface
         public Action onInfoLoaded;
 
         AbstractEvent _cardData;
-        //ChatData _chatData;
+        Request _request;
         ProfileData _profile;
-        Action<AbstractEvent> _onSelectChat;
+        Action<Request> _onSelectChat;
 
         bool _loaded = true;
 
-        public UIChatInfo(AbstractEvent data, Action<AbstractEvent> onSelectChat)
+        public UIChatInfo(Request data, Action<Request> onSelectChat, bool isEvent = false)
         {
-            _cardData = data;
+            _request = data;
+            _cardData = isEvent ? (AbstractEvent)data.@event : data;
             _onSelectChat = onSelectChat;
-            _profile = data.author;
-            //SetupUser(data.author);
+            _profile = isEvent ? data.@event.author : data.author;
         }
 
-        //public ChatData GetData() => _chatData;
         public AbstractEvent GetCard() => _cardData;
         public ProfileData GetProfile() => _profile;
         public bool IsLoaded() => _loaded;
 
-        //public async Task SetChatMuted()
-        //{
-        //    bool status = !_chatData.IsMuted();
-            
-        //    await Task.Delay(200);
-        //    _chatData.ChangeMuteStatus(status);
-        //}
-
-        public void RaiseSelectCallback() => _onSelectChat?.Invoke(_cardData);
-
-        async void SetupUser(string id)
-        {
-            await Task.Delay(1000);
-
-            _loaded = true;
-            System.Random rnd = new System.Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            int length = UnityEngine.Random.Range(4, 16);
-
-            var name = new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[rnd.Next(s.Length)]).ToArray());
-
-            _profile = new ProfileData()
-            {
-                nickname = name,
-                firstname = name
-            };
-            onInfoLoaded?.Invoke();
-        }
+        public void RaiseSelectCallback() => _onSelectChat?.Invoke(_request);
     }
 
     public class UIChatElement : MonoBehaviour, ICell<UIChatInfo>
@@ -74,20 +44,11 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _statusLabel;
         [SerializeField] GameObject _frame;
         [SerializeField] Image _background;
-        //[SerializeField] TMP_Text _timeLabel;
-        //[SerializeField] Image _lastMessageStatus;
-        //[SerializeField] GameObject _notificator;
-        //[SerializeField] TMP_Text _notificatorCounter;
-        //[SerializeField] GameObject _muteIcon;
-        //[SerializeField] Sprite[] _statusIcons;
         [Space]
         [SerializeField] GameObject _infoBlock;
         [SerializeField] GameObject _templateBlock;
-        //[SerializeField] UIChatHorizontalMoveHandler _moveHandler;
-        //[Space]
-        //[SerializeField] Image _muteButtonIcon;
-        //[SerializeField] TMP_Text _muteLabel;
-        //[SerializeField] Sprite[] _muteSprites;
+        [Space]
+        [SerializeField] string[] _statusTexts;
 
         int _index;
         UIChatInfo _info;
@@ -96,10 +57,6 @@ namespace WIGO.Userinterface
         public UIChatInfo GetInfo() => _info;
 
         public void InitCell(Action<ICell<UIChatInfo>> onClick) { }
-        //public void Init(ScrollRect mainScroll)
-        //{
-        //    _moveHandler.Init(mainScroll, () => _info.RaiseSelectCallback());
-        //}
 
         public Task ConfigureCell(UIChatInfo contactInfo, int cellIndex)
         {
@@ -110,7 +67,6 @@ namespace WIGO.Userinterface
 
             _info = contactInfo;
             _index = cellIndex;
-            //_moveHandler.ResetPosition();
 
             if (_info.IsLoaded())
             {
@@ -131,20 +87,10 @@ namespace WIGO.Userinterface
             _info.RaiseSelectCallback();
         }
 
-        //public async void OnMuteButtonClick()
-        //{
-        //    await _info.SetChatMuted();
-        //    SetChatMuteVisual();
-        //}
-
         void SetupInfo()
         {
-            //var lastMessage = _info.GetData().GetLastMessage();
-
-            //SetLastMessageStatus(lastMessage.GetStatus());
             var card = _info.GetCard();
             _nameLabel.text = _info.GetProfile() == null ? "username" : _info.GetProfile().firstname;
-            //_nameLabel.rectTransform.sizeDelta = new Vector2(_nameLabel.preferredWidth, _nameLabel.rectTransform.sizeDelta.y);
             _profilePhoto.Setup(_info.GetProfile());
             _messageLabel.SetText(card.about);
             _frame.SetActive(card.IsResponse());
@@ -156,59 +102,20 @@ namespace WIGO.Userinterface
             if (card.IsResponse())
             {
                 _statusIcon.color = status == EventStatus.Watched ? UIGameColors.transparentBlue : UIGameColors.Blue;
-                _statusLabel.text = status == EventStatus.Watched ? "Просмотрено" : "Новая заявка";
+                _statusLabel.text = status == EventStatus.Watched ? _statusTexts[0] : _statusTexts[1];
+                //_statusLabel.text = status == EventStatus.Watched ? "Просмотрено" : "Новая заявка";
             }
             else
             {
                 _statusIcon.color = status == EventStatus.Accepted ? UIGameColors.Green : UIGameColors.transparent20;
-                _statusLabel.text = status == EventStatus.Accepted ? "Заявка одобрена" : "Заявка отправлена";
+                _statusLabel.text = status == EventStatus.Accepted ? _statusTexts[2] : _statusTexts[3];
+                //_statusLabel.text = status == EventStatus.Accepted ? "Заявка одобрена" : "Заявка отправлена";
             }
-
-            //_messageLabel.text = lastMessage.GetText();
-            //_timeLabel.text = lastMessage.GetSendTime();
-            //SetChatMuteVisual();
 
             _infoBlock.SetActive(true);
             _templateBlock.SetActive(false);
             _info.onInfoLoaded -= SetupInfo;
         }
-
-        //void SetLastMessageStatus(int status)
-        //{
-        //    bool isMine = _info.GetData().GetLastMessage().IsMine();
-        //    _lastMessageStatus.gameObject.SetActive(isMine);
-        //    if (!isMine)
-        //    {
-        //        return;
-        //    }
-
-        //    switch (status)
-        //    {
-        //        case 0:
-        //            _lastMessageStatus.sprite = _statusIcons[0];
-        //            _lastMessageStatus.color = UIGameColors.MessageSentColor;
-        //            break;
-        //        case 1:
-        //            _lastMessageStatus.sprite = _statusIcons[1];
-        //            _lastMessageStatus.color = UIGameColors.MessageSentColor;
-        //            break;
-        //        case 2:
-        //            _lastMessageStatus.sprite = _statusIcons[1];
-        //            _lastMessageStatus.color = UIGameColors.Blue;
-        //            break;
-        //        default:
-        //            _lastMessageStatus.sprite = _statusIcons[0];
-        //            _lastMessageStatus.color = UIGameColors.MessageSentColor;
-        //            break;
-        //    }
-        //}
-
-        //void SetChatMuteVisual()
-        //{
-        //    _muteIcon.SetActive(_info.GetData().IsMuted());
-        //    _muteButtonIcon.sprite = _info.GetData().IsMuted() ? _muteSprites[0] : _muteSprites[1];
-        //    _muteLabel.text = _info.GetData().IsMuted() ? "Unmute" : "Mute";
-        //}
 
         void OnDestroy()
         {

@@ -1,7 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Threading;
 using UnityEngine;
 using WIGO.Core;
 
@@ -14,19 +15,14 @@ namespace WIGO.Userinterface
         [SerializeField] ChatCategoriesPanel _categoriesPanel;
         [SerializeField] WindowAnimator _animator;
 
-        [SerializeField] int _chatsCount;
-
         List<UIChatInfo> _eventsData = new List<UIChatInfo>();
         Coroutine _loadingCoroutine;
-
-        // remove _isClosed
-        bool _isClosed;
+        CancellationTokenSource _cts;
 
         public override void OnOpen(WindowId previous)
         {
-            _isClosed = false;
             _animator.OnOpen();
-            CreateChats();
+            UpdateRequests();
         }
 
         public override void OnReopen(WindowId previous, UIWindowModel cachedModel)
@@ -36,20 +32,20 @@ namespace WIGO.Userinterface
 
         public override void OnClose(WindowId next, Action callback = null)
         {
+            _cts?.Cancel();
             if (next != WindowId.EVENT_VIEW_SCREEN)
             {
                 ClearWindow();
             }
 
             callback?.Invoke();
-            _isClosed = true;
         }
 
         public override void OnBack(WindowId previous, Action callback = null)
         {
+            _cts?.Cancel();
             ClearWindow();
             callback?.Invoke();
-            _isClosed = true;
         }
 
         public void OnMainMenuClick()
@@ -68,19 +64,24 @@ namespace WIGO.Userinterface
             _categoriesPanel.Init(OnChatCategorySelect);
         }
 
-        async void CreateChats()
+        async void UpdateRequests()
         {
             _loadingCoroutine = StartCoroutine(ActivateLoadingWithDelay());
 
-            // [TODO]: update my event
-            // get requests from my event and check them as Response
-            // get my requests to other events
-            // show both types in list
-            await Task.Delay(600);
-
-            // [TODO]: temp solution. Use cts
-            if (_isClosed)
+            _cts = new CancellationTokenSource();
+            var model = ServiceLocator.Get<GameModel>();
+            var requestsToMyEvent = await model.GetRequestsToMyEvent();
+            var myOwnRequests = await NetService.TryGetMyRequests(model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
+            
+            if (_cts.IsCancellationRequested)
+            {
+                _cts.Dispose();
+                _cts = null;
                 return;
+            }
+
+            _cts.Dispose();
+            _cts = null;
 
             if (_loadingCoroutine != null)
             {
@@ -89,30 +90,22 @@ namespace WIGO.Userinterface
             }
 
             _view.SetLoadingVisible(false);
-            if (_chatsCount == 0)
+            if (requestsToMyEvent.Count() == 0 && myOwnRequests.Count() == 0)
             {
                 _view.SetEmptyTipVisible(true);
                 return;
             }
 
-            for (int i = 0; i < _chatsCount; i++)
+            foreach (var request in requestsToMyEvent)
             {
-                AbstractEvent card;
-                if (UnityEngine.Random.Range(0f, 1f) > 0.5f)
-                {
-                    int status = UnityEngine.Random.Range(1, 3);
-                    card = new Request()
-                    {
-                        status = ((Request.RequestStatus)status).ToString()
-                    };
-                }
-                else
-                {
-                    card = new Core.Event();
-                }
-                UIChatInfo info = new UIChatInfo(card, OnSelectChat);
+                UIChatInfo info = new UIChatInfo(request, OnSelectChat);
                 _eventsData.Add(info);
-                //_chatsData.Add(info);
+            }
+
+            foreach (var request in myOwnRequests)
+            {
+                UIChatInfo info = new UIChatInfo(request, OnSelectChat, true);
+                _eventsData.Add(info);
             }
 
             _chatsScroll.CreateScroll(_eventsData);
@@ -149,9 +142,8 @@ namespace WIGO.Userinterface
         }
 
         // [TODO]: set isMyRequest in Request class
-        void OnSelectChat(AbstractEvent card)
+        void OnSelectChat(Request request)
         {
-            Request request = (Request)card;
             ServiceLocator.Get<UIManager>().Open<EventViewWindow>(WindowId.EVENT_VIEW_SCREEN, window => window.Setup(request, false));
         }
 

@@ -36,6 +36,18 @@ public class GameModel
     public Location GetMyCurrentLocation() => _myLocation;
     public IEnumerable<GeneralData> GetAvailableTags() => _availableTags;
 
+    public async Task<IEnumerable<Request>> GetRequestsToMyEvent()
+    {
+        _myEvent = await NetService.TryGetMyEvent(_links.data.address, ShortToken);
+        _myEventTimer = 0f;
+        if (_myEvent == null)
+        {
+            return null;
+        }
+
+        return _myEvent.requests;
+    }
+
     public string GetCategoryNameWithIndex(int uid)
     {
         return _availableTags.FirstOrDefault(x => x.uid == uid).name;

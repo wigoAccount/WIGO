@@ -41,6 +41,7 @@ namespace WIGO.Core
         public int duration;
         public string area;
         public int[] tags;
+        public Request[] requests;
 
         public EventStatus GetStatus()
         {

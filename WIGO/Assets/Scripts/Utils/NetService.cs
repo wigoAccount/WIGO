@@ -535,6 +535,53 @@ namespace WIGO.Core
         }
         #endregion
 
+        #region REQUESTS
+        public static async Task<IEnumerable<Request>> TryGetMyRequests(string url, string stoken, CancellationToken ctoken = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "requestMyListActive",
+                @params = new List<string>(),
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("My requests result is empty");
+                return null;
+            }
+
+            try
+            {
+                RPCResult<List<Request>> res = JsonReader.Deserialize<RPCResult<List<Request>>>(resJson);
+                return res?.result;
+            }
+            catch
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return null;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogErrorFormat("Error get my requests: {0}", e.Message);
+                    return null;
+                }
+            }
+        }
+        #endregion
+
         static async Task<string> PostRequest(string request, CancellationToken token, string addHeader = null)
         {
             return await PostRequest(request, URL, token, addHeader);
