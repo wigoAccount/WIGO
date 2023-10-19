@@ -66,21 +66,6 @@ namespace WIGO.Userinterface
             CheckIfAvailable();
         }
 
-        public override async void OnPublishClick()
-        {
-            if (IsAvailable())
-            {
-                var myEvent = await CreateEventOrResponse();
-                if (myEvent != null)
-                {
-                    Event newEvent = (Event)myEvent;
-                    ServiceLocator.Get<GameModel>().SetMyEvent(newEvent);
-                    await Task.Delay(1200);                                                 // show success status for 1.2 sec
-                    ServiceLocator.Get<UIManager>().SwitchTo(WindowId.FEED_SCREEN);
-                }
-            }
-        }
-
         public void OnLocationSelectClick()
         {
 #if UNITY_EDITOR
@@ -122,10 +107,11 @@ namespace WIGO.Userinterface
         {
             base.CreateEventOrResponse();
 
+            string preview = await UploadPreview();
             string video = await UploadVideo(_videoPath);
-            if (string.IsNullOrEmpty(video))
+            if (string.IsNullOrEmpty(video) || string.IsNullOrEmpty(preview))
             {
-                Debug.LogError("Fail upload video");
+                Debug.LogError("Fail upload video or preview");
                 return null;
             }
 
@@ -141,7 +127,8 @@ namespace WIGO.Userinterface
                 address = _address,
                 area = _address,
                 video = video,
-                preview = _videoAspect.ToString(),
+                video_aspect = _videoAspect.ToString(),
+                preview = preview,
                 tags_add = _hashtagScroll.GetSelectedCategories().ToArray()
             };
 
@@ -158,7 +145,7 @@ namespace WIGO.Userinterface
         protected override bool IsAvailable()
         {
             int categoriesCount = _hashtagScroll.GetSelectedCategories().Count();
-            return _locationSelected && !string.IsNullOrEmpty(_descIF.text) && categoriesCount > 0;// && _selectedSizeType != EventGroupSizeType.None;
+            return _locationSelected && !string.IsNullOrEmpty(_descIF.text) && categoriesCount > 0;
         }
 
         void OnLocationSelected(string value)

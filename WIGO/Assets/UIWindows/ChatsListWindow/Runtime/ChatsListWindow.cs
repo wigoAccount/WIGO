@@ -90,7 +90,9 @@ namespace WIGO.Userinterface
             }
 
             _view.SetLoadingVisible(false);
-            if (requestsToMyEvent.Count() == 0 && myOwnRequests.Count() == 0)
+            bool requestsEmpty = requestsToMyEvent == null || requestsToMyEvent.Count() == 0;
+            bool myRequestsEmpty = myOwnRequests == null || myOwnRequests.Count() == 0;
+            if (requestsEmpty && myRequestsEmpty)
             {
                 _view.SetEmptyTipVisible(true);
                 return;
@@ -141,10 +143,9 @@ namespace WIGO.Userinterface
             }
         }
 
-        // [TODO]: set isMyRequest in Request class
-        void OnSelectChat(Request request)
+        void OnSelectChat(Request request, bool isEvent)
         {
-            ServiceLocator.Get<UIManager>().Open<EventViewWindow>(WindowId.EVENT_VIEW_SCREEN, window => window.Setup(request, false));
+            ServiceLocator.Get<UIManager>().Open<EventViewWindow>(WindowId.EVENT_VIEW_SCREEN, window => window.Setup(request, isEvent));
         }
 
         void ClearWindow()

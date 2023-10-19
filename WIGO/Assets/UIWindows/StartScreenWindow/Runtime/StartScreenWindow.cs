@@ -12,6 +12,9 @@ namespace WIGO.Userinterface
         [SerializeField] Image[] _points;
         [SerializeField] Image _button;
         [SerializeField] TMP_Text _btnLabel;
+        [Space]
+        [SerializeField] string _nextText;
+        [SerializeField] string _letsStartText;
 
         bool _animating;
         bool _startOnboarding;
@@ -25,7 +28,7 @@ namespace WIGO.Userinterface
         {
             _placeholderScroll.Clear();
             _button.color = UIGameColors.transparent10;
-            _btnLabel.SetText("Далее");                      // [TODO]: replace with config
+            _btnLabel.SetText(_nextText);
             for (int i = 0; i < _points.Length; i++)
             {
                 float alpha = i == 0 ? 1f : 0.1f;
@@ -83,7 +86,7 @@ namespace WIGO.Userinterface
             int nextIndex = index;
 
             _button.color = index < _points.Length - 1 ? UIGameColors.transparent10 : UIGameColors.Blue;
-            _btnLabel.SetText(index < _points.Length - 1 ? "Далее" : "Давай начнем!");                      // [TODO]: replace with config
+            _btnLabel.SetText(index < _points.Length - 1 ? _nextText : _letsStartText);
 
             _animating = true;
             DOTween.Sequence().Append(_points[prevIndex].DOFade(0.1f, 0.24f))

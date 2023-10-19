@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace WIGO.Userinterface
     public abstract class EventInfoWindow : UIWindow
     {
         [SerializeField] RectTransform _previewMask;
-        [SerializeField] RawImage _preview;
+        [SerializeField] protected RawImage _preview;
         [SerializeField] protected TMP_InputField _descIF;
         [SerializeField] TMP_Text _counterDescLabel;
         [SerializeField] TMP_Text _sendButton;
@@ -22,6 +23,7 @@ namespace WIGO.Userinterface
         [SerializeField] Texture2D _tempPreview;
         [SerializeField] CreateEventFailMessage _failMessage;
 
+        protected string _videoPreviewPath;
         protected string _videoPath;
         protected float _videoAspect;
 
@@ -108,6 +110,13 @@ namespace WIGO.Userinterface
         {
 #if !UNITY_EDITOR
             Destroy(_preview.texture);
+            if (string.IsNullOrEmpty(_videoPreviewPath))
+            {
+                if (File.Exists(_videoPreviewPath))
+                    File.Delete(_videoPreviewPath);
+                
+                _videoPreviewPath = string.Empty;
+            }
 #endif
             _videoPath = null;
             _overlay.gameObject.SetActive(false);
@@ -148,8 +157,40 @@ namespace WIGO.Userinterface
 
         protected async Task<string> UploadVideo(string filePath)
         {
-            string videoName = await ServiceLocator.Get<S3ContentClient>().UploadFile(filePath, ContentType.VIDEO);
+            CancellationTokenSource cts = new CancellationTokenSource();
+            cts.CancelAfter(16000);
+            string videoName = await ServiceLocator.Get<S3ContentClient>().UploadFile(filePath, ContentType.VIDEO, cts.Token);
+            if (cts.IsCancellationRequested)
+            {
+                cts.Dispose();
+                return null;
+            }
+
             return videoName;
+        }
+
+        protected async Task<string> UploadPreview()
+        {
+            if (_preview.texture != null)
+            {
+                byte[] textureBytes = ((Texture2D)_preview.texture).EncodeToPNG();
+                string fileName = $"{DateTime.Now.ToString("MM_dd_yyyy_HH-mm-ss")}_preview.png";
+                _videoPreviewPath = Path.Combine(Application.persistentDataPath, fileName);
+                await File.WriteAllBytesAsync(_videoPreviewPath, textureBytes);
+
+                CancellationTokenSource cts = new CancellationTokenSource();
+                cts.CancelAfter(16000);
+                string previewKey = await ServiceLocator.Get<S3ContentClient>().UploadFile(_videoPreviewPath, ContentType.PREVIEW, cts.Token);
+                if (cts.IsCancellationRequested)
+                {
+                    cts.Dispose();
+                    return null;
+                }
+
+                return previewKey;
+            }
+
+            return null;
         }
     }
 }

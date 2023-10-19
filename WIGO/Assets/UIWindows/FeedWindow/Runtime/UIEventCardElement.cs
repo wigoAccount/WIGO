@@ -27,10 +27,14 @@ namespace WIGO.Userinterface
         [SerializeField] Color _acceptColor;
         [SerializeField] Color _declineColor;
         [Space]
+        [SerializeField] string _minFromMe;
+        [SerializeField] string _lessText;
+        [SerializeField] string _moreText;
         [SerializeField] string _editorVideoPath;
 
+        Event _cardEvent;
         CanvasGroup _cardGroup;
-        Action<bool> _onCardSkip;
+        Action<Event, bool> _onCardSkip;
         Sequence _squeezeTween;
         float _timer;
         int _remainingSeconds;
@@ -43,8 +47,9 @@ namespace WIGO.Userinterface
         const float SWIPE_BACK_VALUE = 64f;
         const float MIN_DESC_HEIGHT = 16f;
 
-        public void Setup(Event card, Action<bool> onCardSkip)
+        public void Setup(Event card, Action<Event, bool> onCardSkip)
         {
+            _cardEvent = card;
             _onCardSkip = onCardSkip;
             _cardGroup = GetComponent<CanvasGroup>();
 
@@ -54,7 +59,7 @@ namespace WIGO.Userinterface
             _descLabel.text = card.about;
             _locationLabel.text = card.address;
             _moreButton.gameObject.SetActive(_descLabel.preferredWidth > _descLabel.rectTransform.rect.width);
-            _distanceTimeLabel.text = $"{card.waiting} min from me";        // [TODO]: change with config
+            _distanceTimeLabel.text = card.time_to.ToString() + _minFromMe;
             _remainingSeconds = card.waiting;
             //_groupSizeLabel.text = card.GetGroupSizeType().ToString();
             //_groupSizeIcon.color = card.GetGroupSizeType() == EventGroupSizeType.Single ? UIGameColors.Purple : UIGameColors.Blue;
@@ -148,7 +153,7 @@ namespace WIGO.Userinterface
             float height = _isFullDesc ? MIN_DESC_HEIGHT : _descLabel.preferredHeight + 0.4f;
             float pos = _descLabel.rectTransform.anchoredPosition.y + height + 16f;
             _isFullDesc = !_isFullDesc;
-            _moreButton.text = _isFullDesc ? "Less" : "More";       // [TODO]: change with config
+            _moreButton.text = _isFullDesc ? _lessText : _moreText;
             CancelSqueeze();
 
             _squeezeTween = DOTween.Sequence().Append(_descLabel.rectTransform.DOSizeDelta(new Vector2(_descLabel.rectTransform.sizeDelta.x, height), 0.2f))
@@ -156,9 +161,14 @@ namespace WIGO.Userinterface
                 .OnComplete(() => _squeezeTween = null);
         }
 
+        public void OnComplainClick()
+        {
+            ServiceLocator.Get<UIManager>().Open<ComplainWindow>(WindowId.COMPLAIN_SCREEN, window => window.Setup(_cardEvent), true);
+        }
+
         void Update()
         {
-            _timer += Time.deltaTime;
+            _timer += Time.unscaledDeltaTime;
             if (_timer >= 1f)
             {
                 _timer -= 1f;
@@ -181,7 +191,7 @@ namespace WIGO.Userinterface
         {
             float pos = 320f * direction;
             bool accept = direction > 0;
-            _onCardSkip?.Invoke(accept);
+            _onCardSkip?.Invoke(_cardEvent, accept);
 
             var animation = DOTween.Sequence();
             animation.Append(_cardRect.DOAnchorPosX(pos, 0.28f))

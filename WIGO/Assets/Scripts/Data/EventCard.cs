@@ -10,6 +10,7 @@ namespace WIGO.Core
         public string about;
         public string video;
         public string preview;
+        public string video_aspect;
         public ProfileData author;
         public Location location;
         public string address;
@@ -17,7 +18,7 @@ namespace WIGO.Core
 
         public float AspectRatio { get
             {
-                float.TryParse(preview, out float aspect);
+                float.TryParse(video_aspect, out float aspect);
                 if (aspect <= 0f)
                     aspect = 9f / 16f;
                 return aspect;
@@ -40,6 +41,7 @@ namespace WIGO.Core
         public string title;
         public int duration;
         public string area;
+        public int time_to;
         public int[] tags;
         public Request[] requests;
 

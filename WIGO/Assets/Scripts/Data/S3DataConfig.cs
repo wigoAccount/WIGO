@@ -12,12 +12,22 @@ namespace WIGO.Core
         [SerializeField] string _bucketName;
         [SerializeField] string _photoFolderName;
         [SerializeField] string _videoFolderName;
+        [SerializeField] string _previewFolderName;
 
         public string GetYandexCloudURL() => _yandexCloudURL;
         public string GetAccessKey() => _accessKey;
         public string GetSecretKey() => _secretKey;
         public string GetBucketName() => _bucketName;
-        public string GetPhotoFolderName() => _photoFolderName;
-        public string GetVideoFolderName() => _videoFolderName;
+
+        public string GetFolderName(ContentType type)
+        {
+            return type switch
+            {
+                ContentType.PHOTO => _photoFolderName,
+                ContentType.VIDEO => _videoFolderName,
+                ContentType.PREVIEW => _previewFolderName,
+                _ => null,
+            };
+        }
     }
 }

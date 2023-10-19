@@ -41,6 +41,7 @@ namespace WIGO.Userinterface
         bool _fullInfoView;
         float _timer;
         int _seconds;
+        bool _myRequest;
 
         public override void OnBack(WindowId previous, Action callback = null)
         {
@@ -51,6 +52,7 @@ namespace WIGO.Userinterface
         public void Setup(Request card, bool isMyRequest)
         {
             _currentCard = card;
+            _myRequest = isMyRequest;
             UIGameColors.SetTransparent(_preview, 0.1f);
             SetupCardTextureSize(card.AspectRatio);
             _loader.SetActive(true);
@@ -148,8 +150,17 @@ namespace WIGO.Userinterface
             var model = ServiceLocator.Get<GameModel>();
             _cts = new CancellationTokenSource();
             _cts.CancelAfter(8000);
-            // [TODO]: check isMyRequest                                                                here
-            await NetService.TryRemoveEvent(_currentCard.uid, model.GetUserLinks().data.address, _currentCard.IsResponse(), model.ShortToken, _cts.Token);
+            string uid = _myRequest ? _currentCard.uid : model.GetMyEventId();
+            if (string.IsNullOrEmpty(uid))
+            {
+                Debug.LogWarningFormat("My event is null");
+                _loadingWindow.SetActive(false);
+                _cts.Dispose();
+                _cts = null;
+                return;
+            }
+
+            await NetService.TryRemoveEvent(uid, model.GetUserLinks().data.address, _myRequest, model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
             if (_cts.IsCancellationRequested)

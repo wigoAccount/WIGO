@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace WIGO.Core
 {
@@ -113,7 +112,17 @@ namespace WIGO.Core
         public string area;
         public string video;
         public string preview;
+        public string video_aspect;
         public int[] tags_add;
+    }
+
+    [Serializable]
+    public struct CreateResponseRequest
+    {
+        public string eventid;
+        public string about;
+        public string video;
+        public string preview;
     }
 
     #region Globals

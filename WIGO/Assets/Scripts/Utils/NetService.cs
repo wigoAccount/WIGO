@@ -142,6 +142,52 @@ namespace WIGO.Core
             return GetParsedEvent(resJson);
         }
 
+        public static async Task<Request> TryCreateRequest(CreateResponseRequest data, string url, string stoken, CancellationToken ctoken = default)
+        {
+            string jsonData = JsonReader.Serialize(data);
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "requestPost",
+                @params = new List<string> { jsonData },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Request result is empty");
+                return null;
+            }
+
+            try
+            {
+                RPCResult<List<Request>> res = JsonReader.Deserialize<RPCResult<List<Request>>>(resJson);
+                return (res != null && res.result.Count > 0) ? res.result[0] : null;
+            }
+            catch
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return null;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogErrorFormat("Error create event: {0}", e.Message);
+                    return null;
+                }
+            }
+        }
+
         public static async Task TryRemoveEvent(string eventId, string url, bool isRequest, string stoken, CancellationToken ctoken = default)
         {
             string methodName = isRequest ? "requestCancel" : "eventCancel";
@@ -233,6 +279,41 @@ namespace WIGO.Core
                     Debug.LogErrorFormat("Error accept or decline request: {0}", e.Message);
                     return;
                 }
+            }
+        }
+
+        public static async Task TrySendLocation(Location location, string url, string stoken, CancellationToken ctoken = default)
+        {
+            string jsonData = JsonReader.Serialize(location);
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "locationSet",
+                @params = new List<string> { jsonData },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Send location request is empty");
+                return;
+            }
+
+            try
+            {
+                RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                if (error != null)
+                {
+                    ReportError(error.error);
+                }
+            }
+            catch (System.Exception)
+            {
+                Debug.Log("Location sent");
             }
         }
 

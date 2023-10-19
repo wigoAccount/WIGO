@@ -32,6 +32,7 @@ public class GameModel
     public NotificationSettings GetNotifications() => _notifications;
     public ProfileData GetMyProfile() => _myProfile;
     public bool HasMyOwnEvent() => _myEvent != null;
+    public string GetMyEventId() => _myEvent == null ? null : _myEvent.uid;
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
     public Location GetMyCurrentLocation() => _myLocation;
     public IEnumerable<GeneralData> GetAvailableTags() => _availableTags;
@@ -159,7 +160,7 @@ public class GameModel
         {
             _timer = 0f;
 #if UNITY_EDITOR
-            string sum = "14.88,192.66";
+            string sum = "55.767,37.684";
             OnReceiveMessage(NativeMessageType.MyLocation, sum);
 #elif UNITY_IOS
             MessageIOSHandler.OnGetUserLocation();
@@ -178,7 +179,7 @@ public class GameModel
         }
     }
 
-    void OnReceiveMessage(NativeMessageType type, string message)
+    async void OnReceiveMessage(NativeMessageType type, string message)
     {
         switch (type)
         {
@@ -187,7 +188,8 @@ public class GameModel
                 break;
             case NativeMessageType.MyLocation:
                 Debug.LogFormat("<color=yellow>GET MY LOC: {0}</color>", message);
-                _myLocation = ParseLocation(message);
+                _myLocation = GameConsts.ParseLocation(message);
+                await NetService.TrySendLocation(_myLocation, _links.data.address, ShortToken);
                 break;
             case NativeMessageType.Other:
                 Debug.LogFormat("Message: {0}", message);
@@ -195,24 +197,6 @@ public class GameModel
             default:
                 break;
         }
-    }
-
-    Location ParseLocation(string coordinates)
-    {
-        Location loc = new Location();
-        string[] splited = coordinates.Replace("\"", "").Split(",");
-        if (splited.Length > 1)
-        {
-            var longitude = splited[0];
-            var latitude = splited[1];
-            loc.latitude = latitude;
-            loc.longitude = longitude;
-            Debug.LogFormat("<color=yellow>MY LOCATION: Latitude: {0}\r\nLongitude: {1}</color>", latitude, longitude);
-        }
-        else
-            Debug.LogWarningFormat("Can't split coordinates: {0}", coordinates);
-
-        return loc;
     }
 
     void SaveData()

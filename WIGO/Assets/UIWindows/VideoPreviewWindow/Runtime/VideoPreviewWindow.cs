@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using System.Threading.Tasks;
 
+using Event = WIGO.Core.Event;
 namespace WIGO.Userinterface
 {
     public class VideoPreviewWindow : UIWindow
@@ -18,9 +19,9 @@ namespace WIGO.Userinterface
 
         RenderTexture _videoTexture;
         Coroutine _videoLoadRoutine;
+        Event _acceptedEvent;
         string _videoPath;
         bool _isPlaying;
-        bool _isResponse;
 
         const float UPPER_DEFAULT_PADDING = 56f;
         const float BOTTOM_DEFAULT_PADDING = 116f;
@@ -36,7 +37,7 @@ namespace WIGO.Userinterface
             ClearData();
         }
 
-        public async void Setup(string path, bool response)
+        public async void Setup(string path, Event accepted)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -58,8 +59,7 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            _isResponse = response;
-            //_videoPath = path;
+            _acceptedEvent = accepted;
             _playButton.SetActive(false);
             _loader.SetActive(true);
             await Task.Delay(400);
@@ -85,8 +85,8 @@ namespace WIGO.Userinterface
             _videoPlayer.Stop();
             _isPlaying = false;
             _playButton.SetActive(true);
-            if (_isResponse)
-                ServiceLocator.Get<UIManager>().Open<SaveEventWindow>(WindowId.SAVE_EVENT_SCREEN, (window) => window.Setup(_videoPath));
+            if (_acceptedEvent != null)
+                ServiceLocator.Get<UIManager>().Open<SaveEventWindow>(WindowId.SAVE_EVENT_SCREEN, (window) => window.Setup(_videoPath, _acceptedEvent));
             else
                 ServiceLocator.Get<UIManager>().Open<CreateEventWindow>(WindowId.CREATE_EVENT_SCREEN, (window) => window.Setup(_videoPath));
         }
@@ -181,7 +181,7 @@ namespace WIGO.Userinterface
                 }
 
                 _videoPlayer.Play();
-                yield return null;// new WaitForEndOfFrame();
+                yield return null;
                 _videoPlayer.Pause();
 
                 _videoPlayer.errorReceived -= OnErrorReceived;

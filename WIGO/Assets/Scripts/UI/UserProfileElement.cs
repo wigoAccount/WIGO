@@ -49,6 +49,30 @@ namespace WIGO.Userinterface
             _avatarImage.texture = avatar;
         }
 
+        public async void Setup(string url)
+        {
+            if (_avatarImage.texture != null)
+            {
+                Destroy(_avatarImage.texture);
+                _avatarImage.texture = null;
+            }
+
+            if (string.IsNullOrEmpty(url))
+            {
+                Debug.LogWarning("Image URL is null");
+                _background.gameObject.SetActive(true);
+                _mask.SetActive(false);
+                return;
+            }
+
+            _background.gameObject.SetActive(false);
+            _mask.SetActive(true);
+
+            var avatar = await DownloadTextureAsync(url);
+            SetPhotoSize(avatar);
+            _avatarImage.texture = avatar;
+        }
+
         public async void ChangeAvatar(string path)
         {
             var photo = await DownloadLocalTextureAsync(path);

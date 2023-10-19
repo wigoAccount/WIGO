@@ -12,7 +12,8 @@ namespace WIGO.Core
     public enum ContentType
     {
         PHOTO,
-        VIDEO
+        VIDEO,
+        PREVIEW
     }
 
     public class S3ContentClient
@@ -96,7 +97,7 @@ namespace WIGO.Core
 
         string CreateFileName(ContentType type)
         {
-            string folderName = type == ContentType.PHOTO ? _s3Config.GetPhotoFolderName() : _s3Config.GetVideoFolderName();
+            string folderName = _s3Config.GetFolderName(type);
             return $"{folderName}/{DateTime.Now.ToString("MM_dd_yyyy_HH-mm-ss")}_{type.ToString()}";
         }
     }

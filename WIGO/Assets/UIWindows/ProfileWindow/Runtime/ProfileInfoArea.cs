@@ -13,6 +13,8 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _aboutLabel;
         [SerializeField] CategoryEventElement _tagPrefab;
         [SerializeField] RectTransform _tagsContent;
+        [Space]
+        [SerializeField] string _information;
 
         //[SerializeField] RawImage[] _photoes;
 
@@ -28,7 +30,7 @@ namespace WIGO.Userinterface
             _currentProfile = profile;
             _displayNameLabel.text = _currentProfile.firstname;
             _usernameLabel.text = $"@{_currentProfile.nickname}";
-            _aboutLabel.text = string.IsNullOrEmpty(_currentProfile.about) ? "Информация о себе" : _currentProfile.about;   // [TODO]: replace with configs
+            _aboutLabel.text = string.IsNullOrEmpty(_currentProfile.about) ? _information : _currentProfile.about;
 
             float screenWidth = ServiceLocator.Get<UIManager>().GetCanvasSize().x;
             _tagsContent.DestroyChildren();
@@ -57,7 +59,7 @@ namespace WIGO.Userinterface
         {
             _displayNameLabel.text = _currentProfile.firstname;
             _usernameLabel.text = $"@{_currentProfile.nickname}";
-            _aboutLabel.text = string.IsNullOrEmpty(_currentProfile.about) ? "Информация о себе" : _currentProfile.about;   // [TODO]: replace with configs
+            _aboutLabel.text = string.IsNullOrEmpty(_currentProfile.about) ? _information : _currentProfile.about;
 
             float screenWidth = ServiceLocator.Get<UIManager>().GetCanvasSize().x;
             _tagsContent.DestroyChildren();

@@ -9566,6 +9566,8 @@ MonoBehaviour:
   _aboutIF: {fileID: 1851846519032421935}
   _genderLabel: {fileID: 2257264472981795701}
   _avatar: {fileID: 4722746879452474128}
+  _maleText: "\u041C\u0443\u0436\u0441\u043A\u043E\u0439"
+  _femaleText: "\u0416\u0435\u043D\u0441\u043A\u0438\u0439"
 --- !u!1 &5782988123246777038
 GameObject:
   m_ObjectHideFlags: 0
@@ -11476,6 +11478,8 @@ MonoBehaviour:
   _aboutLabel: {fileID: 892803521862309851}
   _tagPrefab: {fileID: 1368135856741375813, guid: 859c8d59c3e38cb4f96c257c1d33b255, type: 3}
   _tagsContent: {fileID: 3497763733958047888}
+  _information: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E
+    \u0441\u0435\u0431\u0435"
 --- !u!114 &7828175378187827478
 MonoBehaviour:
   m_ObjectHideFlags: 0

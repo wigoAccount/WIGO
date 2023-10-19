@@ -10,6 +10,7 @@ using WIGO.Core;
 using WIGO.Utility;
 using Event = WIGO.Core.Event;
 using TMPro;
+using System.Threading.Tasks;
 
 namespace WIGO.Userinterface
 {
@@ -32,8 +33,8 @@ namespace WIGO.Userinterface
         List<Event> _loadedCards = new List<Event>();
         UIEventCardElement _currentCard;
         CancellationTokenSource _cts;
+        Event _acceptedEvent;
         int _currentCardIndex;
-        bool _isResponse;
         bool _waitForLocation;
 
         public override void OnOpen(WindowId previous)
@@ -45,6 +46,16 @@ namespace WIGO.Userinterface
             _myEventButton.SetActive(_eventCreated);
             _userProfileElement.Setup(profile);
             RefreshFeed();
+        }
+
+        public override void OnReopen(WindowId previous, UIWindowModel cachedModel)
+        {
+            if (previous == WindowId.COMPLAIN_SCREEN)
+            {
+                return;
+            }
+
+            OnOpen(previous);
         }
 
         public override void OnClose(WindowId next, Action callback = null)
@@ -77,7 +88,7 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            _isResponse = false;
+            _acceptedEvent = null;
 #if UNITY_EDITOR
             string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
             OnRecordComplete(path);
@@ -135,6 +146,14 @@ namespace WIGO.Userinterface
             Debug.LogFormat("<color=orange>FOCUS {0}</color>", status);
         }
 
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                ServiceLocator.Get<UIManager>().Open<ComplainWindow>(WindowId.COMPLAIN_SCREEN, window => window.Setup(new AbstractEvent()), true);
+            }
+        }
+
         void OnApplyFilterCategory()
         {
             _waitForLocation = false;
@@ -146,6 +165,7 @@ namespace WIGO.Userinterface
 
         void RefreshFeed()
         {
+            _acceptedEvent = null;
             _currentCard?.Clear();
             _currentCard = null;
             _endOfPostsController.Deactivate();
@@ -153,7 +173,7 @@ namespace WIGO.Userinterface
             _waitForLocation = true;
 
 #if UNITY_EDITOR
-            string location = "Longitude: -294.67 Latitude: 81.62";
+            string location = "55.767,37.684";
             OnGetLocation(location);
 #elif UNITY_IOS
             MessageIOSHandler.OnGetUserLocation();
@@ -164,7 +184,6 @@ namespace WIGO.Userinterface
         {
             if (_currentCardIndex >= _loadedCards.Count)
             {
-                // [TODO]: add label
                 _currentCard = null;
                 SetEndOfPosts();
                 return;
@@ -177,11 +196,11 @@ namespace WIGO.Userinterface
             _currentCard.Setup(card, OnCardSwipe);
         }
 
-        void OnCardSwipe(bool accept)
+        void OnCardSwipe(Event accepted, bool accept)
         {
             if (accept)
             {
-                _isResponse = true;
+                _acceptedEvent = accepted;
                 UIGameColors.SetTransparent(_overlay);
                 _overlay.gameObject.SetActive(true);
                 _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
@@ -272,7 +291,7 @@ namespace WIGO.Userinterface
             }
 			
             ServiceLocator.Get<UIManager>().Open<VideoPreviewWindow>(WindowId.VIDEO_PREVIEW_SCREEN,
-                (window) => window.Setup(videoPath, _isResponse));
+                (window) => window.Setup(videoPath, _acceptedEvent));
         }
 
         async void OnGetLocation(string location)
@@ -280,41 +299,49 @@ namespace WIGO.Userinterface
             if (_waitForLocation)
             {
                 _waitForLocation = false;
-                Debug.LogFormat("Location REG: {0}", location);
+                Debug.LogFormat("Get location before get cards: {0}", location);
 
-                int categoryUid = _filtersController.GetFilterCategory();
                 var model = ServiceLocator.Get<GameModel>();
-                _cts = new CancellationTokenSource();
-                _cts.CancelAfter(8000);
-
-                int[] tags = categoryUid == 0 ? new int[0] : new int[] { categoryUid };
-                FeedRequest request = new FeedRequest()
-                {
-                    tags = tags
-                };
-                IEnumerable<Event> cards = await NetService.TryGetFeedEvents(request, model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
-
-                if (_cts.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                _cts.Dispose();
-                _cts = null;
-                _loadingLabel.SetActive(false);
-                _loadedCards = categoryUid == 0
-                    ? new List<Event>(cards)
-                    : new List<Event>(cards.Where(x => x.ContainsTag(categoryUid)));
-                _currentCardIndex = 0;
-
-                if (_loadedCards.Count == 0)
-                {
-                    SetEndOfPosts();
-                    return;
-                }
-
-                CreateNextCard();
+                var locationData = GameConsts.ParseLocation(location);
+                await NetService.TrySendLocation(locationData, model.GetUserLinks().data.address, model.ShortToken);
+                await UpdateFeedCards();
             }
+        }
+
+        async Task UpdateFeedCards()
+        {
+            int categoryUid = _filtersController.GetFilterCategory();
+            var model = ServiceLocator.Get<GameModel>();
+            _cts = new CancellationTokenSource();
+            _cts.CancelAfter(8000);
+
+            int[] tags = categoryUid == 0 ? new int[0] : new int[] { categoryUid };
+            FeedRequest request = new FeedRequest()
+            {
+                tags = tags
+            };
+            IEnumerable<Event> cards = await NetService.TryGetFeedEvents(request, model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
+
+            if (_cts.IsCancellationRequested)
+            {
+                return;
+            }
+
+            _cts.Dispose();
+            _cts = null;
+            _loadingLabel.SetActive(false);
+            _loadedCards = categoryUid == 0
+                ? new List<Event>(cards)
+                : new List<Event>(cards.Where(x => x.ContainsTag(categoryUid)));
+            _currentCardIndex = 0;
+
+            if (_loadedCards.Count == 0)
+            {
+                SetEndOfPosts();
+                return;
+            }
+
+            CreateNextCard();
         }
     }
 }

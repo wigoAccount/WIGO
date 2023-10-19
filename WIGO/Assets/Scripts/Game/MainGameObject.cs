@@ -15,7 +15,7 @@ namespace WIGO
 
         private void Awake()
         {
-            Application.targetFrameRate = 60;
+            Application.targetFrameRate = 120;
 #if UNITY_ANDROID && !UNITY_EDITOR
             TouchScreenKeyboard.Android.consumesOutsideTouches = false;
 #elif UNITY_IOS && !UNITY_EDITOR

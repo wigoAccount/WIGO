@@ -16,13 +16,15 @@ namespace WIGO.Userinterface
         AbstractEvent _cardData;
         Request _request;
         ProfileData _profile;
-        Action<Request> _onSelectChat;
+        Action<Request, bool> _onSelectChat;
 
         bool _loaded = true;
+        bool _isEvent;
 
-        public UIChatInfo(Request data, Action<Request> onSelectChat, bool isEvent = false)
+        public UIChatInfo(Request data, Action<Request, bool> onSelectChat, bool isEvent = false)
         {
             _request = data;
+            _isEvent = isEvent;
             _cardData = isEvent ? (AbstractEvent)data.@event : data;
             _onSelectChat = onSelectChat;
             _profile = isEvent ? data.@event.author : data.author;
@@ -32,7 +34,7 @@ namespace WIGO.Userinterface
         public ProfileData GetProfile() => _profile;
         public bool IsLoaded() => _loaded;
 
-        public void RaiseSelectCallback() => _onSelectChat?.Invoke(_request);
+        public void RaiseSelectCallback() => _onSelectChat?.Invoke(_request, _isEvent);
     }
 
     public class UIChatElement : MonoBehaviour, ICell<UIChatInfo>
@@ -91,25 +93,22 @@ namespace WIGO.Userinterface
         {
             var card = _info.GetCard();
             _nameLabel.text = _info.GetProfile() == null ? "username" : _info.GetProfile().firstname;
-            _profilePhoto.Setup(_info.GetProfile());
+            _profilePhoto.Setup(card.preview);
             _messageLabel.SetText(card.about);
             _frame.SetActive(card.IsResponse());
             UIGameColors.SetTransparent(_background, card.IsResponse() ? 0.05f : 0.1f);
 
             var status = GetViewStatus(card);
 
-            // [TODO]: replace with configs localization
             if (card.IsResponse())
             {
                 _statusIcon.color = status == EventStatus.Watched ? UIGameColors.transparentBlue : UIGameColors.Blue;
                 _statusLabel.text = status == EventStatus.Watched ? _statusTexts[0] : _statusTexts[1];
-                //_statusLabel.text = status == EventStatus.Watched ? "Просмотрено" : "Новая заявка";
             }
             else
             {
                 _statusIcon.color = status == EventStatus.Accepted ? UIGameColors.Green : UIGameColors.transparent20;
                 _statusLabel.text = status == EventStatus.Accepted ? _statusTexts[2] : _statusTexts[3];
-                //_statusLabel.text = status == EventStatus.Accepted ? "Заявка одобрена" : "Заявка отправлена";
             }
 
             _infoBlock.SetActive(true);

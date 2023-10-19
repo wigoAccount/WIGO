@@ -27,7 +27,7 @@ namespace WIGO.Userinterface
 
             _onManageRequest = onManageRequest;
             _descLabel.text = card.about;
-            _distanceLabel.text = string.Format("{0} min from me", card.waiting);       // [TODO]: change with config
+            _distanceLabel.text = string.Format("{0} min from me", card.waiting);
             SetupUserInfo(card.author);
             SetupVideo(card.video, card.AspectRatio);
         }

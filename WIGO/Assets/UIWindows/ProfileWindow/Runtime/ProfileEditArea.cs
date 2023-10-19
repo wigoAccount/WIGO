@@ -15,6 +15,8 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _genderLabel;
         [Space]
         [SerializeField] ProfileGalleryItem _avatar;
+        [SerializeField] string _maleText;
+        [SerializeField] string _femaleText;
 
         ProfileData _currentProfile;
         RectTransform _area;
@@ -33,7 +35,7 @@ namespace WIGO.Userinterface
             _displayNameIF.SetTextWithoutNotify(profile.firstname);
             _usernameIF.SetTextWithoutNotify(profile.nickname);
             _aboutIF.SetTextWithoutNotify(profile.about);
-            _genderLabel.SetText(profile.gender.uid == 2 ? "Male" : "Female");   // [TODO]: replace with configs
+            _genderLabel.SetText(profile.gender.uid == 2 ? _maleText : _femaleText);
             _avatar.gameObject.SetActive(true);
         }
 
@@ -65,7 +67,7 @@ namespace WIGO.Userinterface
                 uid = gender == Gender.male ? 1 : 2,
                 name = gender == Gender.male ? "female" : "male"
             };
-            _genderLabel.SetText(newGender.uid == 2 ? "Male" : "Female");   // [TODO]: replace with configs
+            _genderLabel.SetText(newGender.uid == 2 ? _maleText : _femaleText);
             _currentProfile.gender = newGender;
         }
     }

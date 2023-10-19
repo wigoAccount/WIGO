@@ -22,7 +22,8 @@ namespace WIGO.Userinterface
         EVENTS_REQUESTS_SCREEN,
         EVENT_VIEW_SCREEN,
         START_SCREEN,
-        POPUP_SCREEN
+        POPUP_SCREEN,
+        COMPLAIN_SCREEN
     }
 
     public class UIWindow : MonoBehaviour

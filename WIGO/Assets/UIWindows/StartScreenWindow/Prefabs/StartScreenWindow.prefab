@@ -441,6 +441,8 @@ MonoBehaviour:
   - {fileID: 3347449414593591099}
   _button: {fileID: 387959545237483181}
   _btnLabel: {fileID: 387959544756268178}
+  _nextText: "\u0414\u0430\u043B\u0435\u0435"
+  _letsStartText: "\u0414\u0430\u0432\u0430\u0439 \u043D\u0430\u0447\u043D\u0435\u043C!"
 --- !u!1 &387959546217516198
 GameObject:
   m_ObjectHideFlags: 0

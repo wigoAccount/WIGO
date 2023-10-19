@@ -17,5 +17,23 @@ namespace WIGO.Core
 
             return new Color(r, g, b);
         }
+
+        public static Location ParseLocation(string coordinates)
+        {
+            Location loc = new Location();
+            string[] splited = coordinates.Replace("\"", "").Split(",");
+            if (splited.Length > 1)
+            {
+                var longitude = splited[0];
+                var latitude = splited[1];
+                loc.latitude = latitude;
+                loc.longitude = longitude;
+                Debug.LogFormat("<color=yellow>MY LOCATION: Latitude: {0}\r\nLongitude: {1}</color>", latitude, longitude);
+            }
+            else
+                Debug.LogWarningFormat("Can't split coordinates: {0}", coordinates);
+
+            return loc;
+        }
     }
 }
