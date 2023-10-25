@@ -150,7 +150,7 @@ namespace WIGO.Userinterface
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                ServiceLocator.Get<UIManager>().Open<ComplainWindow>(WindowId.COMPLAIN_SCREEN, window => window.Setup(new AbstractEvent()), true);
+                ServiceLocator.Get<UIManager>().Open<ComplainWindow>(WindowId.COMPLAIN_SCREEN, window => window.Setup(new AbstractEvent() { uid = "11" }), true);
             }
         }
 
@@ -196,11 +196,11 @@ namespace WIGO.Userinterface
             _currentCard.Setup(card, OnCardSwipe);
         }
 
-        void OnCardSwipe(Event accepted, bool accept)
+        void OnCardSwipe(Event card, bool accept)
         {
             if (accept)
             {
-                _acceptedEvent = accepted;
+                _acceptedEvent = card;
                 UIGameColors.SetTransparent(_overlay);
                 _overlay.gameObject.SetActive(true);
                 _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
@@ -208,7 +208,24 @@ namespace WIGO.Userinterface
                 return;
             }
 
+            DeclineCard(card.uid);
             CreateNextCard();
+        }
+
+        async void DeclineCard(string cardId)
+        {
+            if (string.IsNullOrEmpty(cardId))
+            {
+                Debug.LogError("Fail to decline card. It's empty");
+                return;
+            }
+
+            var model = ServiceLocator.Get<GameModel>();
+            string uid = await NetService.TrySendDeclineEvent(cardId, model.GetUserLinks().data.address, model.ShortToken);
+            if (string.IsNullOrEmpty(uid))
+            {
+                Debug.LogErrorFormat("Fail to decline card: {0}. Server error", cardId);
+            }
         }
 
         IEnumerator DelayLaunchRecord()

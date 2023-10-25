@@ -2357,6 +2357,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _handler: {fileID: 1594297725186239899}
+  _complaintsText:
+  - obscene content
+  - obscene photos
+  - calls for violence
+  - profanity
+  - another
 --- !u!114 &2903200287548888637
 MonoBehaviour:
   m_ObjectHideFlags: 0

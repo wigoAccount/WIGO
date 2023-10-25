@@ -317,6 +317,86 @@ namespace WIGO.Core
             }
         }
 
+        public static async Task TrySendComplaint(CreateComplaintRequest data, string url, string stoken, CancellationToken ctoken = default)
+        {
+            string jsonData = JsonReader.Serialize(data);
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "complaintPost",
+                @params = new List<string> { jsonData },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Send complaint request is empty");
+                return;
+            }
+
+            try
+            {
+                RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                if (error != null)
+                {
+                    ReportError(error.error);
+                }
+            }
+            catch (System.Exception)
+            {
+                Debug.Log("Location sent");
+            }
+        }
+
+        public static async Task<string> TrySendDeclineEvent(string eventId, string url, string stoken, CancellationToken ctoken = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "eventDecline",
+                @params = new List<string> { eventId },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Decline event request is empty");
+                return null;
+            }
+
+            try
+            {
+                RPCResult<List<string>> res = JsonReader.Deserialize<RPCResult<List<string>>>(resJson);
+                return res.result[0];
+            }
+            catch
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+
+                    return null;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogErrorFormat("Error decline event: {0}", e.Message);
+                    return null;
+                }
+            }
+        }
+
         static Event GetParsedEvent(string resJson)
         {
             if (string.IsNullOrEmpty(resJson))

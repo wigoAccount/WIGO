@@ -125,6 +125,13 @@ namespace WIGO.Core
         public string preview;
     }
 
+    [Serializable]
+    public struct CreateComplaintRequest
+    {
+        public string eventid;
+        public string txt;
+    }
+
     #region Globals
     [Serializable]
     public class GlobalsData

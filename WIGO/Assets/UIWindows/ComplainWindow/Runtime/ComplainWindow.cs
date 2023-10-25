@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using UnityEngine;
 using WIGO.Core;
 
@@ -8,7 +7,10 @@ namespace WIGO.Userinterface
     public class ComplainWindow : UIWindow
     {
         [SerializeField] PanelDragHandler _handler;
+        [Space]
+        [SerializeField] string[] _complaintsText;
 
+        Action _onComplaintSent;
         ComplainWindowView _view;
         AbstractEvent _selectedEvent;
 
@@ -23,16 +25,25 @@ namespace WIGO.Userinterface
             _view.OnClose(callback);
         }
 
-        public void Setup(AbstractEvent selected)
+        public void Setup(AbstractEvent selected, Action onComplaintSent = null)
         {
             _selectedEvent = selected;
+            _onComplaintSent = onComplaintSent;
         }
 
         public async void OnComplainSelect(int id)
         {
             _handler.OnClose();
-            await Task.Delay(200);
-            Debug.LogFormat("Complaint sent: {0} with type {1}", _selectedEvent.uid, id);
+            _onComplaintSent?.Invoke();
+
+            var model = ServiceLocator.Get<GameModel>();
+            CreateComplaintRequest request = new CreateComplaintRequest()
+            {
+                eventid = _selectedEvent.uid,
+                txt = _complaintsText[id]
+            };
+
+            await NetService.TrySendComplaint(request, model.GetUserLinks().data.address, model.ShortToken);
         }
 
         public void OnCancelClick()

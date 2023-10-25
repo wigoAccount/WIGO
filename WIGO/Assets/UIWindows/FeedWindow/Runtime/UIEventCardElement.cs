@@ -163,7 +163,8 @@ namespace WIGO.Userinterface
 
         public void OnComplainClick()
         {
-            ServiceLocator.Get<UIManager>().Open<ComplainWindow>(WindowId.COMPLAIN_SCREEN, window => window.Setup(_cardEvent), true);
+            ServiceLocator.Get<UIManager>().Open<ComplainWindow>(WindowId.COMPLAIN_SCREEN, window => 
+                window.Setup(_cardEvent, () => SkipCard(-1)), true);
         }
 
         void Update()
