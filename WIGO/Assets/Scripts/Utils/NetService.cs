@@ -317,7 +317,7 @@ namespace WIGO.Core
             }
         }
 
-        public static async Task TrySendComplaint(CreateComplaintRequest data, string url, string stoken, CancellationToken ctoken = default)
+        public static async Task<bool> TrySendComplaint(CreateComplaintRequest data, string url, string stoken, CancellationToken ctoken = default)
         {
             string jsonData = JsonReader.Serialize(data);
             RPCRequest request = new RPCRequest()
@@ -335,7 +335,7 @@ namespace WIGO.Core
             if (string.IsNullOrEmpty(resJson))
             {
                 Debug.LogError("Send complaint request is empty");
-                return;
+                return false;
             }
 
             try
@@ -345,10 +345,13 @@ namespace WIGO.Core
                 {
                     ReportError(error.error);
                 }
+
+                return false;
             }
             catch (System.Exception)
             {
                 Debug.Log("Location sent");
+                return true;
             }
         }
 

@@ -43,7 +43,11 @@ namespace WIGO.Userinterface
                 txt = _complaintsText[id]
             };
 
-            await NetService.TrySendComplaint(request, model.GetUserLinks().data.address, model.ShortToken);
+            bool res = await NetService.TrySendComplaint(request, model.GetUserLinks().data.address, model.ShortToken);
+            if (res)
+            {
+                ServiceLocator.Get<UIManager>().GetPopupManager().AddDoneNotification();
+            }
         }
 
         public void OnCancelClick()

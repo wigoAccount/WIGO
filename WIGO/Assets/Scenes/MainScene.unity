@@ -584,6 +584,7 @@ MonoBehaviour:
   _overlay: {fileID: 809876675}
   _popupPrefab: {fileID: 6226717569425720895, guid: 041ba0aa793d0cb4ca3fda10ee3159d9, type: 3}
   _notificationAlertPrefab: {fileID: 1699853398388726895, guid: 6da26935369de6946b84b2ed4f703bdb, type: 3}
+  _notificationDonePrefab: {fileID: 1699853398388726895, guid: 40688cdcd864a774bbdb513f8a2ccb4b, type: 3}
   _bottomPanel: {fileID: 2109699768}
   _safeArea: {fileID: 823355177}
 --- !u!1 &180439991

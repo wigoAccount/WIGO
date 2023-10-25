@@ -13,6 +13,7 @@ namespace WIGO.Userinterface
         [SerializeField] Image _overlay;
         [SerializeField] PopupWindowElement _popupPrefab;
         [SerializeField] NotificationMessageElement _notificationAlertPrefab;
+        [SerializeField] NotificationMessageElement _notificationDonePrefab;
         [SerializeField] PopupBottomPanel _bottomPanel;
         [SerializeField] SafeArea _safeArea;
 
@@ -29,6 +30,17 @@ namespace WIGO.Userinterface
             string message = _errorsDatabase.GetErrorMessageWithId(errorId);
             _notification = Instantiate(_notificationAlertPrefab, _safeArea.transform);
             _notification.Setup(message, () => _notification = null);
+        }
+
+        public void AddDoneNotification()
+        {
+            if (_notification != null)
+            {
+                return;
+            }
+
+            _notification = Instantiate(_notificationDonePrefab, _safeArea.transform);
+            _notification.Setup(() => _notification = null);
         }
 
         public void AddPopup(string titleKey, IEnumerable<PopupOption> options)

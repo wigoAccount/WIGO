@@ -10,7 +10,8 @@ namespace WIGO.Userinterface
     public enum NotificationType
     {
         DEFAULT,
-        ALERT
+        ALERT,
+        INFO
     }
 
     public class NotificationMessageElement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -38,11 +39,9 @@ namespace WIGO.Userinterface
 
         public NotificationType GetNotificationType() => _notificationType;
 
-        public void Setup(string message, Action onClose)
+        public void Setup(Action onClose)
         {
             _onClose = onClose;
-            _messageLabel.SetText(message);
-
             float yPos = _panel.anchoredPosition.y;
             _panel.anchoredPosition = Vector2.down * _panel.sizeDelta.y;
             _canvasGroup.alpha = 0f;
@@ -57,6 +56,12 @@ namespace WIGO.Userinterface
             _closeAnimation.Pause();
 
             _visibleCoroutine = StartCoroutine(VisibleProcess());
+        }
+
+        public void Setup(string message, Action onClose)
+        {
+            _messageLabel.SetText(message);
+            Setup(onClose);
         }
 
         public virtual void Rewind()
