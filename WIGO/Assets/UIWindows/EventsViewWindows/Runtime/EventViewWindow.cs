@@ -8,6 +8,7 @@ using WIGO.Core;
 using DG.Tweening;
 
 using System.Threading;
+using WIGO.Utility;
 
 namespace WIGO.Userinterface
 {
@@ -194,7 +195,7 @@ namespace WIGO.Userinterface
 
         public void OnCopyPhoneNumber()
         {
-            string phoneNumber = _currentCard.author == null ? "9998887766" : _currentCard.author.phone;
+            string phoneNumber = _currentCard.author == null ? "None" : _currentCard.author.phone;
             GUIUtility.systemCopyBuffer = phoneNumber;
             
             if (_copyAnimation == null)
