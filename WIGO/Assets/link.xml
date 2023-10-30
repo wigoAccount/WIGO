@@ -1,0 +1,3 @@
+<linker>
+    <assembly fullname="AWSSDK.S3" preserve="all"/>
+</linker>
