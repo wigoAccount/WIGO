@@ -34,7 +34,7 @@ namespace WIGO.Userinterface
 
             _background.color = profile.GetColor();
             _firstLetter.text = profile.firstname.Substring(0, 1);
-            if (string.IsNullOrEmpty(url))
+            if (string.IsNullOrEmpty(url) || string.Compare(url, "null") == 0)
             {
                 _background.gameObject.SetActive(true);
                 _mask.SetActive(false);
@@ -45,6 +45,13 @@ namespace WIGO.Userinterface
             _mask.SetActive(true);
 
             var avatar = await DownloadTextureAsync(url);
+            if (avatar == null)
+            {
+                _background.gameObject.SetActive(true);
+                _mask.SetActive(false);
+                return;
+            }
+
             SetPhotoSize(avatar);
             _avatarImage.texture = avatar;
         }
@@ -69,6 +76,13 @@ namespace WIGO.Userinterface
             _mask.SetActive(true);
 
             var avatar = await DownloadTextureAsync(url);
+            if (avatar == null)
+            {
+                _background.gameObject.SetActive(true);
+                _mask.SetActive(false);
+                return;
+            }
+
             SetPhotoSize(avatar);
             _avatarImage.texture = avatar;
         }

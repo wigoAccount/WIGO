@@ -49,37 +49,46 @@ namespace WIGO.Core
 
         public async Task<Texture2D> GetTexture(string filename, CancellationToken token = default)
         {
-            var response = await _s3Client.GetObjectAsync(_s3Config.GetBucketName(), filename, token);
-            if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
+            try
             {
-                using StreamReader reader = new StreamReader(response.ResponseStream);
-                using var memstream = new MemoryStream();
-                await reader.BaseStream.CopyToAsync(memstream);
-                var bytes = memstream.ToArray();
-
-                var texture = TextureCreator.GetRGBwithoutAlphaTexture();
-                if (texture.LoadImage(bytes))
+                var response = await _s3Client.GetObjectAsync(_s3Config.GetBucketName(), filename, token);
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    texture.Apply();
-                    return texture;
+                    using StreamReader reader = new StreamReader(response.ResponseStream);
+                    using var memstream = new MemoryStream();
+                    await reader.BaseStream.CopyToAsync(memstream);
+                    var bytes = memstream.ToArray();
+
+                    var texture = TextureCreator.GetRGBwithoutAlphaTexture();
+                    if (texture.LoadImage(bytes))
+                    {
+                        texture.Apply();
+                        return texture;
+                    }
+
+                    Debug.LogWarning("Can't convert bytes to texture 2d");
+                    return null;
                 }
 
-                Debug.LogWarning("Can't convert bytes to texture 2d");
+                Debug.LogWarningFormat("Request status isn't OK: {0}", response.HttpStatusCode);
                 return null;
             }
-
-            Debug.LogWarningFormat("Request status isn't OK: {0}", response.HttpStatusCode);
-            return null;
+            catch (Exception ex)
+            {
+                Debug.LogErrorFormat("Request failed. Error: {0}", ex.Message);
+                return null;
+            }
         }
 
         public async Task<string> UploadFile(string filePath, ContentType fileType, CancellationToken token = default)
         {
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             string bucketName = _s3Config.GetBucketName();
+            string name = CreateFileName(fileType);
             var request = new PutObjectRequest()
             {
                 BucketName = bucketName,
-                Key = CreateFileName(fileType),
+                Key = name,
                 InputStream = stream,
                 CannedACL = S3CannedACL.Private
             };
@@ -88,7 +97,7 @@ namespace WIGO.Core
             if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
             {
                 Debug.Log("File successfully uploated");
-                return request.Key;
+                return name;
             }
 
             Debug.LogErrorFormat("Fail to upload file. Status: {0}", response.HttpStatusCode.ToString());
