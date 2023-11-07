@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,11 +35,13 @@ namespace WIGO.Test
 
         private void Start()
         {
-            PermissionsRequestManager.RequestPermissionLocation((success) =>
+#if UNITY_IOS && !UNITY_EDITOR
+            StartCoroutine(CheckPermissionsIOSLocation((success) =>
             {
                 _getLocationButton.SetActive(success);
                 _noPermissionTip.SetActive(!success);
-            });
+            }));
+#endif
 
             InvokeRepeating("CheckStatus", 0.5f, 2f);
         }
@@ -47,5 +51,41 @@ namespace WIGO.Test
             Color color = Input.location.status == LocationServiceStatus.Running ? _onColor : _offColor;
             _statusIcon.color = color;
         }
+
+#if UNITY_IOS && !UNITY_EDITOR
+        static IEnumerator CheckPermissionsIOSLocation(Action<bool> callback)
+        {
+            if (PermissionsRequestManager.HasLocationPermission())
+            {
+                callback?.Invoke(true);
+                yield break;
+            }
+
+            Input.location.Start(1f, 5f);
+            int maxWait = 1200;
+            while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
+            {
+                yield return null;
+                maxWait--;
+            }
+
+            if (maxWait < 1)
+            {
+                Debug.Log("Timed out location");
+                callback?.Invoke(false);
+                yield break;
+            }
+
+            if (Input.location.status == LocationServiceStatus.Failed)
+            {
+                Debug.Log("Unable to determine device location");
+                callback?.Invoke(false);
+            }
+            else if (Input.location.status == LocationServiceStatus.Running)
+            {
+                callback?.Invoke(true);
+            }
+        }
+#endif
     }
 }
