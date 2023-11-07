@@ -18,6 +18,9 @@ namespace WIGO.Test
         [SerializeField] Color _onColor;
         [SerializeField] Color _offColor;
 
+        bool _inited;
+        float _timer = 0f;
+
         public void OnUpdateLocationClick()
         {
             if (Input.location.status == LocationServiceStatus.Running)
@@ -35,15 +38,34 @@ namespace WIGO.Test
 
         private void Start()
         {
+            _timer = 0f;
 #if UNITY_IOS && !UNITY_EDITOR
-            StartCoroutine(CheckPermissionsIOSLocation((success) =>
+            MessageIOSHandler.OnAllowLocationPermission();
+#endif
+        }
+
+        private void Update()
+        {
+            if (!_inited)
             {
-                _getLocationButton.SetActive(success);
-                _noPermissionTip.SetActive(!success);
-            }));
+                _timer += Time.unscaledDeltaTime;
+                if (_timer >= 10f)
+                {
+                    _timer = 0f;
+                    _inited = true;
+
+                    _statusIcon.color = Color.yellow;
+#if UNITY_IOS && !UNITY_EDITOR
+                    StartCoroutine(CheckPermissionsIOSLocation((success) =>
+                    {
+                        _getLocationButton.SetActive(success);
+                        _noPermissionTip.SetActive(!success);
+                    }));
 #endif
 
-            InvokeRepeating("CheckStatus", 0.5f, 2f);
+                    InvokeRepeating("CheckStatus", 1.5f, 2f);
+                }
+            }
         }
 
         void CheckStatus()
