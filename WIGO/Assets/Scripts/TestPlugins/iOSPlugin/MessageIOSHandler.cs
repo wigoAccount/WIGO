@@ -15,7 +15,7 @@ namespace WIGO.Utility
         private static extern void startSwiftMapController();
 
         [DllImport("__Internal")]
-        private static extern void startSwiftTestController();
+        private static extern void startSwiftTest();
 
         [DllImport("__Internal")]
         private static extern void swiftTestPluginNearestLocations();
@@ -83,7 +83,7 @@ namespace WIGO.Utility
 
         public static void OnPressTestButton()
         {
-            startSwiftTestController();
+            startSwiftTest();
         }
 
         public static void OnGetUserLocation()
