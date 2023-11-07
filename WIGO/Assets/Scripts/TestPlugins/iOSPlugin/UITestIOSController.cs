@@ -21,7 +21,7 @@ namespace WIGO.Test
 #if UNITY_EDITOR
             Debug.Log("Editor version: OK");
 #elif UNITY_IOS
-            MessageIOSHandler.OnPressTestButton();
+            //MessageIOSHandler.OnPressTestButton();
 #endif
         }
 

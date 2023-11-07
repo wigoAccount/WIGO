@@ -121,14 +121,14 @@ namespace WIGO.Userinterface
             RefreshFeed();
         }
 
-        public void OnTestClick()
-        {
-#if UNITY_IOS && !UNITY_EDITOR
-            MessageIOSHandler.OnPressTestButton();
-#else
-            Debug.Log("No iOS device!");
-#endif
-        }
+//        public void OnTestClick()
+//        {
+//#if UNITY_IOS && !UNITY_EDITOR
+//            MessageIOSHandler.OnPressTestButton();
+//#else
+//            Debug.Log("No iOS device!");
+//#endif
+//        }
 
         protected override void Awake()
         {
