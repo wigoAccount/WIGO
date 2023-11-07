@@ -234,7 +234,10 @@ namespace WIGO.Utility
             {
                 Debug.Log("Unable to determine device location");
                 callback?.Invoke(false);
-                yield break;
+            }
+            else if (Input.location.status == LocationServiceStatus.Running)
+            {
+                callback?.Invoke(true);
             }
         }
 #endif
