@@ -15,7 +15,7 @@ namespace WIGO.Utility
         private static extern void startSwiftMapController();
 
         [DllImport("__Internal")]
-        private static extern void startSwiftTest();
+        private static extern string GetLastKnownLocation();
 
         [DllImport("__Internal")]
         private static extern void swiftTestPluginNearestLocations();
@@ -81,9 +81,11 @@ namespace WIGO.Utility
             startSwiftMapController();
         }
 
-        public static void OnPressTestButton()
+        public static string OnPressTestButton()
         {
-            startSwiftTest();
+            var answer = GetLastKnownLocation();
+            Debug.LogFormat("Answer from plugin: {0}", answer);
+            return answer;
         }
 
         public static void OnGetUserLocation()

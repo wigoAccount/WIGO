@@ -1,0 +1,4 @@
+framework module SwiftTestPluginLocation {
+  header "SwiftTestPluginLocation-Swift.h"
+  requires objc
+}

@@ -124,7 +124,7 @@ namespace WIGO.Userinterface
         public void OnTestClick()
         {
 #if UNITY_IOS && !UNITY_EDITOR
-            MessageIOSHandler.OnPressTestButton();
+            string location = MessageIOSHandler.OnPressTestButton();
 #else
             Debug.Log("No iOS device!");
 #endif
