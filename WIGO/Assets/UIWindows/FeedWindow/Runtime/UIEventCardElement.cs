@@ -30,7 +30,6 @@ namespace WIGO.Userinterface
         [SerializeField] string _minFromMe;
         [SerializeField] string _lessText;
         [SerializeField] string _moreText;
-        [SerializeField] string _editorVideoPath;
 
         Event _cardEvent;
         CanvasGroup _cardGroup;
@@ -71,12 +70,6 @@ namespace WIGO.Userinterface
                 categoryBlock.Setup(model.GetCategoryNameWithIndex(category));
             }
 
-            string url;
-#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
-            url = ServiceLocator.Get<S3ContentClient>().GetVideoURL(card.video);
-#else
-            url = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
-#endif
             SetupVideo(card.video, card.AspectRatio);
             OnOpen();
         }

@@ -89,8 +89,7 @@ namespace WIGO.Userinterface
         {
             _acceptedEvent = null;
 #if UNITY_EDITOR
-            string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
-            OnRecordComplete(path);
+            OnRecordComplete(_editorVideoPath);
 #elif UNITY_IOS
             MessageIOSHandler.OnPressCameraButton();
 #endif
@@ -273,8 +272,7 @@ namespace WIGO.Userinterface
             yield return new WaitForEndOfFrame();
 
 #if UNITY_EDITOR
-            string path = System.IO.Path.Combine(Application.streamingAssetsPath, _editorVideoPath);
-            OnRecordComplete(path);
+            OnRecordComplete(_editorVideoPath);
 #elif UNITY_IOS
             MessageIOSHandler.OnPressCameraButton();
 #endif

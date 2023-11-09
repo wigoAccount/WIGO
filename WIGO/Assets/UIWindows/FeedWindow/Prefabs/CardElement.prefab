@@ -1837,7 +1837,7 @@ MonoBehaviour:
   _minFromMe: " \u043C\u0438\u043D \u043E\u0442 \u043C\u0435\u043D\u044F"
   _lessText: "\u041C\u0435\u043D\u044C\u0448\u0435"
   _moreText: "\u0415\u0449\u0435"
-  _editorVideoPath: FakeProfile/IMG_9675.MP4
+  _editorVideoPath: D:/UnityProjects/WIGO_PRJ/IMG_9668.MP4
 --- !u!225 &1562692731408572615
 CanvasGroup:
   m_ObjectHideFlags: 0

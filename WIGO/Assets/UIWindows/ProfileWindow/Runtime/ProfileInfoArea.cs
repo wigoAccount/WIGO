@@ -112,8 +112,7 @@ namespace WIGO.Userinterface
 
         async Task<Texture2D> DownloadTextureAsync(string url)
         {
-            string fullPath = System.IO.Path.Combine(Application.streamingAssetsPath, url);
-            var textureBytes = await System.IO.File.ReadAllBytesAsync(fullPath);
+            var textureBytes = await System.IO.File.ReadAllBytesAsync(url);
 
             if (textureBytes != null && textureBytes.Length > 0)
             {

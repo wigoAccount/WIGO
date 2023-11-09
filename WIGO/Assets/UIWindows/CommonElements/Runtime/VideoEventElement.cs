@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using WIGO.Core;
 
 namespace WIGO.Userinterface
 {
@@ -84,10 +85,7 @@ namespace WIGO.Userinterface
 
             aspect = aspect <= 0f ? 9f / 16f : aspect;
             _currentMode = VideoMode.Muted;
-            string path = url;
-#if UNITY_EDITOR
-            path = System.IO.Path.Combine(Application.streamingAssetsPath, Core.GameConsts.EDITOR_TEST_VIDEO);
-#endif
+            string path = ServiceLocator.Get<S3ContentClient>().GetVideoURL(url);
             int height = Mathf.RoundToInt(VIDEO_SIZE / aspect);
 
             _renderTexture = RenderTexture.GetTemporary(VIDEO_SIZE, height, 32, GraphicsFormat.R16G16B16A16_SFloat);

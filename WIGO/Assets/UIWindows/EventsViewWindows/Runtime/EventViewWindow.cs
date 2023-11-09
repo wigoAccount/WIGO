@@ -63,7 +63,8 @@ namespace WIGO.Userinterface
             _preview.texture = _videoTexture;
             _fullInfoView = card.GetStatus() == Request.RequestStatus.accept;
 
-            _videoLoadRoutine = StartCoroutine(LoadVideoContent(card.video));
+            string path = ServiceLocator.Get<S3ContentClient>().GetVideoURL(card.video);
+            _videoLoadRoutine = StartCoroutine(LoadVideoContent(path));
             _view.SetupView(card, isMyRequest);
             _seconds = card.waiting;
             _timer = 0f;
@@ -300,10 +301,9 @@ namespace WIGO.Userinterface
         {
             if (!string.IsNullOrEmpty(url))
             {
-                string path = System.IO.Path.Combine(Application.streamingAssetsPath, url);
                 _videoPlayer.targetTexture = _videoTexture;
                 _videoPlayer.errorReceived += OnErrorReceived;
-                _videoPlayer.url = path;
+                _videoPlayer.url = url;
                 _videoPlayer.Prepare();
 
                 while (!_videoPlayer.isPrepared)
