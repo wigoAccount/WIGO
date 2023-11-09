@@ -128,7 +128,7 @@ namespace WIGO.Userinterface
                     Debug.LogWarning("Sign in with Apple failed " + authorizationErrorCode.ToString() + " " + error.ToString());
                 });
 #else
-            _appleId = "Unity test apple id";
+            _appleId = "appleid9867";
             _switching = false;
             _signInAppleScreen.SetActive(false);
             _registrationWindow.SetActive(true);
@@ -275,7 +275,6 @@ namespace WIGO.Userinterface
 
                     _profile = updProfile;
                     model.SaveProfile(updProfile);
-                    model.FinishRegister();
                     //_permissionsWindow.SetActive(true);
 
                     _notificationsWindow.SetActive(true);
@@ -321,8 +320,10 @@ namespace WIGO.Userinterface
                 responses = accept
             };
 
-            ServiceLocator.Get<GameModel>().SaveNotifications(settings);
-            ServiceLocator.Get<UIManager>().Open<FeedWindow>(WindowId.FEED_SCREEN);
+            var model = ServiceLocator.Get<GameModel>();
+            model.SaveNotifications(settings);
+            model.FinishRegister();
+            ServiceLocator.Get<UIManager>().Open<LogoWindow>(WindowId.LOGO_SCREEN, window => window.Setup(true));
         }
 
         protected override void Awake()

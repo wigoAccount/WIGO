@@ -1,6 +1,7 @@
 using AOT;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using WIGO.Core;
 
 namespace WIGO.Utility
 {
@@ -18,9 +19,6 @@ namespace WIGO.Utility
         private static extern string GetLastKnownLocation();
 
         [DllImport("__Internal")]
-        private static extern void swiftTestPluginNearestLocations();
-
-        [DllImport("__Internal")]
         private static extern void startSwiftRouteController(string theirLocation);
 
         [DllImport("__Internal")]
@@ -35,10 +33,6 @@ namespace WIGO.Utility
         public delegate void SwiftTestPluginLocationDidSend(string coordinates, string location);
         [DllImport("__Internal")]
         private static extern void setSwiftTestPluginLocationDidSend(SwiftTestPluginLocationDidSend callBack);
-
-        public delegate void SwiftTestPluginNearestLocations(string value);
-        [DllImport("__Internal")]
-        private static extern void swiftTestPluginNearestLocations(SwiftTestPluginNearestLocations callBack);
         #endregion
 
         #region delegate handlers
@@ -55,12 +49,6 @@ namespace WIGO.Utility
             string message = string.Join("\r\n", coordinates, location);
             MessageRouter.RouteMessage(NativeMessageType.Location, message);
         }
-
-        [MonoPInvokeCallback(typeof(SwiftTestPluginNearestLocations))]
-        public static void onGetMyLocation(string value)
-        {
-            MessageRouter.RouteMessage(NativeMessageType.MyLocation, value);
-        }
         #endregion
 
         [RuntimeInitializeOnLoadMethod]
@@ -68,7 +56,6 @@ namespace WIGO.Utility
         {
             setSwiftTestPluginVideoDidSave(onGetVideoPath);
             setSwiftTestPluginLocationDidSend(onGetFullLocation);
-            swiftTestPluginNearestLocations(onGetMyLocation);
         }
 
         public static void OnPressCameraButton()
@@ -81,16 +68,32 @@ namespace WIGO.Utility
             startSwiftMapController();
         }
 
-        public static string OnPressTestButton()
+        public static bool TryGetMyLocation(out Location location)
         {
-            var answer = GetLastKnownLocation();
-            Debug.LogFormat("Answer from plugin: {0}", answer);
-            return answer;
-        }
+            location = new Location();
+            var locText = GetLastKnownLocation();
+            //Log: Answer from plugin: Optional(41.7217979394288),Optional(44.76156402383443)
+            if (string.IsNullOrEmpty(locText) || locText.Contains("nil"))
+            {
+                return false;
+            }
 
-        public static void OnGetUserLocation()
-        {
-            swiftTestPluginNearestLocations();
+            if (locText.Contains("Optional"))
+            {
+                int startLat = Mathf.Clamp(locText.IndexOf("Optional(", 0) + 9, 0, int.MaxValue);
+                int endLat = Mathf.Clamp(locText.IndexOf(")", startLat) - 1, 0, int.MaxValue);
+                string latitude = locText.Substring(startLat, endLat - startLat + 1);
+
+                int startLon = Mathf.Clamp(locText.IndexOf(",Optional(", 0) + 10, 0, int.MaxValue);
+                int endLon = Mathf.Clamp(locText.IndexOf(")", startLon) - 1, 0, int.MaxValue);
+                string longitude = locText.Substring(startLon, endLon - startLon + 1);
+
+                location.latitude = latitude;
+                location.longitude = longitude;
+                return true;
+            }
+
+            return false;
         }
 
         public static void OnViewMap(string theirLocation)

@@ -27,7 +27,6 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _createEventButton;
         [SerializeField] GameObject _myEventButton;
         [SerializeField] TMP_Text _remainingTimeLabel;
-        [SerializeField] bool _eventCreated;
         [SerializeField] string _editorVideoPath;
 
         List<Event> _loadedCards = new List<Event>();
@@ -35,7 +34,8 @@ namespace WIGO.Userinterface
         CancellationTokenSource _cts;
         Event _acceptedEvent;
         int _currentCardIndex;
-        bool _waitForLocation;
+        bool _eventCreated;
+        bool _focusLost;
 
         public override void OnOpen(WindowId previous)
         {
@@ -60,7 +60,6 @@ namespace WIGO.Userinterface
 
         public override void OnClose(WindowId next, Action callback = null)
         {
-            _waitForLocation = false;
             _currentCard?.Clear();
             _currentCard = null;
             _filtersController.ResetFilters();
@@ -104,7 +103,6 @@ namespace WIGO.Userinterface
 
         public void OnRefreshFeedClick()
         {
-            _waitForLocation = false;
             _endOfPostsController.Deactivate();
             RefreshFeed();
         }
@@ -116,18 +114,37 @@ namespace WIGO.Userinterface
 
         public void OnFiltersOffClick()
         {
-            _waitForLocation = false;
             _filtersController.ResetFilters();
             RefreshFeed();
         }
 
-        public void OnTestClick()
+        public void OnMoveToAppSettings()
         {
-#if UNITY_IOS && !UNITY_EDITOR
-            string location = MessageIOSHandler.OnPressTestButton();
-#else
-            Debug.Log("No iOS device!");
+            try
+            {
+                _focusLost = true;
+#if UNITY_EDITOR
+                return;
+#elif UNITY_ANDROID && !UNITY_EDITOR
+                using var unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                using AndroidJavaObject currentActivityObject = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
+                string packageName = currentActivityObject.Call<string>("getPackageName");
+
+                using var uriClass = new AndroidJavaClass("android.net.Uri");
+                using AndroidJavaObject uriObject = uriClass.CallStatic<AndroidJavaObject>("fromParts", "package", packageName, null);
+                using var intentObject = new AndroidJavaObject("android.content.Intent", "android.settings.APPLICATION_DETAILS_SETTINGS", uriObject);
+                intentObject.Call<AndroidJavaObject>("addCategory", "android.intent.category.DEFAULT");
+                intentObject.Call<AndroidJavaObject>("setFlags", 0x10000000);
+                currentActivityObject.Call("startActivity", intentObject);
+#elif UNITY_IOS && !UNITY_EDITOR
+                Application.OpenURL("App-Prefs:");
 #endif
+            }
+            catch (Exception ex)
+            {
+                _focusLost = false;
+                Debug.LogException(ex);
+            }
         }
 
         protected override void Awake()
@@ -145,8 +162,11 @@ namespace WIGO.Userinterface
 
         private void OnApplicationPause(bool pause)
         {
-            string status = pause ? "PAUSED" : "UNPAUSED";
-            Debug.LogFormat("<color=yellow>APP {0}</color>", status);
+            if (!pause && _focusLost)
+            {
+                _focusLost = false;
+                RefreshFeed();
+            }
         }
 
         private void OnApplicationFocus(bool focus)
@@ -155,38 +175,48 @@ namespace WIGO.Userinterface
             Debug.LogFormat("<color=orange>FOCUS {0}</color>", status);
         }
 
-        void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                ServiceLocator.Get<UIManager>().Open<ComplainWindow>(WindowId.COMPLAIN_SCREEN, window => window.Setup(new AbstractEvent() { uid = "11" }), true);
-            }
-        }
-
         void OnApplyFilterCategory()
         {
-            _waitForLocation = false;
             _cts?.Cancel();
             _currentCard?.Clear();
             _endOfPostsController.Deactivate();
             RefreshFeed();
         }
 
-        void RefreshFeed()
+        async void RefreshFeed()
         {
             _acceptedEvent = null;
             _currentCard?.Clear();
             _currentCard = null;
             _endOfPostsController.Deactivate();
             _loadingLabel.SetActive(true);
-            _waitForLocation = true;
+
+            bool gotLocation = false;
+            Location myLocation;
 
 #if UNITY_EDITOR
-            string location = "55.767,37.684";
-            OnGetLocation(location);
+            gotLocation = true;
+            myLocation = new Location()
+            {
+                latitude = "55.762021191659485",
+                longitude = "37.63407669596055"
+            };
 #elif UNITY_IOS
-            MessageIOSHandler.OnGetUserLocation();
+            gotLocation = MessageIOSHandler.TryGetMyLocation(out Location location);
+            myLocation = location;
 #endif
+
+            if (gotLocation)
+            {
+                var model = ServiceLocator.Get<GameModel>();
+                await NetService.TrySendLocation(myLocation, model.GetUserLinks().data.address, model.ShortToken);
+                await UpdateFeedCards();
+            }
+            else
+            {
+                _loadingLabel.SetActive(false);
+                _endOfPostsController.Activate(EndOfPostsType.NotificationsOff);
+            }
         }
 
         void CreateNextCard()
@@ -296,12 +326,9 @@ namespace WIGO.Userinterface
                     OnRecordComplete(message);
                     break;
                 case NativeMessageType.Location:
-                    break;
                 case NativeMessageType.MyLocation:
-                    OnGetLocation(message);
-                    break;
                 case NativeMessageType.Other:
-                    Debug.LogFormat("Message: {0}", message);
+                    Debug.LogFormat("<color=red>Unexpected essage: {0}</color>", message);
                     break;
                 default:
                     break;
@@ -318,20 +345,6 @@ namespace WIGO.Userinterface
 			
             ServiceLocator.Get<UIManager>().Open<VideoPreviewWindow>(WindowId.VIDEO_PREVIEW_SCREEN,
                 (window) => window.Setup(videoPath, _acceptedEvent));
-        }
-
-        async void OnGetLocation(string location)
-        {
-            if (_waitForLocation)
-            {
-                _waitForLocation = false;
-                Debug.LogFormat("Get location before get cards: {0}", location);
-
-                var model = ServiceLocator.Get<GameModel>();
-                var locationData = GameConsts.ParseLocation(location);
-                await NetService.TrySendLocation(locationData, model.GetUserLinks().data.address, model.ShortToken);
-                await UpdateFeedCards();
-            }
         }
 
         async Task UpdateFeedCards()

@@ -57,10 +57,16 @@ namespace WIGO
 
         async void Login()
         {
+            LogoWindow logoWindow = null;
+            _uiManager.Open<LogoWindow>(WindowId.LOGO_SCREEN, window => 
+            {
+                logoWindow = window;
+            });
+
             bool res = await _model.TryLogin();
             if (res)
             {
-                _uiManager.Open<FeedWindow>(WindowId.FEED_SCREEN);
+                logoWindow?.Setup(true);
                 return;
             }
 

@@ -85,21 +85,14 @@ public class GameModel
         _myEvent = null;
         _links = new LinksData();
         PlayerPrefs.DeleteKey("SaveData");
-        MessageRouter.onMessageReceive -= OnReceiveMessage;
     }
 
     public async void FinishRegister()
     {
-
-
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
-        MessageRouter.onMessageReceive += OnReceiveMessage;
-#if UNITY_IOS && !UNITY_EDITOR
-        MessageIOSHandler.OnGetUserLocation();
-#endif
+        _timer = 55f;
         _login = true;
-        _timer = 58f;
     }
 
     public async Task<bool> TryLogin()
@@ -126,12 +119,8 @@ public class GameModel
         _availableTags = res?.tags;
 
         SaveData();
-        MessageRouter.onMessageReceive += OnReceiveMessage;
-#if UNITY_IOS && !UNITY_EDITOR
-        MessageIOSHandler.OnGetUserLocation();
-#endif
+        _timer = 55f;
         _login = true;
-        _timer = 58f;
         return true;
     }
 
@@ -159,12 +148,7 @@ public class GameModel
         if (_timer >= 60f)
         {
             _timer = 0f;
-#if UNITY_EDITOR
-            string sum = "55.767,37.684";
-            OnReceiveMessage(NativeMessageType.MyLocation, sum);
-#elif UNITY_IOS
-            MessageIOSHandler.OnGetUserLocation();
-#endif
+            SendLocationDataToServer();
         }
 
         if (_myEvent != null)
@@ -179,23 +163,25 @@ public class GameModel
         }
     }
 
-    async void OnReceiveMessage(NativeMessageType type, string message)
+    async void SendLocationDataToServer()
     {
-        switch (type)
+        bool gotLocation = false;
+
+#if UNITY_EDITOR
+        gotLocation = true;
+        _myLocation = new Location()
         {
-            case NativeMessageType.Video:
-            case NativeMessageType.Location:
-                break;
-            case NativeMessageType.MyLocation:
-                Debug.LogFormat("<color=yellow>GET MY LOC: {0}</color>", message);
-                _myLocation = GameConsts.ParseLocation(message);
-                await NetService.TrySendLocation(_myLocation, _links.data.address, ShortToken);
-                break;
-            case NativeMessageType.Other:
-                Debug.LogFormat("Message: {0}", message);
-                break;
-            default:
-                break;
+            latitude = "55.762021191659485",
+            longitude = "37.63407669596055"
+        };
+#elif UNITY_IOS
+        gotLocation = MessageIOSHandler.TryGetMyLocation(out Location location);
+        _myLocation = location;
+#endif
+
+        if (gotLocation)
+        {
+            await NetService.TrySendLocation(_myLocation, _links.data.address, ShortToken);
         }
     }
 

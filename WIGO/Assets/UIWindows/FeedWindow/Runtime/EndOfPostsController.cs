@@ -8,7 +8,8 @@ namespace WIGO.Userinterface
         HaveNoMyEvent,
         NotificationsOff,
         FiltersSearch,
-        EmptyFeed
+        EmptyFeed,
+        LocationOff
     }
 
     public class EndOfPostsController : MonoBehaviour
