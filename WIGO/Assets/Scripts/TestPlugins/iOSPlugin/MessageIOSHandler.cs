@@ -22,7 +22,7 @@ namespace WIGO.Utility
         private static extern void startSwiftRouteController(string theirLocation);
 
         [DllImport("__Internal")]
-        private static extern void startTurnGeolocationController();
+        private static extern void startTurnGeolocation();
         #endregion
 
         #region delegates
@@ -103,7 +103,7 @@ namespace WIGO.Utility
 
         public static void OnAllowLocationPermission()
         {
-            startTurnGeolocationController();
+            startTurnGeolocation();
         }
 #endif
     }
