@@ -272,7 +272,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.101960786}
+  m_Color: {r: 0.06666667, g: 0.53333336, b: 0.93333334, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 0
@@ -439,7 +439,6 @@ MonoBehaviour:
   - {fileID: 1009336417073122545}
   - {fileID: 7213316084280062220}
   - {fileID: 3347449414593591099}
-  _button: {fileID: 387959545237483181}
   _btnLabel: {fileID: 387959544756268178}
   _nextText: "\u0414\u0430\u043B\u0435\u0435"
   _letsStartText: "\u0414\u0430\u0432\u0430\u0439 \u043D\u0430\u0447\u043D\u0435\u043C!"

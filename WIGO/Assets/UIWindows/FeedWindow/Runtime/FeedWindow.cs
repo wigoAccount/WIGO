@@ -214,7 +214,8 @@ namespace WIGO.Userinterface
             else
             {
                 _loadingLabel.SetActive(false);
-                _endOfPostsController.Activate(EndOfPostsType.NotificationsOff);
+                _endOfPostsController.Activate(EndOfPostsType.EmptyFeed);
+                ServiceLocator.Get<UIManager>().GetPopupManager().AddErrorNotification(14);
             }
         }
 
@@ -289,12 +290,12 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            var notifications = ServiceLocator.Get<GameModel>().GetNotifications();
-            if (!notifications.newEvent)
-            {
-                _endOfPostsController.Activate(EndOfPostsType.NotificationsOff);
-                return;
-            }
+            //var notifications = ServiceLocator.Get<GameModel>().GetNotifications();
+            //if (!notifications.newEvent)
+            //{
+            //    _endOfPostsController.Activate(EndOfPostsType.NotificationsOff);
+            //    return;
+            //}
 
             if (_filtersController.FiltersApplied())
             {

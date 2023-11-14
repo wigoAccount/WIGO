@@ -48,7 +48,7 @@ namespace WIGO.Userinterface
 #if UNITY_EDITOR
                 var preview = _tempPreview;
 #elif UNITY_ANDROID || UNITY_IOS
-                var preview = NativeCamera.GetVideoThumbnail(_videoPath);
+                var preview = NativeCamera.GetVideoThumbnail(_videoPath, markTextureNonReadable: false);
 #endif
                 _videoAspect = (float)preview.width / preview.height;
                 float previewHeight = _previewMask.rect.width / _videoAspect;

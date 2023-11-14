@@ -877,8 +877,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u0412\u044B \u0434\u043E\u043B\u0436\u043D\u044B \u0431\u044B\u0442\u044C
-    \u0441\u0442\u0430\u0440\u0448\u0435 18 \u043B\u0435\u0442"
+  m_text: "\u0412\u0430\u043C \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C
+    18 \u043B\u0435\u0442 \u0438\u043B\u0438 \u0431\u043E\u043B\u0435\u0435"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ab1e05bc497993948ac974313e381286, type: 2}
   m_sharedMaterial: {fileID: -5577699939735227276, guid: ab1e05bc497993948ac974313e381286, type: 2}
@@ -5545,7 +5545,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u041C\u043E\u0439 \u043D\u043E\u043C\u0435\u0440"
+  m_text: "\u0422\u0432\u043E\u0439 \u043D\u043E\u043C\u0435\u0440"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b46a0ba681660dd41bb739eb280f0548, type: 2}
   m_sharedMaterial: {fileID: 3344796334720775185, guid: b46a0ba681660dd41bb739eb280f0548, type: 2}
@@ -7730,7 +7730,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u041C\u044B \u043E\u0442\u043F\u0440\u0430\u0432\u0438\u043C \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435
-    \u0441 \u043A\u043E\u0434\u043E\u043C \u043F\u043E\u0434\u0442\u0432\u0435\u0432\u0440\u0436\u0434\u0435\u043D\u0438\u044F.
+    \u0441 \u043A\u043E\u0434\u043E\u043C \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0438\u044F.
     \u0417\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043A\u0443 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u044F
     \u043C\u043E\u0436\u0435\u0442 \u0432\u0437\u0438\u043C\u0430\u0442\u044C\u0441\u044F
     \u043F\u043B\u0430\u0442\u0430. "
@@ -7834,7 +7834,7 @@ RectTransform:
   - {fileID: 8269435220307537318}
   - {fileID: 8269435218832818517}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}

@@ -89,7 +89,13 @@ namespace WIGO.Userinterface
 
         public async void ChangeAvatar(string path)
         {
-            var photo = await DownloadLocalTextureAsync(path);
+            Texture2D photo = null;
+#if UNITY_IOS && !UNITY_EDITOR
+            photo = NativeGallery.LoadImageAtPath(path);
+#else
+            photo = await DownloadLocalTextureAsync(path);
+#endif
+
             if (photo != null)
             {
                 SetPhotoSize(photo);
@@ -99,6 +105,7 @@ namespace WIGO.Userinterface
             }
             else
             {
+                Debug.LogErrorFormat("Fail to load avatar image at path: {0}", path);
                 _background.gameObject.SetActive(true);
                 _mask.SetActive(false);
             }
@@ -122,23 +129,29 @@ namespace WIGO.Userinterface
         async Task<Texture2D> DownloadLocalTextureAsync(string url)
         {
             _cts = new CancellationTokenSource();
-            var textureBytes = await File.ReadAllBytesAsync(url, _cts.Token);
-
-            if (_cts.IsCancellationRequested)
+            try
             {
-                return null;
+                var textureBytes = await File.ReadAllBytesAsync(url, _cts.Token);
+                if (_cts.IsCancellationRequested)
+                {
+                    return null;
+                }
+
+                _cts.Dispose();
+                _cts = null;
+
+                if (textureBytes != null && textureBytes.Length > 0)
+                {
+                    var texture = TextureCreator.GetCompressedTexture();
+                    texture.LoadImage(textureBytes);
+                    return texture;
+                }
             }
-
-            _cts.Dispose();
-            _cts = null;
-
-            if (textureBytes != null && textureBytes.Length > 0)
+            catch (System.Exception ex)
             {
-                var texture = TextureCreator.GetCompressedTexture();
-                texture.LoadImage(textureBytes);
-                return texture;
+                Debug.LogErrorFormat("Error load image bytes. Exception: {0}", ex.Message);
             }
-
+            
             return null;
         }
 
