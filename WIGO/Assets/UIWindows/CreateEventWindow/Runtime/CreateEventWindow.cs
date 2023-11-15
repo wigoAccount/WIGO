@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,7 +128,7 @@ namespace WIGO.Userinterface
                 address = _address,
                 area = _address,
                 video = video,
-                video_aspect = _videoAspect.ToString(),
+                video_aspect = _videoAspect.ToString(CultureInfo.InvariantCulture),
                 preview = preview,
                 tags_add = _hashtagScroll.GetSelectedCategories().ToArray()
             };

@@ -22,10 +22,12 @@ namespace WIGO.Userinterface
         [SerializeField] protected WindowAnimator _animator;
         [SerializeField] Texture2D _tempPreview;
         [SerializeField] CreateEventFailMessage _failMessage;
+        [SerializeField] string _editorPreviewPath;
 
         protected string _videoPreviewPath;
         protected string _videoPath;
         protected float _videoAspect;
+        Texture2D _createdPreview;
 
         const float MAX_PREVIEW_HEIGHT = 164f;
 
@@ -46,15 +48,15 @@ namespace WIGO.Userinterface
             {
                 _videoPath = path;
 #if UNITY_EDITOR
-                var preview = _tempPreview;
+                _createdPreview = _tempPreview;
 #elif UNITY_ANDROID || UNITY_IOS
-                var preview = NativeCamera.GetVideoThumbnail(_videoPath, markTextureNonReadable: false);
+                _createdPreview = NativeCamera.GetVideoThumbnail(_videoPath, markTextureNonReadable: false);
 #endif
-                _videoAspect = (float)preview.width / preview.height;
+                _videoAspect = (float)_createdPreview.width / _createdPreview.height;
                 float previewHeight = _previewMask.rect.width / _videoAspect;
                 float height = Mathf.Min(previewHeight, MAX_PREVIEW_HEIGHT);
                 _previewMask.sizeDelta = new Vector2(_previewMask.sizeDelta.x, height);
-                _preview.texture = preview;
+                _preview.texture = _createdPreview;
                 _preview.rectTransform.sizeDelta = new Vector2(_preview.rectTransform.sizeDelta.x, previewHeight);
             }
 
@@ -109,7 +111,13 @@ namespace WIGO.Userinterface
         protected virtual void ClearWindow()
         {
 #if !UNITY_EDITOR
-            Destroy(_preview.texture);
+            if (_createdPreview != null)
+            {
+                Destroy(_createdPreview);
+            }
+            _createdPreview = null;
+            _preview.texture = null;
+
             if (string.IsNullOrEmpty(_videoPreviewPath))
             {
                 if (File.Exists(_videoPreviewPath))
@@ -171,9 +179,15 @@ namespace WIGO.Userinterface
 
         protected async Task<string> UploadPreview()
         {
-            if (_preview.texture != null)
+            if (_createdPreview != null)
             {
-                byte[] textureBytes = ((Texture2D)_preview.texture).EncodeToPNG();
+                byte[] textureBytes = null;
+#if UNITY_IOS && !UNITY_EDITOR
+                textureBytes = _createdPreview.EncodeToPNG();
+#else
+                textureBytes = await DownloadLocalTextureAsync(_editorPreviewPath);
+#endif
+
                 string fileName = $"{DateTime.Now.ToString("MM_dd_yyyy_HH-mm-ss")}_preview.png";
                 _videoPreviewPath = Path.Combine(Application.persistentDataPath, fileName);
                 await File.WriteAllBytesAsync(_videoPreviewPath, textureBytes);
@@ -188,6 +202,22 @@ namespace WIGO.Userinterface
                 }
 
                 return previewKey;
+            }
+
+            Debug.LogError("Video preview is null");
+            return null;
+        }
+
+        async Task<byte[]> DownloadLocalTextureAsync(string url)
+        {
+            try
+            {
+                var textureBytes = await File.ReadAllBytesAsync(url);
+                return textureBytes;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogErrorFormat("Error load image bytes. Exception: {0}", ex.Message);
             }
 
             return null;

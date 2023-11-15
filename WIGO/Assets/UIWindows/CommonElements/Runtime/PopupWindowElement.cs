@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using WIGO.Utility;
 using DG.Tweening;
+using TMPro;
 
 namespace WIGO.Userinterface
 {
     public class PopupWindowElement : MonoBehaviour
     {
-        [SerializeField] LocalizeItem _title;
+        [SerializeField] TMP_Text _title;
         [SerializeField] PopupOptionElement _optionPrefab;
         [SerializeField] RectTransform _content;
         [SerializeField] RectTransform _panel;
@@ -19,7 +19,7 @@ namespace WIGO.Userinterface
         {
             _windowGroup = GetComponent<CanvasGroup>();
 
-            _title.SetupKey(titleKey);
+            _title.SetText(titleKey);
             foreach (var option in options)
             {
                 var optionElement = Instantiate(_optionPrefab, _content);
@@ -41,7 +41,7 @@ namespace WIGO.Userinterface
         IEnumerator UpdateView()
         {
             yield return new WaitForEndOfFrame();
-            _panel.sizeDelta = new Vector2(_panel.sizeDelta.x, _content.sizeDelta.y - _content.anchoredPosition.y);
+            _panel.sizeDelta = new Vector2(_panel.sizeDelta.x, _content.sizeDelta.y + 32f + _title.preferredHeight);
 
             DOTween.Sequence().Append(_windowGroup.DOFade(1f, 0.24f))
                 .Join(_panel.DOScale(1f, 0.24f).SetEase(Ease.OutBack));

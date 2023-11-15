@@ -12,4 +12,9 @@ public class TempMessagesContainer : ScriptableObject
         int rnd = Random.Range(0, _messages.Count);
         return _messages[rnd];
     }
+
+    public string GetMessageAt(int index)
+    {
+        return index >= 0 && index < _messages.Count ? _messages[index] : "NULL";
+    }
 }

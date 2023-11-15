@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -72,7 +73,8 @@ namespace WIGO.Userinterface
                 eventid = _acceptedEvent.uid,
                 about = _descIF.text,
                 video = video,
-                preview = preview
+                preview = preview,
+                video_aspect = _videoAspect.ToString(CultureInfo.InvariantCulture)
             };
 
             var model = ServiceLocator.Get<GameModel>();

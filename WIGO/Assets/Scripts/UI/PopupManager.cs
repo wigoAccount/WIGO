@@ -45,6 +45,11 @@ namespace WIGO.Userinterface
 
         public void AddPopup(string titleKey, IEnumerable<PopupOption> options)
         {
+            if (_currentPopup != null)
+            {
+                return;
+            }
+
             _currentPopup = Instantiate(_popupPrefab, _safeArea.transform);
             _currentPopup.Setup(titleKey, options);
 

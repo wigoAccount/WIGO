@@ -59,6 +59,12 @@ namespace WIGO.Core
                     await reader.BaseStream.CopyToAsync(memstream);
                     var bytes = memstream.ToArray();
 
+                    if (bytes == null || bytes.Length == 0)
+                    {
+                        Debug.LogWarningFormat("Loaded null bytes from S3 at path '{0}'", filename);
+                        return null;
+                    }
+
                     var texture = TextureCreator.GetRGBwithoutAlphaTexture();
                     if (texture.LoadImage(bytes))
                     {
@@ -66,7 +72,7 @@ namespace WIGO.Core
                         return texture;
                     }
 
-                    Debug.LogWarning("Can't convert bytes to texture 2d");
+                    Debug.LogWarningFormat("Can't convert bytes to texture 2d from '{0}'", filename);
                     return null;
                 }
 
@@ -75,7 +81,7 @@ namespace WIGO.Core
             }
             catch (Exception ex)
             {
-                Debug.LogErrorFormat("Request failed. Error: {0}", ex.Message);
+                Debug.LogErrorFormat("Get avatar '{0}' request failed. Error: {1}", filename, ex.Message);
                 return null;
             }
         }

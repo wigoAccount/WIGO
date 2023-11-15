@@ -735,6 +735,7 @@ MonoBehaviour:
   _animator: {fileID: 438495558942131239}
   _tempPreview: {fileID: 2800000, guid: ac64c0d6d59050c488e0f4c3697b4263, type: 3}
   _failMessage: {fileID: 2328844341340678419}
+  _editorPreviewPath: D:/UnityProjects/WIGO/WIGO/Assets/UIKit/temp_preview.png
   _view: {fileID: 2919947879440716911}
   _hashtagScroll: {fileID: 7613054832904024801}
   _testCoordinates: "\"Optional(SwiftTestPlugin.YandexMapViewController.Address(name:
@@ -1295,18 +1296,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _hashtagPrefab: {fileID: 316645870259118952, guid: b851f2823e8286848aa471c39450e525, type: 3}
   _content: {fileID: 1085168750458487940}
-  _tempTags:
-  - Bar
-  - Cafe
-  - Clubs
-  - Museum
-  - Expo
-  - Other
-  - Anticafe
-  - Geek
-  - Bowling
-  - Aquapark
-  - XXX
 --- !u!1 &1085168751395257166
 GameObject:
   m_ObjectHideFlags: 0

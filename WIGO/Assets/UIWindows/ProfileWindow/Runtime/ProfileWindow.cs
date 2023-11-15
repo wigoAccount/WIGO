@@ -22,6 +22,7 @@ namespace WIGO.Userinterface
 
         ProfileData _currentProfile;
         CancellationTokenSource _cts;
+        bool _inited;
 
         public override void OnClose(WindowId next, Action callback = null)
         {
@@ -39,12 +40,16 @@ namespace WIGO.Userinterface
         {
             _currentProfile = profile;
             _profileTemplate.sprite = profile.GetGender() == Gender.male ? _templates[0] : _templates[1];
-            _avatar.Setup(profile);
             _infoArea.Setup(profile);
             StartCoroutine(UpdateHeight(true));
 
             bool myProfile = ServiceLocator.Get<GameModel>().IsMyProfile(profile.uid);
+            if (!myProfile || !_inited)
+            {
+                _avatar.Setup(profile);
+            }
             _editButton.SetActive(myProfile);
+            _inited = myProfile;
         }
 
         public void OnBackButtonClick()
@@ -93,6 +98,7 @@ namespace WIGO.Userinterface
         {
             var updatedProfile = await _editArea.UpdateInfo();
             _editArea.Close();
+            _profileTemplate.sprite = updatedProfile.GetGender() == Gender.male ? _templates[0] : _templates[1];
             _infoArea.gameObject.SetActive(true);
             _content.anchoredPosition = Vector2.zero;
             _editButton.SetActive(true);

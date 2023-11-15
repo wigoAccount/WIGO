@@ -1907,7 +1907,6 @@ GameObject:
   - component: {fileID: 1504452028}
   - component: {fileID: 1504452029}
   - component: {fileID: 1504452027}
-  - component: {fileID: 1504452030}
   - component: {fileID: 1504452031}
   m_Layer: 0
   m_Name: MainGameObject
@@ -1958,19 +1957,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _uiManager: {fileID: 195097867}
   _s3DataConfig: {fileID: 11400000, guid: c6a4ab7ec2c4dc949b50a367e70c2666, type: 2}
+  _noInternetData: {fileID: 11400000, guid: dafaae823986e3a40b8bf59e604c9175, type: 2}
   _clearSaveData: 0
---- !u!114 &1504452030
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1504452026}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b54b9fc093f8c2249b0dbeab58b115eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1504452031
 MonoBehaviour:
   m_ObjectHideFlags: 0

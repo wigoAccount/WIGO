@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using WIGO.Core;
 using WIGO.Userinterface;
@@ -9,6 +10,7 @@ namespace WIGO
     {
         [SerializeField] UIManager _uiManager;
         [SerializeField] S3DataConfig _s3DataConfig;
+        [SerializeField] TempMessagesContainer _noInternetData;
         [SerializeField] bool _clearSaveData;
 
         GameModel _model;
@@ -34,6 +36,28 @@ namespace WIGO
             _model = string.IsNullOrEmpty(saveData) ? new GameModel() : JsonReader.Deserialize<GameModel>(saveData);
             LoadLanguageLocal();
             ServiceLocator.Set(_model);
+
+            KeyboardManager keyboardManager = new KeyboardManager();
+            ServiceLocator.Set(keyboardManager);
+            TryStartApp();
+        }
+
+        private void Update()
+        {
+            _model.Tick();
+        }
+
+        void TryStartApp()
+        {
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                List<PopupOption> options = new List<PopupOption> { new PopupOption(_noInternetData.GetMessageAt(1), TryStartApp) };
+                _uiManager.GetPopupManager().AddPopup(_noInternetData.GetMessageAt(0), options);
+                return;
+            }
+
+            _uiManager.GetPopupManager().CloseCurrentPopup();
+            string saveData = PlayerPrefs.GetString("SaveData");
             S3ContentClient s3Client = new S3ContentClient(_s3DataConfig);
             ServiceLocator.Set(s3Client);
 
@@ -45,14 +69,6 @@ namespace WIGO
             {
                 Login();
             }
-
-            KeyboardManager keyboardManager = new KeyboardManager();
-            ServiceLocator.Set(keyboardManager);
-        }
-
-        private void Update()
-        {
-            _model.Tick();
         }
 
         async void Login()

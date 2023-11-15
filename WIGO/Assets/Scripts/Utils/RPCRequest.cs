@@ -123,6 +123,7 @@ namespace WIGO.Core
         public string about;
         public string video;
         public string preview;
+        public string video_aspect;
     }
 
     [Serializable]

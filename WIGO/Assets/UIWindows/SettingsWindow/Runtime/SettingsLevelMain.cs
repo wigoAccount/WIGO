@@ -61,8 +61,11 @@ namespace WIGO.Userinterface
 
         async void OnDeleteAccount()
         {
-            ServiceLocator.Get<UIManager>().GetPopupManager().ResetPopup();
-            ServiceLocator.Get<UIManager>().SwitchTo(WindowId.START_SCREEN);
+            var uiManager = ServiceLocator.Get<UIManager>();
+            uiManager.GetPopupManager().ResetPopup();
+            uiManager.SwitchTo(WindowId.START_SCREEN);
+            var startWindow = uiManager.GetWindow<StartScreenWindow>(WindowId.START_SCREEN);
+            startWindow?.Setup(true);
 
             var model = ServiceLocator.Get<GameModel>();
             await Core.NetService.TryDeleteAccount(model.ShortToken);

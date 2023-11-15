@@ -43,6 +43,7 @@ namespace WIGO.Userinterface
 
             _background.gameObject.SetActive(false);
             _mask.SetActive(true);
+            _avatarImage.color = UIGameColors.transparent10;
 
             var avatar = await DownloadTextureAsync(url);
             if (avatar == null)
@@ -53,6 +54,7 @@ namespace WIGO.Userinterface
             }
 
             SetPhotoSize(avatar);
+            _avatarImage.color = Color.white;
             _avatarImage.texture = avatar;
         }
 
@@ -74,6 +76,7 @@ namespace WIGO.Userinterface
 
             _background.gameObject.SetActive(false);
             _mask.SetActive(true);
+            _avatarImage.color = UIGameColors.transparent10;
 
             var avatar = await DownloadTextureAsync(url);
             if (avatar == null)
@@ -84,6 +87,7 @@ namespace WIGO.Userinterface
             }
 
             SetPhotoSize(avatar);
+            _avatarImage.color = Color.white;
             _avatarImage.texture = avatar;
         }
 
@@ -98,10 +102,7 @@ namespace WIGO.Userinterface
 
             if (photo != null)
             {
-                SetPhotoSize(photo);
-                _avatarImage.texture = photo;
-                _background.gameObject.SetActive(false);
-                _mask.SetActive(true);
+                ServiceLocator.Get<GameModel>().UpdateMyAvatar(photo);
             }
             else
             {
@@ -109,6 +110,30 @@ namespace WIGO.Userinterface
                 _background.gameObject.SetActive(true);
                 _mask.SetActive(false);
             }
+        }
+
+        private void Awake()
+        {
+            ServiceLocator.Get<GameModel>().OnUpdateAvatar += UpdateAvatarTexture;
+        }
+
+        private void OnDestroy()
+        {
+            ServiceLocator.Get<GameModel>().OnUpdateAvatar -= UpdateAvatarTexture;
+        }
+
+        void UpdateAvatarTexture(Texture2D texture)
+        {
+            if (_avatarImage.texture != null)
+            {
+                Destroy(_avatarImage.texture);
+                _avatarImage.texture = null;
+            }
+
+            SetPhotoSize(texture);
+            _avatarImage.texture = texture;
+            _background.gameObject.SetActive(false);
+            _mask.SetActive(true);
         }
 
         async Task<Texture2D> DownloadTextureAsync(string url)

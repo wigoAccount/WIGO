@@ -13,6 +13,7 @@ using System;
 public class GameModel
 {
     public Action<int> OnChangeMyEventTime;
+    public Action<Texture2D> OnUpdateAvatar;
     public string ShortToken { get; private set; }
     public string LongToken { get => _ltoken; }
 
@@ -59,7 +60,7 @@ public class GameModel
         _ltoken = ltoken;
         ShortToken = stoken;
         _links = links;
-        SaveData();
+        //SaveData();
     }
 
     public void SaveProfile(ProfileData profile) => _myProfile = profile;
@@ -89,6 +90,7 @@ public class GameModel
 
     public async void FinishRegister()
     {
+        SaveData();
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
         _timer = 55f;
@@ -135,6 +137,11 @@ public class GameModel
             _myEventTimer = 0f;
         }
         cts.Dispose();
+    }
+
+    public void UpdateMyAvatar(Texture2D texture)
+    {
+        OnUpdateAvatar?.Invoke(texture);
     }
 
     public void Tick()

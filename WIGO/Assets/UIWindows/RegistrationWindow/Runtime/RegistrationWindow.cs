@@ -233,6 +233,7 @@ namespace WIGO.Userinterface
                         _cts = null;
                         if (isInvalid)
                         {
+                            ServiceLocator.Get<UIManager>().GetPopupManager().AddErrorNotification(11);
                             Debug.LogError("Wrong birthday format");
                             return;
                         }
@@ -321,7 +322,7 @@ namespace WIGO.Userinterface
             };
 
             var model = ServiceLocator.Get<GameModel>();
-            model.SaveNotifications(settings);
+            //model.SaveNotifications(settings);
             model.FinishRegister();
             ServiceLocator.Get<UIManager>().Open<LogoWindow>(WindowId.LOGO_SCREEN, window => window.Setup(true));
         }

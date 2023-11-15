@@ -87,7 +87,6 @@ GameObject:
   - component: {fileID: 8977694108445643445}
   - component: {fileID: 8977694108445643435}
   - component: {fileID: 8977694108445643444}
-  - component: {fileID: 8564288138881119280}
   m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
@@ -212,19 +211,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &8564288138881119280
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8977694108445643446}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c585f309ad0037a4fb4bffb8b1c0520e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _key: Common/PasteText
 --- !u!1 &8977694109100351943
 GameObject:
   m_ObjectHideFlags: 0
@@ -260,7 +246,7 @@ RectTransform:
   - {fileID: 8977694107831198306}
   - {fileID: 8977694108445643445}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -373,4 +359,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5e4a5ec87b23644bbe87f6a8923f350, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _label: {fileID: 8564288138881119280}
+  _label: {fileID: 8977694108445643444}

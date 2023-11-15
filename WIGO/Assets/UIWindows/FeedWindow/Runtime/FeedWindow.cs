@@ -28,6 +28,7 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _myEventButton;
         [SerializeField] TMP_Text _remainingTimeLabel;
         [SerializeField] string _editorVideoPath;
+        [SerializeField] TempMessagesContainer _permissionData;
 
         List<Event> _loadedCards = new List<Event>();
         UIEventCardElement _currentCard;
@@ -40,11 +41,9 @@ namespace WIGO.Userinterface
         public override void OnOpen(WindowId previous)
         {
             var model = ServiceLocator.Get<GameModel>();
-            var profile = model.GetMyProfile();
             _eventCreated = model.HasMyOwnEvent();
             _createEventButton.SetActive(!_eventCreated);
             _myEventButton.SetActive(_eventCreated);
-            _userProfileElement.Setup(profile);
             RefreshFeed();
         }
 
@@ -87,6 +86,12 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
+            if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
+            {
+                CreatePermissionSettingPopup(true);
+                return;
+            }
+
             _acceptedEvent = null;
 #if UNITY_EDITOR
             OnRecordComplete(_editorVideoPath);
@@ -117,40 +122,14 @@ namespace WIGO.Userinterface
             RefreshFeed();
         }
 
-        public void OnMoveToAppSettings()
-        {
-            try
-            {
-                _focusLost = true;
-#if UNITY_EDITOR
-                return;
-#elif UNITY_ANDROID && !UNITY_EDITOR
-                using var unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-                using AndroidJavaObject currentActivityObject = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
-                string packageName = currentActivityObject.Call<string>("getPackageName");
-
-                using var uriClass = new AndroidJavaClass("android.net.Uri");
-                using AndroidJavaObject uriObject = uriClass.CallStatic<AndroidJavaObject>("fromParts", "package", packageName, null);
-                using var intentObject = new AndroidJavaObject("android.content.Intent", "android.settings.APPLICATION_DETAILS_SETTINGS", uriObject);
-                intentObject.Call<AndroidJavaObject>("addCategory", "android.intent.category.DEFAULT");
-                intentObject.Call<AndroidJavaObject>("setFlags", 0x10000000);
-                currentActivityObject.Call("startActivity", intentObject);
-#elif UNITY_IOS && !UNITY_EDITOR
-                Application.OpenURL("App-Prefs:");
-#endif
-            }
-            catch (Exception ex)
-            {
-                _focusLost = false;
-                Debug.LogException(ex);
-            }
-        }
-
         protected override void Awake()
         {
             MessageRouter.onMessageReceive += OnReceiveMessage;
             _filtersController.Initialize(OnApplyFilterCategory);
             ServiceLocator.Get<GameModel>().OnChangeMyEventTime += OnSetRemainingTime;
+
+            var profile = ServiceLocator.Get<GameModel>().GetMyProfile();
+            _userProfileElement.Setup(profile);
         }
 
         private void OnDestroy()
@@ -164,6 +143,7 @@ namespace WIGO.Userinterface
             if (!pause && _focusLost)
             {
                 _focusLost = false;
+                ServiceLocator.Get<UIManager>().GetPopupManager().CloseCurrentPopup();
                 RefreshFeed();
             }
         }
@@ -239,6 +219,12 @@ namespace WIGO.Userinterface
         {
             if (accept)
             {
+                if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
+                {
+                    CreatePermissionSettingPopup(false);
+                    return;
+                }
+
                 _acceptedEvent = card;
                 UIGameColors.SetTransparent(_overlay);
                 _overlay.gameObject.SetActive(true);
@@ -264,6 +250,54 @@ namespace WIGO.Userinterface
             if (string.IsNullOrEmpty(uid))
             {
                 Debug.LogErrorFormat("Fail to decline card: {0}. Server error", cardId);
+            }
+        }
+
+        void CreatePermissionSettingPopup(bool createEvent)
+        {
+            List<PopupOption> options = new List<PopupOption>
+            {
+                new PopupOption(_permissionData.GetMessageAt(1), OnOpenAppSettings),
+                new PopupOption(_permissionData.GetMessageAt(2), () => OnDeclinePermissions(createEvent), UIGameColors.RED_HEX)
+            };
+            ServiceLocator.Get<UIManager>().GetPopupManager().AddPopup(_permissionData.GetMessageAt(0), options);
+        }
+
+        void OnOpenAppSettings()
+        {
+            try
+            {
+                _focusLost = true;
+#if UNITY_EDITOR
+                return;
+#elif UNITY_ANDROID && !UNITY_EDITOR
+                using var unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                using AndroidJavaObject currentActivityObject = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
+                string packageName = currentActivityObject.Call<string>("getPackageName");
+
+                using var uriClass = new AndroidJavaClass("android.net.Uri");
+                using AndroidJavaObject uriObject = uriClass.CallStatic<AndroidJavaObject>("fromParts", "package", packageName, null);
+                using var intentObject = new AndroidJavaObject("android.content.Intent", "android.settings.APPLICATION_DETAILS_SETTINGS", uriObject);
+                intentObject.Call<AndroidJavaObject>("addCategory", "android.intent.category.DEFAULT");
+                intentObject.Call<AndroidJavaObject>("setFlags", 0x10000000);
+                currentActivityObject.Call("startActivity", intentObject);
+#elif UNITY_IOS && !UNITY_EDITOR
+                Application.OpenURL("App-Prefs:");
+#endif
+            }
+            catch (Exception ex)
+            {
+                _focusLost = false;
+                Debug.LogException(ex);
+            }
+        }
+
+        void OnDeclinePermissions(bool createEvent)
+        {
+            ServiceLocator.Get<UIManager>().GetPopupManager().CloseCurrentPopup();
+            if (!createEvent)
+            {
+                CreateNextCard();
             }
         }
 
