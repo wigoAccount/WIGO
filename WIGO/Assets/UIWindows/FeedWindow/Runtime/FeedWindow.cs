@@ -86,11 +86,11 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
-            {
-                CreatePermissionSettingPopup(true);
-                return;
-            }
+            //if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
+            //{
+            //    CreatePermissionSettingPopup(true);
+            //    return;
+            //}
 
             _acceptedEvent = null;
 #if UNITY_EDITOR
@@ -219,11 +219,11 @@ namespace WIGO.Userinterface
         {
             if (accept)
             {
-                if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
-                {
-                    CreatePermissionSettingPopup(false);
-                    return;
-                }
+                //if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
+                //{
+                //    CreatePermissionSettingPopup(false);
+                //    return;
+                //}
 
                 _acceptedEvent = card;
                 UIGameColors.SetTransparent(_overlay);
