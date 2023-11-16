@@ -88,9 +88,10 @@ namespace WIGO.Core
 
         public async Task<string> UploadFile(string filePath, ContentType fileType, CancellationToken token = default)
         {
+            string extension = Path.GetExtension(filePath);
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             string bucketName = _s3Config.GetBucketName();
-            string name = CreateFileName(fileType);
+            string name = CreateFileName(fileType, extension);
             var request = new PutObjectRequest()
             {
                 BucketName = bucketName,
@@ -110,10 +111,11 @@ namespace WIGO.Core
             return null;
         }
 
-        string CreateFileName(ContentType type)
+        string CreateFileName(ContentType type, string extension)
         {
+            string userId = ServiceLocator.Get<GameModel>().GetUserId();
             string folderName = _s3Config.GetFolderName(type);
-            return $"{folderName}/{DateTime.Now.ToString("MM_dd_yyyy_HH-mm-ss")}_{type.ToString()}";
+            return $"{folderName}/{DateTime.Now.ToString("MM_dd_yyyy_HH-mm-ss")}_{type.ToString()}_{userId}{extension}";
         }
     }
 }

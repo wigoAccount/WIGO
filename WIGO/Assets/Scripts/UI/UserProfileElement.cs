@@ -91,19 +91,19 @@ namespace WIGO.Userinterface
             _avatarImage.texture = avatar;
         }
 
-        public async void ChangeAvatar(string path, string copyPath)
+        public async void ChangeAvatar(string path)//, string copyPath)
         {
             Texture2D photo = null;
 #if UNITY_IOS && !UNITY_EDITOR
-            photo = await NativeGallery.LoadImageAtPathAsync(path, markTextureNonReadable: false);
+            photo = NativeGallery.LoadImageAtPath(path);
 #else
             photo = await DownloadLocalTextureAsync(path);
 #endif
 
             if (photo != null)
             {
-                var textureBytes = photo.EncodeToPNG();
-                await File.WriteAllBytesAsync(copyPath, textureBytes);
+                //var textureBytes = photo.EncodeToPNG();
+                //await File.WriteAllBytesAsync(copyPath, textureBytes);
                 ServiceLocator.Get<GameModel>().UpdateMyAvatar(photo);
             }
             else

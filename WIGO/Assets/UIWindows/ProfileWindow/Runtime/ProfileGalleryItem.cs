@@ -41,8 +41,8 @@ namespace WIGO.Userinterface
 
         void OnAddImage(string path)
         {
-            _selectedPhotoPath = Path.Combine(Application.persistentDataPath, Path.GetFileName(path));
-            _profile.ChangeAvatar(path, _selectedPhotoPath);
+            _selectedPhotoPath = path;// Path.Combine(Application.persistentDataPath, Path.GetFileName(path));
+            _profile.ChangeAvatar(path);//, _selectedPhotoPath);
         }
 
         public async Task<string> UploadPhoto()

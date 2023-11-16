@@ -387,10 +387,11 @@ namespace WIGO.Userinterface
             _cts = new CancellationTokenSource();
             _cts.CancelAfter(8000);
 
-            int[] tags = categoryUid == 0 ? new int[0] : new int[] { categoryUid };
+            int[] tags = categoryUid == 0 ? null : new int[] { categoryUid };
             FeedRequest request = new FeedRequest()
             {
-                tags = tags
+                tags = tags,
+                gender = null
             };
             IEnumerable<Event> cards = await NetService.TryGetFeedEvents(request, model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
 

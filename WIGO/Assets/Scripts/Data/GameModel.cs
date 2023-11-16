@@ -35,6 +35,7 @@ public class GameModel
     public bool HasMyOwnEvent() => _myEvent != null;
     public string GetMyEventId() => _myEvent == null ? null : _myEvent.uid;
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
+    public string GetUserId() => _myProfile == null ? null : _myProfile.uid;
     public Location GetMyCurrentLocation() => _myLocation;
     public IEnumerable<GeneralData> GetAvailableTags() => _availableTags;
 
