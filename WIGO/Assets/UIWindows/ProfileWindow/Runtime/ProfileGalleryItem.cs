@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -40,8 +41,8 @@ namespace WIGO.Userinterface
 
         void OnAddImage(string path)
         {
-            _selectedPhotoPath = path;
-            _profile.ChangeAvatar(path);
+            _selectedPhotoPath = Path.Combine(Application.persistentDataPath, Path.GetFileName(path));
+            _profile.ChangeAvatar(path, _selectedPhotoPath);
         }
 
         public async Task<string> UploadPhoto()
