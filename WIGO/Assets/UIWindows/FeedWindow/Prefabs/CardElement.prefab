@@ -779,7 +779,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 16, y: 106}
+  m_AnchoredPosition: {x: 16, y: 92}
   m_SizeDelta: {x: 72, y: 28}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &6390878027092127210
@@ -1256,7 +1256,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -16, y: 82}
+  m_AnchoredPosition: {x: -16, y: 68}
   m_SizeDelta: {x: 42, y: 32}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &6390878027622413223
@@ -1460,7 +1460,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 16, y: 74}
+  m_AnchoredPosition: {x: 16, y: 60}
   m_SizeDelta: {x: -76, y: 16}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &6390878027824346020
@@ -1829,7 +1829,6 @@ MonoBehaviour:
   _distanceTimeLabel: {fileID: 6390878027300765560}
   _timeLabel: {fileID: 6390878028197182555}
   _moreButton: {fileID: 6390878027622413222}
-  _locationLabel: {fileID: 574725670510400371}
   _categoryPrefab: {fileID: 5346076752537791801, guid: 06dee32e568474347a3f6cc8c5d57675, type: 3}
   _categoriesContent: {fileID: 6390878028962085930}
   _acceptColor: {r: 0.25490198, g: 0.7372549, b: 0.27450982, a: 1}
@@ -1837,7 +1836,6 @@ MonoBehaviour:
   _minFromMe: " \u043C\u0438\u043D \u043E\u0442 \u043C\u0435\u043D\u044F"
   _lessText: "\u041C\u0435\u043D\u044C\u0448\u0435"
   _moreText: "\u0415\u0449\u0435"
-  _editorVideoPath: D:/UnityProjects/WIGO_PRJ/IMG_9668.MP4
 --- !u!225 &1562692731408572615
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -2352,7 +2350,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4866767436984227999
 RectTransform:
   m_ObjectHideFlags: 0

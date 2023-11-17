@@ -468,7 +468,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.06666667, g: 0.53333336, b: 0.93333334, a: 1}
+  m_Color: {r: 0.6156863, g: 0.6156863, b: 0.6156863, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 0
@@ -3458,8 +3458,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4293822481
-  m_fontColor: {r: 0.06666667, g: 0.53333336, b: 0.93333334, a: 1}
+    rgba: 4288519581
+  m_fontColor: {r: 0.6156863, g: 0.6156863, b: 0.6156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -7871,6 +7871,7 @@ MonoBehaviour:
   _signInButtonStates:
   - {fileID: 1908520135009216450}
   - {fileID: 425283576627969208}
+  _editorFakeAppleId: '"appleid32048"'
 --- !u!1 &8269435218705769638
 GameObject:
   m_ObjectHideFlags: 0

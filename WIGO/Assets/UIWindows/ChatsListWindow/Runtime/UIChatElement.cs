@@ -35,6 +35,10 @@ namespace WIGO.Userinterface
         public bool IsLoaded() => _loaded;
 
         public void RaiseSelectCallback() => _onSelectChat?.Invoke(_request, _isEvent);
+
+        public Request.RequestStatus GetRequestStatus() => _request.GetStatus();
+        // [TODO]: Check 'THEIR REQUEST' watched or new
+        public WatchRequestStatus GetWatchStatus() => WatchRequestStatus.Watched;
     }
 
     public class UIChatElement : MonoBehaviour, ICell<UIChatInfo>
@@ -98,17 +102,17 @@ namespace WIGO.Userinterface
             _frame.SetActive(card.IsResponse());
             UIGameColors.SetTransparent(_background, card.IsResponse() ? 0.05f : 0.1f);
 
-            var status = GetViewStatus(card);
-
             if (card.IsResponse())
             {
-                _statusIcon.color = status == EventStatus.Watched ? UIGameColors.transparentBlue : UIGameColors.Blue;
-                _statusLabel.text = status == EventStatus.Watched ? _statusTexts[0] : _statusTexts[1];
+                var watchStatus = _info.GetWatchStatus();
+                _statusIcon.color = watchStatus == WatchRequestStatus.Watched ? UIGameColors.transparentBlue : UIGameColors.Blue;
+                _statusLabel.text = watchStatus == WatchRequestStatus.Watched ? _statusTexts[0] : _statusTexts[1];
             }
             else
             {
-                _statusIcon.color = status == EventStatus.Accepted ? UIGameColors.Green : UIGameColors.transparent20;
-                _statusLabel.text = status == EventStatus.Accepted ? _statusTexts[2] : _statusTexts[3];
+                var status = _info.GetRequestStatus();
+                _statusIcon.color = status == Request.RequestStatus.accept ? UIGameColors.Green : UIGameColors.transparent20;
+                _statusLabel.text = status == Request.RequestStatus.accept ? _statusTexts[2] : _statusTexts[3];
             }
 
             _infoBlock.SetActive(true);
@@ -121,31 +125,6 @@ namespace WIGO.Userinterface
             if (_info != null)
             {
                 _info.onInfoLoaded -= SetupInfo;
-            }
-        }
-
-        EventStatus GetViewStatus(AbstractEvent card)
-        {
-            if (card.IsResponse())
-            {
-                Request request = (Request)card;
-                return (request.GetStatus()) switch
-                {
-                    Request.RequestStatus.decline => EventStatus.Denied,
-                    Request.RequestStatus.wait => EventStatus.Watched,
-                    Request.RequestStatus.accept => EventStatus.Accepted,
-                    _ => EventStatus.NotAccepted,
-                };
-            }
-            else
-            {
-                Event cardEvent = (Event)card;
-                return (cardEvent.GetStatus()) switch
-                {
-                    Event.EventStatus.active => EventStatus.Accepted,
-                    Event.EventStatus.closed => EventStatus.Denied,
-                    _ => EventStatus.NotAccepted,
-                };
             }
         }
     }

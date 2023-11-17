@@ -7572,24 +7572,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _safeArea: {fileID: 2102992139676004256}
   _eventInfo: {fileID: 2394677826282235811}
-  _unaprovedEventInfo: {fileID: 1823809088725779314}
-  _acceptEventInfo: {fileID: 2074537168871376751}
   _eventInfoViewport: {fileID: 4884746837609781956}
+  _eventInfoContent: {fileID: 4228060233415970964}
+  _eventDescription: {fileID: 2830824410440111077}
+  _descriptionBackground: {fileID: 69636849239541927}
+  _infoTitle: {fileID: 1271339244159825029}
+  _unaprovedEventInfo: {fileID: 1823809088725779314}
+  _unaprovedDescription: {fileID: 1524527282020292017}
+  _acceptEventInfo: {fileID: 2074537168871376751}
   _acceptEventInfoViewport: {fileID: 7484681272810963057}
   _bottomGradient: {fileID: 7457606804869600206}
-  _eventInfoContent: {fileID: 4228060233415970964}
   _acceptEventInfoContent: {fileID: 3039534348616245267}
   _timerView: {fileID: 5687001442242674964}
   _timerLabel: {fileID: 8405656273817388262}
-  _eventDescription: {fileID: 2830824410440111077}
   _location: {fileID: 5354023950760492642}
   _locationBtnGradient: {fileID: 2040864292915558051}
   _usernameLabel: {fileID: 5275713820836159636}
   _phoneNumber: {fileID: 8595532106817770963}
   _fullDescription: {fileID: 2147313192239586634}
-  _descriptionBackground: {fileID: 69636849239541927}
   _acceptDescriptionBackground: {fileID: 3522952995811403349}
-  _infoTitle: {fileID: 1271339244159825029}
   _acceptTitle: {fileID: 2149364807576920312}
   _cancelLabel: {fileID: 4882039692682133633}
   _eventCreatorTitle: {fileID: 1537533513153362299}

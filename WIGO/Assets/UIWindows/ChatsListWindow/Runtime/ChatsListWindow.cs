@@ -28,15 +28,13 @@ namespace WIGO.Userinterface
         public override void OnReopen(WindowId previous, UIWindowModel cachedModel)
         {
             _animator.OnReopen();
+            UpdateRequests();
         }
 
         public override void OnClose(WindowId next, Action callback = null)
         {
             _cts?.Cancel();
-            if (next != WindowId.EVENT_VIEW_SCREEN)
-            {
-                ClearWindow();
-            }
+            ClearWindow(next != WindowId.EVENT_VIEW_SCREEN);
 
             callback?.Invoke();
         }
@@ -98,19 +96,25 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            foreach (var request in requestsToMyEvent)
+            if (!requestsEmpty)
             {
-                UIChatInfo info = new UIChatInfo(request, OnSelectChat);
-                _eventsData.Add(info);
+                foreach (var request in requestsToMyEvent)
+                {
+                    UIChatInfo info = new UIChatInfo(request, OnSelectChat);
+                    _eventsData.Add(info);
+                }
+            }
+            
+            if (!myRequestsEmpty)
+            {
+                foreach (var request in myOwnRequests)
+                {
+                    UIChatInfo info = new UIChatInfo(request, OnSelectChat, true);
+                    _eventsData.Add(info);
+                }
             }
 
-            foreach (var request in myOwnRequests)
-            {
-                UIChatInfo info = new UIChatInfo(request, OnSelectChat, true);
-                _eventsData.Add(info);
-            }
-
-            _chatsScroll.CreateScroll(_eventsData);
+            OnChatCategorySelect(_categoriesPanel.GetOpenedCategory());
         }
 
         void OnChatCategorySelect(ChatCategory category)
@@ -120,9 +124,9 @@ namespace WIGO.Userinterface
                 case ChatCategory.All:
                     if (_eventsData.Count > 0)
                     {
-                        _view.SetEmptyTipVisible(false);
                         _chatsScroll.CreateScroll(_eventsData);
                     }
+                    _view.SetEmptyTipVisible(_eventsData.Count == 0);
                     break;
                 case ChatCategory.MyEvents:
                 case ChatCategory.MyRequests:
@@ -131,12 +135,12 @@ namespace WIGO.Userinterface
                     if (data == null || data.Count == 0)
                     {
                         _chatsScroll.ClearScroll();
-                        _view.SetEmptyTipVisible(true);
                     }
                     else
                     {
                         _chatsScroll.CreateScroll(data);
                     }
+                    _view.SetEmptyTipVisible(data == null || data.Count == 0);
                     break;
                 default:
                     break;
@@ -148,13 +152,17 @@ namespace WIGO.Userinterface
             ServiceLocator.Get<UIManager>().Open<EventViewWindow>(WindowId.EVENT_VIEW_SCREEN, window => window.Setup(request, isEvent));
         }
 
-        void ClearWindow()
+        void ClearWindow(bool resetCategory = true)
         {
             _chatsScroll.ClearScroll();
             _eventsData.Clear();
-            _categoriesPanel.ResetCategories();
             _view.SetLoadingVisible(false);
             _view.SetEmptyTipVisible(false);
+            if (resetCategory)
+            {
+                _categoriesPanel.ResetCategories();
+            }
+
             if (_loadingCoroutine != null)
             {
                 StopCoroutine(_loadingCoroutine);

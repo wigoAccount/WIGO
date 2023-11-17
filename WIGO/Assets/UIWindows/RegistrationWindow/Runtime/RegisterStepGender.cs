@@ -9,7 +9,7 @@ namespace WIGO.Userinterface
         [SerializeField] Image[] _buttons;
         [SerializeField] TMP_Text[] _labels;
 
-        Gender _selectedGender = Gender.female;
+        Gender _selectedGender = Gender.none;
 
         public ContainerData GetSelectedGender() => new ContainerData() { uid = 2 - (int)_selectedGender, name = _selectedGender.ToString() };
 
@@ -23,10 +23,15 @@ namespace WIGO.Userinterface
             }
 
             _selectedGender = gender;
-            _buttons[lastIndex].color = UIGameColors.Gray;
-            _labels[lastIndex].color = UIGameColors.Gray;
+            if (lastIndex < 2)
+            {
+                _buttons[lastIndex].color = UIGameColors.Gray;
+                _labels[lastIndex].color = UIGameColors.Gray;
+            }
+            
             _buttons[index].color = UIGameColors.Blue;
             _labels[index].color = UIGameColors.Blue;
+            _isStepComplete?.Invoke(true);
         }
 
         public override void ResetPanel()
@@ -34,8 +39,13 @@ namespace WIGO.Userinterface
             _selectedGender = Gender.female;
             _buttons[1].color = UIGameColors.Gray;
             _labels[1].color = UIGameColors.Gray;
-            _buttons[0].color = UIGameColors.Blue;
-            _labels[0].color = UIGameColors.Blue;
+            _buttons[0].color = UIGameColors.Gray;
+            _labels[0].color = UIGameColors.Gray;
+        }
+
+        public override bool CheckPanelComplete()
+        {
+            return _selectedGender != Gender.none;
         }
     }
 }

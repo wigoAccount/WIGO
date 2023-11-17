@@ -28,6 +28,7 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _permissionsButton;
         [Space]
         [SerializeField] GameObject[] _signInButtonStates;
+        [SerializeField] string _editorFakeAppleId;
 
         int _currentStep;
         bool _switching;
@@ -128,7 +129,7 @@ namespace WIGO.Userinterface
                     Debug.LogWarning("Sign in with Apple failed " + authorizationErrorCode.ToString() + " " + error.ToString());
                 });
 #else
-            _appleId = "appleid9867";
+            _appleId = _editorFakeAppleId;
             _switching = false;
             _signInAppleScreen.SetActive(false);
             _registrationWindow.SetActive(true);

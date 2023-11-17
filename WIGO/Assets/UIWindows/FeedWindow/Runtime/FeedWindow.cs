@@ -35,15 +35,10 @@ namespace WIGO.Userinterface
         CancellationTokenSource _cts;
         Event _acceptedEvent;
         int _currentCardIndex;
-        bool _eventCreated;
         bool _focusLost;
 
         public override void OnOpen(WindowId previous)
         {
-            var model = ServiceLocator.Get<GameModel>();
-            _eventCreated = model.HasMyOwnEvent();
-            _createEventButton.SetActive(!_eventCreated);
-            _myEventButton.SetActive(_eventCreated);
             RefreshFeed();
         }
 
@@ -126,7 +121,13 @@ namespace WIGO.Userinterface
         {
             MessageRouter.onMessageReceive += OnReceiveMessage;
             _filtersController.Initialize(OnApplyFilterCategory);
-            ServiceLocator.Get<GameModel>().OnChangeMyEventTime += OnSetRemainingTime;
+            var model = ServiceLocator.Get<GameModel>();
+            model.OnChangeMyEventTime += OnSetRemainingTime;
+            model.OnControlMyEvent += OnControlMyEvent;
+
+            var eventCreated = model.HasMyOwnEvent();
+            _createEventButton.SetActive(!eventCreated);
+            _myEventButton.SetActive(eventCreated);
 
             var profile = ServiceLocator.Get<GameModel>().GetMyProfile();
             _userProfileElement.Setup(profile);
@@ -135,7 +136,9 @@ namespace WIGO.Userinterface
         private void OnDestroy()
         {
             MessageRouter.onMessageReceive -= OnReceiveMessage;
-            ServiceLocator.Get<GameModel>().OnChangeMyEventTime -= OnSetRemainingTime;
+            var model = ServiceLocator.Get<GameModel>();
+            model.OnChangeMyEventTime -= OnSetRemainingTime;
+            model.OnControlMyEvent -= OnControlMyEvent;
         }
 
         private void OnApplicationPause(bool pause)
@@ -346,6 +349,12 @@ namespace WIGO.Userinterface
             _remainingTimeLabel.SetText(minutes.ToString());
         }
 
+        void OnControlMyEvent(bool exist)
+        {
+            _createEventButton.SetActive(!exist);
+            _myEventButton.SetActive(exist);
+        }
+
         void OnReceiveMessage(NativeMessageType type, string message)
         {
             if (!gameObject.activeSelf)
@@ -391,7 +400,7 @@ namespace WIGO.Userinterface
             FeedRequest request = new FeedRequest()
             {
                 tags = tags,
-                gender = null
+                gender = 0
             };
             IEnumerable<Event> cards = await NetService.TryGetFeedEvents(request, model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
 

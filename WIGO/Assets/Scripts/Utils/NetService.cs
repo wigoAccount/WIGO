@@ -1,5 +1,3 @@
-using Amazon.Runtime;
-using Amazon.S3;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -15,60 +13,16 @@ namespace WIGO.Core
 
         const string URL = "http://v2.cerebrohq.com/testapi/rpc.php";
 
-        public static async Task<GlobalsData> RequestGlobal(string url, string stoken, CancellationToken ctoken = default)
-        {
-            RPCRequest request = new RPCRequest()
-            {
-                jsonrpc = "2.0",
-                method = "globals",
-                @params = new List<string>(),
-                id = "0"
-            };
-
-            string json = JsonReader.Serialize(request);
-            var resJson = await PostRequest(json, url, ctoken, stoken);
-            Debug.LogFormat("<color=cyan>GLOBALS: {0}</color>", resJson);
-
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Globals request is empty");
-                return null;
-            }
-
-            try
-            {
-                RPCResult<List<GlobalsData>> res = JsonReader.Deserialize<RPCResult<List<GlobalsData>>>(resJson);
-                return res.result[0];
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return null;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error create event: {0}", e.Message);
-                    return null;
-                }
-            }
-        }
-
         #region EVENTS
         public static async Task<IEnumerable<Event>> TryGetFeedEvents(FeedRequest data, string url, string stoken, CancellationToken ctoken = default)
         {
-            string jsonData = JsonReader.Serialize(data);
+            string jsonData = JsonReader.Serialize(data).Replace("\"tags\":[],", string.Empty);
+            string correctData = jsonData.Replace("\"gender\":0", string.Empty);
             RPCRequest request = new RPCRequest()
             {
                 jsonrpc = "2.0",
                 method = "eventList",
-                @params = new List<string>() { jsonData },
+                @params = new List<string>() { correctData },
                 id = "0"
             };
 
@@ -76,35 +30,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, url, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Feed request result is empty");
-                return null;
-            }
-
-            try
-            {
-                RPCResult<List<Event>> res = JsonReader.Deserialize<RPCResult<List<Event>>>(resJson);
-                return res?.result;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return null;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error get feed: {0}", e.Message);
-                    return null;
-                }
-            }
+            var res = GetParsedResult<List<Event>>(resJson, "Get Feed");
+            return res?.result;
         }
 
         public static async Task<Event> TryGetMyEvent(string url, string stoken, CancellationToken ctoken = default)
@@ -121,7 +48,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, url, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            return GetParsedEvent(resJson);
+            var res = GetParsedResult<List<Event>>(resJson, "Get my event");
+            return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
 
         public static async Task<Event> TryCreateEvent(CreateEventRequest data, string url, string stoken, CancellationToken ctoken = default)
@@ -139,53 +67,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, url, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            return GetParsedEvent(resJson);
-        }
-
-        public static async Task<Request> TryCreateRequest(CreateResponseRequest data, string url, string stoken, CancellationToken ctoken = default)
-        {
-            string jsonData = JsonReader.Serialize(data);
-            RPCRequest request = new RPCRequest()
-            {
-                jsonrpc = "2.0",
-                method = "requestPost",
-                @params = new List<string> { jsonData },
-                id = "0"
-            };
-
-            string json = JsonReader.Serialize(request);
-            var resJson = await PostRequest(json, url, ctoken, stoken);
-
-            Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Request result is empty");
-                return null;
-            }
-
-            try
-            {
-                RPCResult<List<Request>> res = JsonReader.Deserialize<RPCResult<List<Request>>>(resJson);
-                return (res != null && res.result.Count > 0) ? res.result[0] : null;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return null;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error create event: {0}", e.Message);
-                    return null;
-                }
-            }
+            var res = GetParsedResult<List<Event>>(resJson, "Create event");
+            return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
 
         public static async Task TryRemoveEvent(string eventId, string url, bool isRequest, string stoken, CancellationToken ctoken = default)
@@ -203,117 +86,10 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, url, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
+            var res = GetParsedResult<List<AbstractEvent>>(resJson, methodName);
+            if (res.result.Exists(x => string.Compare(x.uid, eventId) == 0))
             {
-                Debug.LogError("Create event request is empty");
-                return;
-            }
-
-            try
-            {
-                RPCResult<List<AbstractEvent>> res = JsonReader.Deserialize<RPCResult<List<AbstractEvent>>>(resJson);
-                if (res.result.Exists(x => string.Compare(x.uid, eventId) == 0))
-                {
-                    Debug.LogErrorFormat("Fail to remove event: {0}", eventId);
-                }
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error create event: {0}", e.Message);
-                    return;
-                }
-            }
-        }
-
-        public static async Task TryAcceptOrDeclineRequest(string requestId, string url, bool accept, string stoken, CancellationToken ctoken = default)
-        {
-            string methodName = accept ? "requestAccept" : "requestDecline";
-            RPCRequest request = new RPCRequest()
-            {
-                jsonrpc = "2.0",
-                method = methodName,
-                @params = new List<string> { requestId },
-                id = "0"
-            };
-
-            string json = JsonReader.Serialize(request);
-            var resJson = await PostRequest(json, url, ctoken, stoken);
-
-            Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Accept or decline request is empty");
-                return;
-            }
-
-            try
-            {
-                RPCResult<List<AbstractEvent>> res = JsonReader.Deserialize<RPCResult<List<AbstractEvent>>>(resJson);
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error accept or decline request: {0}", e.Message);
-                    return;
-                }
-            }
-        }
-
-        public static async Task TrySendLocation(Location location, string url, string stoken, CancellationToken ctoken = default)
-        {
-            string jsonData = JsonReader.Serialize(location);
-            RPCRequest request = new RPCRequest()
-            {
-                jsonrpc = "2.0",
-                method = "locationSet",
-                @params = new List<string> { jsonData },
-                id = "0"
-            };
-
-            string json = JsonReader.Serialize(request);
-            var resJson = await PostRequest(json, url, ctoken, stoken);
-
-            Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Send location request is empty");
-                return;
-            }
-
-            try
-            {
-                RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                if (error != null)
-                {
-                    ReportError(error.error);
-                }
-            }
-            catch (System.Exception)
-            {
-                Debug.Log("Location sent");
+                Debug.LogErrorFormat("Fail to remove event/request: {0}", eventId);
             }
         }
 
@@ -338,21 +114,22 @@ namespace WIGO.Core
                 return false;
             }
 
-            try
+            if (resJson.Contains("error"))
             {
-                RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                if (error != null)
+                try
                 {
-                    ReportError(error.error);
-                }
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
 
-                return false;
+                    return false;
+                }
+                catch (System.Exception) { }
             }
-            catch (System.Exception)
-            {
-                Debug.Log("Location sent");
-                return true;
-            }
+
+            return true;
         }
 
         public static async Task<string> TrySendDeclineEvent(string eventId, string url, string stoken, CancellationToken ctoken = default)
@@ -369,68 +146,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, url, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Decline event request is empty");
-                return null;
-            }
-
-            try
-            {
-                RPCResult<List<string>> res = JsonReader.Deserialize<RPCResult<List<string>>>(resJson);
-                return res.result[0];
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return null;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error decline event: {0}", e.Message);
-                    return null;
-                }
-            }
-        }
-
-        static Event GetParsedEvent(string resJson)
-        {
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Request result is empty");
-                return null;
-            }
-
-            try
-            {
-                RPCResult<List<Event>> res = JsonReader.Deserialize<RPCResult<List<Event>>>(resJson);
-                return (res != null && res.result.Count > 0) ? res.result[0] : null;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return null;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error create event: {0}", e.Message);
-                    return null;
-                }
-            }
+            var res = GetParsedResult<List<string>>(resJson, "Decline event");
+            return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
         #endregion
 
@@ -451,35 +168,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, token);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Confirm register request is empty");
-                return new ConfirmRegisterResult();
-            }
-
-            try
-            {
-                RPCResult<ConfirmRegisterResult> res = JsonReader.Deserialize<RPCResult<ConfirmRegisterResult>>(resJson);
-                return res.result;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return new ConfirmRegisterResult();
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogErrorFormat("Error get keys: {0}", ex.Message);
-                    return new ConfirmRegisterResult();
-                }
-            }
+            var res = GetParsedResult<ConfirmRegisterResult>(resJson, "Register");
+            return res != null ? res.result : new ConfirmRegisterResult();
         }
 
         public static async Task<ConfirmRegisterResult> TryConfirmRegister(string token, string code, CancellationToken ctoken = default)
@@ -497,35 +187,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, ctoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Confirm register request is empty");
-                return new ConfirmRegisterResult();
-            }
-
-            try
-            {
-                RPCResult<ConfirmRegisterResult> res = JsonReader.Deserialize<RPCResult<ConfirmRegisterResult>>(resJson);
-                return res.result;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return new ConfirmRegisterResult();
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogErrorFormat("Error get keys: {0}", ex.Message);
-                    return new ConfirmRegisterResult();
-                }
-            }
+            var res = GetParsedResult<ConfirmRegisterResult>(resJson, "Confirm register");
+            return res != null ? res.result : new ConfirmRegisterResult();
         }
 
         public static async Task<bool> CheckBirthdayInvalid(string birthday, string stoken, CancellationToken ctoken = default)
@@ -542,35 +205,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Check bday request is empty");
-                return true;
-            }
-
-            try
-            {
-                RPCResult<List<CheckBirthdayResult>> res = JsonReader.Deserialize<RPCResult<List<CheckBirthdayResult>>>(resJson);
-                return res.result[0].invalid;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return true;
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogErrorFormat("Error get keys: {0}", ex.Message);
-                    return true;
-                }
-            }
+            var res = GetParsedResult<List<CheckBirthdayResult>>(resJson, "Check birthday invalid");
+            return (res != null && res.result.Count > 0) ? res.result[0].invalid : true;
         }
 
         public static async Task<ConfirmRegisterResult> TryLogin(string ltoken, CancellationToken token = default)
@@ -588,35 +224,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, token);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("Log in request is empty");
-                return new ConfirmRegisterResult();
-            }
-
-            try
-            {
-                RPCResult<ConfirmRegisterResult> res = JsonReader.Deserialize<RPCResult<ConfirmRegisterResult>>(resJson);
-                return res.result;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
-
-                    return new ConfirmRegisterResult();
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogErrorFormat("Error login: {0}", ex.Message);
-                    return new ConfirmRegisterResult();
-                }
-            }
+            var res = GetParsedResult<ConfirmRegisterResult>(resJson, "Log in");
+            return res != null ? res.result : new ConfirmRegisterResult();
         }
 
         public static async Task TryDeleteAccount(string stoken, CancellationToken token = default)
@@ -638,18 +247,22 @@ namespace WIGO.Core
                 Debug.LogError("User remove request is empty");
             }
 
-            try
+            if (resJson.Contains("error"))
             {
-                RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                if (error != null)
+                try
                 {
-                    ReportError(error.error);
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
                 }
+                catch { }
+
+                return;
             }
-            catch
-            {
-                Debug.Log("User successfully deleted");
-            }
+
+            Debug.Log("User successfully deleted");
         }
 
         public static async Task<ProfileData> TryUpdateUser(string userUpdJson, string stoken, CancellationToken token = default)
@@ -666,19 +279,32 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, token, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
+            var res = GetParsedResult<List<ProfileContainer>>(resJson, "Update user");
+            return (res != null && res.result.Count > 0) ? res.result[0].profile : null;
+        }
+
+        public static async Task TrySendLocation(Location location, string url, string stoken, CancellationToken ctoken = default)
+        {
+            string jsonData = JsonReader.Serialize(location);
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "locationSet",
+                @params = new List<string> { jsonData },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
             if (string.IsNullOrEmpty(resJson))
             {
-                Debug.LogError("Log in request is empty");
-                return null;
+                Debug.LogError("Send location request is empty");
+                return;
             }
 
-            Debug.Log(resJson);
-            try
-            {
-                RPCResult<List<ProfileContainer>> res = JsonReader.Deserialize<RPCResult<List<ProfileContainer>>>(resJson);
-                return res.result[0].profile;
-            }
-            catch
+            if (resJson.Contains("error"))
             {
                 try
                 {
@@ -687,15 +313,31 @@ namespace WIGO.Core
                     {
                         ReportError(error.error);
                     }
+                }
+                catch { }
 
-                    return null;
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogErrorFormat("Error update user: {0}", ex.Message);
-                    return null;
-                }
+                return;
             }
+
+            Debug.Log("Location sent");
+        }
+
+        public static async Task<GlobalsData> RequestGlobal(string url, string stoken, CancellationToken ctoken = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "globals",
+                @params = new List<string>(),
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+            Debug.LogFormat("<color=cyan>GLOBALS: {0}</color>", resJson);
+
+            var res = GetParsedResult<List<GlobalsData>>(resJson, "Get globals");
+            return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
         #endregion
 
@@ -714,35 +356,45 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, url, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            if (string.IsNullOrEmpty(resJson))
-            {
-                Debug.LogError("My requests result is empty");
-                return null;
-            }
+            var res = GetParsedResult<List<Request>>(resJson, "Get my requests");
+            return res?.result;
+        }
 
-            try
+        public static async Task<Request> TryCreateRequest(CreateResponseRequest data, string url, string stoken, CancellationToken ctoken = default)
+        {
+            string jsonData = JsonReader.Serialize(data);
+            RPCRequest request = new RPCRequest()
             {
-                RPCResult<List<Request>> res = JsonReader.Deserialize<RPCResult<List<Request>>>(resJson);
-                return res?.result;
-            }
-            catch
-            {
-                try
-                {
-                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
-                    if (error != null)
-                    {
-                        ReportError(error.error);
-                    }
+                jsonrpc = "2.0",
+                method = "requestPost",
+                @params = new List<string> { jsonData },
+                id = "0"
+            };
 
-                    return null;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogErrorFormat("Error get my requests: {0}", e.Message);
-                    return null;
-                }
-            }
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            var res = GetParsedResult<List<Request>>(resJson, "Create request");
+            return (res != null && res.result.Count > 0) ? res.result[0] : null;
+        }
+
+        public static async Task TryAcceptOrDeclineRequest(string requestId, string url, bool accept, string stoken, CancellationToken ctoken = default)
+        {
+            string methodName = accept ? "requestAccept" : "requestDecline";
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = methodName,
+                @params = new List<string> { requestId },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            GetParsedResult<List<AbstractEvent>>(resJson, methodName);
         }
         #endregion
 
@@ -787,6 +439,45 @@ namespace WIGO.Core
         }
 
         #region HELPERS
+        static RPCResult<T> GetParsedResult<T>(string resJson, string debugName)
+        {
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogErrorFormat("'{0}' request is empty", debugName);
+                return null;
+            }
+
+            if (!resJson.Contains("error"))
+            {
+                try
+                {
+                    RPCResult<T> res = JsonReader.Deserialize<RPCResult<T>>(resJson);
+                    return res;
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogErrorFormat("Error parse {0}: {1}", debugName, ex.Message);
+                    return null;
+                }
+            }
+
+            try
+            {
+                RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                if (error != null)
+                {
+                    ReportError(error.error);
+                }
+
+                return null;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogErrorFormat("Error {0}: {1}", debugName, e.Message);
+                return null;
+            }
+        }
+
         static void ReportError(ErrorResult error)
         {
             string message = error.message;

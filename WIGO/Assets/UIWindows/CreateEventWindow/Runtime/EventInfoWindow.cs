@@ -117,15 +117,15 @@ namespace WIGO.Userinterface
             }
             _createdPreview = null;
             _preview.texture = null;
+#endif
 
-            if (string.IsNullOrEmpty(_videoPreviewPath))
+            if (!string.IsNullOrEmpty(_videoPreviewPath))
             {
                 if (File.Exists(_videoPreviewPath))
                     File.Delete(_videoPreviewPath);
-                
+
                 _videoPreviewPath = string.Empty;
             }
-#endif
             _videoPath = null;
             _overlay.gameObject.SetActive(false);
             _doneElement.SetActive(false);
@@ -200,6 +200,7 @@ namespace WIGO.Userinterface
                     cts.Dispose();
                     return null;
                 }
+
 
                 return previewKey;
             }

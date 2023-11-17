@@ -1,6 +1,9 @@
+using Crystal;
+using DG.Tweening;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using WIGO.Core;
 
 using Event = WIGO.Core.Event;
@@ -19,10 +22,20 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _myEventContent;
         [Space]
         [SerializeField] GameObject _loadingWindow;
+        [SerializeField] PopupBottomPanel _deleteApprovePanel;
+        [SerializeField] Image _overlay;
+        [SerializeField] SafeArea _safeArea;
 
         Event _myEvent;
         float _timer;
         int _remainingSeconds;
+
+        public override void Initialize()
+        {
+            base.Initialize();
+            _deleteApprovePanel.Init(_safeArea.GetSafeAreaBottomPadding(), 
+                () => _overlay.DOFade(0f, 0.28f).OnComplete(() => _overlay.gameObject.SetActive(false)));
+        }
 
         public override void SetPartActive(bool active, bool animate = true)
         {
@@ -55,17 +68,12 @@ namespace WIGO.Userinterface
             base.ResetPart();
         }
 
-        public async void OnDeleteEventClick()
+        public void OnDeleteEventClick()
         {
-            _loadingWindow.SetActive(true);
-            var model = ServiceLocator.Get<GameModel>();
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(8000);
-            await NetService.TryRemoveEvent(_myEvent.uid, model.GetUserLinks().data.address, _myEvent.IsResponse(), model.ShortToken, cts.Token);
-
-            _loadingWindow.SetActive(false);
-            DeleteEvent();
-            ServiceLocator.Get<UIManager>().CloseCurrent();
+            UIGameColors.SetTransparent(_overlay);
+            _overlay.gameObject.SetActive(true);
+            _overlay.DOFade(0.88f, 0.28f);
+            _deleteApprovePanel.OpenPanel(OnGetDeleteEventAnswer);
         }
 
         void Update()
@@ -135,6 +143,29 @@ namespace WIGO.Userinterface
             int seconds = time - minutes * 60;
             _timerLabel.text = string.Format("00:{0:00}:{1:00}", minutes, seconds);
             _timerLabelGradient.ApplyGradient();
+        }
+
+        async void OnGetDeleteEventAnswer(bool value)
+        {
+            if (value)
+            {
+                _deleteApprovePanel.gameObject.SetActive(false);
+                _overlay.gameObject.SetActive(false);
+
+                _loadingWindow.SetActive(true);
+                var model = ServiceLocator.Get<GameModel>();
+                var cts = new CancellationTokenSource();
+                cts.CancelAfter(8000);
+                await NetService.TryRemoveEvent(_myEvent.uid, model.GetUserLinks().data.address, _myEvent.IsResponse(), model.ShortToken, cts.Token);
+
+                _loadingWindow.SetActive(false);
+                DeleteEvent();
+                ServiceLocator.Get<UIManager>().CloseCurrent();
+            }
+            else
+            {
+                _deleteApprovePanel.ClosePanel();
+            }
         }
     }
 }

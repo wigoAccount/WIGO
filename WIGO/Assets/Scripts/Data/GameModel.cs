@@ -13,6 +13,7 @@ using System;
 public class GameModel
 {
     public Action<int> OnChangeMyEventTime;
+    public Action<bool> OnControlMyEvent;
     public Action<Texture2D> OnUpdateAvatar;
     public string ShortToken { get; private set; }
     public string LongToken { get => _ltoken; }
@@ -43,6 +44,7 @@ public class GameModel
     {
         _myEvent = await NetService.TryGetMyEvent(_links.data.address, ShortToken);
         _myEventTimer = 0f;
+        OnControlMyEvent?.Invoke(_myEvent != null);
         if (_myEvent == null)
         {
             return null;
@@ -76,6 +78,7 @@ public class GameModel
     {
         _myEvent = card;
         _myEventTimer = 0f;
+        OnControlMyEvent?.Invoke(_myEvent != null);
     }
 
     public void Clear()
@@ -86,6 +89,7 @@ public class GameModel
         _myProfile = null;
         _myEvent = null;
         _links = new LinksData();
+        OnControlMyEvent?.Invoke(false);
         PlayerPrefs.DeleteKey("SaveData");
     }
 
@@ -136,6 +140,7 @@ public class GameModel
         {
             _myEvent = myEvent;
             _myEventTimer = 0f;
+            OnControlMyEvent?.Invoke(myEvent != null);
         }
         cts.Dispose();
     }
@@ -166,6 +171,13 @@ public class GameModel
             {
                 _myEventTimer -= 1f;
                 _myEvent.waiting = Mathf.Clamp(_myEvent.waiting - 1, 0, int.MaxValue);
+                if (_myEvent.waiting <= 0)
+                {
+                    //_myEvent = null;
+                    //OnControlMyEvent?.Invoke(false);
+                    return;
+                }
+
                 OnChangeMyEventTime?.Invoke(_myEvent.waiting);
             }
         }

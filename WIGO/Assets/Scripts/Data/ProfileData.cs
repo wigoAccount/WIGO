@@ -77,6 +77,7 @@ namespace WIGO
     public enum Gender
     {
         male,
-        female
+        female,
+        none
     }
 }

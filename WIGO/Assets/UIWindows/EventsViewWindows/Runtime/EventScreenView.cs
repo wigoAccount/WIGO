@@ -8,26 +8,31 @@ namespace WIGO.Userinterface
     public class EventScreenView : UIWindowView<EventViewModel>
     {
         [SerializeField] SafeArea _safeArea;
+        [Header("Ask aprove part (for requests to my event)")]
         [SerializeField] RectTransform _eventInfo;
-        [SerializeField] RectTransform _unaprovedEventInfo;
-        [SerializeField] RectTransform _acceptEventInfo;
         [SerializeField] RectTransform _eventInfoViewport;
+        [SerializeField] RectTransform _eventInfoContent;
+        [SerializeField] TMP_Text _eventDescription;
+        [SerializeField] RectTransform _descriptionBackground;
+        [SerializeField] TMP_Text _infoTitle;
+        [Space]
+        [Header("Unaproved part (for my request to event)")]
+        [SerializeField] RectTransform _unaprovedEventInfo;
+        [SerializeField] TMP_Text _unaprovedDescription;
+        [Space]
+        [Header("Full view part (for events and requests)")]
+        [SerializeField] RectTransform _acceptEventInfo;
         [SerializeField] RectTransform _acceptEventInfoViewport;
         [SerializeField] RectTransform _bottomGradient;
-        [SerializeField] RectTransform _eventInfoContent;
         [SerializeField] RectTransform _acceptEventInfoContent;
-        [Space]
         [SerializeField] TextGradient _timerView;
         [SerializeField] TMP_Text _timerLabel;
-        [SerializeField] TMP_Text _eventDescription;
         [SerializeField] TMP_Text _location;
         [SerializeField] UIGradient _locationBtnGradient;
         [SerializeField] TMP_Text _usernameLabel;
         [SerializeField] TMP_Text _phoneNumber;
         [SerializeField] TMP_Text _fullDescription;
-        [SerializeField] RectTransform _descriptionBackground;
         [SerializeField] RectTransform _acceptDescriptionBackground;
-        [SerializeField] TMP_Text _infoTitle;
         [SerializeField] TMP_Text _acceptTitle;
         [SerializeField] TMP_Text _cancelLabel;
         [SerializeField] TMP_Text _eventCreatorTitle;
@@ -61,6 +66,7 @@ namespace WIGO.Userinterface
             _acceptEventInfoContent.anchoredPosition = Vector2.zero;
             _eventDescription.SetText(card.about);
             _fullDescription.SetText(card.about);
+            _unaprovedDescription.SetText(card.about);
             _location.SetText(card.address);
 
             switch (request.GetStatus())

@@ -28,7 +28,7 @@ namespace WIGO.Userinterface
 
         public void OnClear()
         {
-            _selectedPhotoPath = null;
+            CheckOldCopy();
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
@@ -41,8 +41,9 @@ namespace WIGO.Userinterface
 
         void OnAddImage(string path)
         {
-            _selectedPhotoPath = path;// Path.Combine(Application.persistentDataPath, Path.GetFileName(path));
-            _profile.ChangeAvatar(path);//, _selectedPhotoPath);
+            CheckOldCopy();
+            _selectedPhotoPath = Path.Combine(Application.persistentDataPath, Path.GetFileNameWithoutExtension(path) + ".png");
+            _profile.ChangeAvatar(path, _selectedPhotoPath);
         }
 
         public async Task<string> UploadPhoto()
@@ -64,6 +65,15 @@ namespace WIGO.Userinterface
             _cts.Dispose();
             _cts = null;
             return photo;
+        }
+
+        void CheckOldCopy()
+        {
+            if (!string.IsNullOrEmpty(_selectedPhotoPath) && File.Exists(_selectedPhotoPath))
+            {
+                File.Delete(_selectedPhotoPath);
+            }
+            _selectedPhotoPath = null;
         }
     }
 }

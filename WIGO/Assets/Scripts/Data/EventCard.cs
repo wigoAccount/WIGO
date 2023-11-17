@@ -113,11 +113,9 @@ namespace WIGO.Core
         Male
     }
 
-    public enum EventStatus
+    public enum WatchRequestStatus
     {
-        NotAccepted,
-        Accepted,
-        Watched,
-        Denied
+        New,
+        Watched
     }
 }

@@ -18,11 +18,7 @@ namespace WIGO.Userinterface
 
         public virtual async void Setup(ProfileData profile)
         {
-            if (_avatarImage.texture != null)
-            {
-                Destroy(_avatarImage.texture);
-                _avatarImage.texture = null;
-            }
+            ClearTexture();
 
             if (profile == null)
             {
@@ -60,11 +56,7 @@ namespace WIGO.Userinterface
 
         public async void Setup(string url)
         {
-            if (_avatarImage.texture != null)
-            {
-                Destroy(_avatarImage.texture);
-                _avatarImage.texture = null;
-            }
+            ClearTexture();
 
             if (string.IsNullOrEmpty(url))
             {
@@ -91,19 +83,19 @@ namespace WIGO.Userinterface
             _avatarImage.texture = avatar;
         }
 
-        public async void ChangeAvatar(string path)//, string copyPath)
+        public async void ChangeAvatar(string path, string copyPath)
         {
             Texture2D photo = null;
 #if UNITY_IOS && !UNITY_EDITOR
-            photo = NativeGallery.LoadImageAtPath(path);
+            photo = NativeGallery.LoadImageAtPath(path, markTextureNonReadable: false);
 #else
             photo = await DownloadLocalTextureAsync(path);
 #endif
 
             if (photo != null)
             {
-                //var textureBytes = photo.EncodeToPNG();
-                //await File.WriteAllBytesAsync(copyPath, textureBytes);
+                var textureBytes = photo.EncodeToPNG();
+                await File.WriteAllBytesAsync(copyPath, textureBytes);
                 ServiceLocator.Get<GameModel>().UpdateMyAvatar(photo);
             }
             else
@@ -122,16 +114,12 @@ namespace WIGO.Userinterface
         private void OnDestroy()
         {
             ServiceLocator.Get<GameModel>().OnUpdateAvatar -= UpdateAvatarTexture;
+            ClearTexture();
         }
 
         void UpdateAvatarTexture(Texture2D texture)
         {
-            if (_avatarImage.texture != null)
-            {
-                Destroy(_avatarImage.texture);
-                _avatarImage.texture = null;
-            }
-
+            ClearTexture();
             SetPhotoSize(texture);
             _avatarImage.texture = texture;
             _background.gameObject.SetActive(false);
@@ -190,6 +178,15 @@ namespace WIGO.Userinterface
             float height = aspect > 1f ? size.y : size.x / aspect;
             _avatarImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             _avatarImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        }
+
+        void ClearTexture()
+        {
+            if (_avatarImage.texture != null)
+            {
+                Destroy(_avatarImage.texture);
+                _avatarImage.texture = null;
+            }
         }
     }
 }

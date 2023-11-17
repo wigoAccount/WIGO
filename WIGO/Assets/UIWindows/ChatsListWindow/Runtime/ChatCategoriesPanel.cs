@@ -10,10 +10,13 @@ namespace WIGO.Userinterface
 
         Action<ChatCategory> _onCategorySelected;
         UIChatCategoryElement _selected;
+        ChatCategory _currentCategory = ChatCategory.All;
         Coroutine _blockCoroutine;
         bool _isBuisy;
 
         const float SWITCH_DURATION = 0.32f;
+
+        public ChatCategory GetOpenedCategory() => _currentCategory;
 
         public void Init(Action<ChatCategory> onCategorySelected)
         {
@@ -34,6 +37,7 @@ namespace WIGO.Userinterface
 
         public void ResetCategories()
         {
+            _currentCategory = ChatCategory.All;
             if (_selected != _categories[0])
             {
                 _selected?.SetSelected(false, false);
@@ -59,6 +63,7 @@ namespace WIGO.Userinterface
             _selected?.SetSelected(false);
             _selected = element;
             _selected.SetSelected(true);
+            _currentCategory = category;
             _onCategorySelected?.Invoke(category);
 
             _isBuisy = true;

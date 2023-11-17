@@ -96,7 +96,7 @@ namespace WIGO.Core
     public struct FeedRequest
     {
         public int[] tags;
-        public string gender;
+        public int gender;
     }
 
     [Serializable]

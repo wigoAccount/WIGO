@@ -32,7 +32,8 @@ namespace WIGO.Userinterface
 
         new EventViewModel _model;
         EventScreenView _view;
-        Request _currentCard;
+        Request _request;
+        AbstractEvent _currentCard;
         Sequence _copyAnimation;
         CancellationTokenSource _cts;
 
@@ -50,23 +51,24 @@ namespace WIGO.Userinterface
             callback?.Invoke();
         }
 
-        public void Setup(Request card, bool isMyRequest)
+        public void Setup(Request request, bool isMyRequest)
         {
-            _currentCard = card;
+            _request = request;
+            _currentCard = isMyRequest ? (AbstractEvent)request.@event : request;
             _myRequest = isMyRequest;
             UIGameColors.SetTransparent(_preview, 0.1f);
-            SetupCardTextureSize(card.AspectRatio);
+            SetupCardTextureSize(_currentCard.AspectRatio);
             _loader.SetActive(true);
-            var videoSize = GetVideoSize(card.AspectRatio);
+            var videoSize = GetVideoSize(_currentCard.AspectRatio);
             _videoTexture = new RenderTexture(videoSize.x, videoSize.y, 32);
             UIGameColors.SetTransparent(_preview, 1f);
             _preview.texture = _videoTexture;
-            _fullInfoView = card.GetStatus() == Request.RequestStatus.accept;
+            _fullInfoView = request.GetStatus() == Request.RequestStatus.accept;
 
-            string path = ServiceLocator.Get<S3ContentClient>().GetVideoURL(card.video);
+            string path = ServiceLocator.Get<S3ContentClient>().GetVideoURL(_currentCard.video);
             _videoLoadRoutine = StartCoroutine(LoadVideoContent(path));
-            _view.SetupView(card, isMyRequest);
-            _seconds = card.waiting;
+            _view.SetupView(request, isMyRequest);
+            _seconds = request.waiting;
             _timer = 0f;
         }
 
@@ -101,13 +103,14 @@ namespace WIGO.Userinterface
             }
         }
 
+        // This is only for MY EVENT and THEIR REQUEST
         public async void OnAcceptClick()
         {
             _loadingWindow.SetActive(true);
             var model = ServiceLocator.Get<GameModel>();
             _cts = new CancellationTokenSource();
             _cts.CancelAfter(8000);
-            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, true, model.ShortToken, _cts.Token);
+            await NetService.TryAcceptOrDeclineRequest(_request.uid, model.GetUserLinks().data.address, true, model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
             if (_cts.IsCancellationRequested)
@@ -119,18 +122,19 @@ namespace WIGO.Userinterface
 
             _cts.Dispose();
             _cts = null;
-            _currentCard.status = "accept";
+            _request.status = "accept";
             _fullInfoView = true;
-            _view.SetupView(_currentCard, false);
+            _view.SetupView(_request, false);
         }
 
+        // This is only for MY EVENT and THEIR REQUEST
         public async void OnDenyClick()
         {
             _loadingWindow.SetActive(true);
             var model = ServiceLocator.Get<GameModel>();
             _cts = new CancellationTokenSource();
             _cts.CancelAfter(8000);
-            await NetService.TryAcceptOrDeclineRequest(_currentCard.uid, model.GetUserLinks().data.address, false, model.ShortToken, _cts.Token);
+            await NetService.TryAcceptOrDeclineRequest(_request.uid, model.GetUserLinks().data.address, false, model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
             if (_cts.IsCancellationRequested)
@@ -142,7 +146,7 @@ namespace WIGO.Userinterface
 
             _cts.Dispose();
             _cts = null;
-            _currentCard.status = "decline";
+            _request.status = "decline";
             ServiceLocator.Get<UIManager>().CloseCurrent();
         }
 
@@ -152,7 +156,7 @@ namespace WIGO.Userinterface
             var model = ServiceLocator.Get<GameModel>();
             _cts = new CancellationTokenSource();
             _cts.CancelAfter(8000);
-            string uid = _myRequest ? _currentCard.uid : model.GetMyEventId();
+            string uid = _myRequest ? _request.uid : model.GetMyEventId();
             if (string.IsNullOrEmpty(uid))
             {
                 Debug.LogWarningFormat("My event is null");

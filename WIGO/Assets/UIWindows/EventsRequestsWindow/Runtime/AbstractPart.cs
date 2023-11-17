@@ -12,7 +12,7 @@ namespace WIGO.Userinterface
         Sequence _animation;
         protected bool _loaded;
 
-        public void Initialize()
+        public virtual void Initialize()
         {
             _partGroup = GetComponent<CanvasGroup>();
             _partRect = transform as RectTransform;

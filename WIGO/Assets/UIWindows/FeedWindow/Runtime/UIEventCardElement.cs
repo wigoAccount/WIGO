@@ -17,7 +17,7 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _distanceTimeLabel;
         [SerializeField] TMP_Text _timeLabel;
         [SerializeField] TMP_Text _moreButton;
-        [SerializeField] TMP_Text _locationLabel;
+        //[SerializeField] TMP_Text _locationLabel;
         //[SerializeField] TMP_Text _groupSizeLabel;
         //[SerializeField] Image _groupSizeIcon;
         [Space]
@@ -56,7 +56,7 @@ namespace WIGO.Userinterface
             float nameWidth = Mathf.Min(_usernnameLabel.preferredWidth + 0.4f, 128f);
             _usernnameLabel.rectTransform.sizeDelta = new Vector2(nameWidth, _usernnameLabel.rectTransform.sizeDelta.y);
             _descLabel.text = card.about;
-            _locationLabel.text = card.address;
+            //_locationLabel.text = card.address;
             _moreButton.gameObject.SetActive(_descLabel.preferredWidth > _descLabel.rectTransform.rect.width);
             _distanceTimeLabel.text = card.time_to.ToString() + _minFromMe;
             _remainingSeconds = card.waiting;
