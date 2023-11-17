@@ -173,8 +173,8 @@ public class GameModel
                 _myEvent.waiting = Mathf.Clamp(_myEvent.waiting - 1, 0, int.MaxValue);
                 if (_myEvent.waiting <= 0)
                 {
-                    //_myEvent = null;
-                    //OnControlMyEvent?.Invoke(false);
+                    _myEvent = null;
+                    OnControlMyEvent?.Invoke(false);
                     return;
                 }
 

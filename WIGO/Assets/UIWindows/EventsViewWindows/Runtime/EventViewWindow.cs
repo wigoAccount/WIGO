@@ -65,7 +65,7 @@ namespace WIGO.Userinterface
             _preview.texture = _videoTexture;
             _fullInfoView = request.GetStatus() == Request.RequestStatus.accept;
 
-            string path = ServiceLocator.Get<S3ContentClient>().GetVideoURL(_currentCard.video);
+            string path = ServiceLocator.Get<S3ContentClient>().GetPublicVideoUrl(_currentCard.video);
             _videoLoadRoutine = StartCoroutine(LoadVideoContent(path));
             _view.SetupView(request, isMyRequest);
             _seconds = request.waiting;

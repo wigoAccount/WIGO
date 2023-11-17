@@ -22,6 +22,7 @@ namespace WIGO.Core
         AmazonS3Client _s3Client;
 
         const int EXPIRE_LINK_MINUTES = 10;
+        const string CLOUD_URL = "https://storage.yandexcloud.net/";
 
         public S3ContentClient(S3DataConfig dataConfig)
         {
@@ -45,6 +46,11 @@ namespace WIGO.Core
 
             var url = _s3Client.GetPreSignedURL(request);
             return url;
+        }
+
+        public string GetPublicVideoUrl(string videoName)
+        {
+            return string.Format("{0}{1}/{2}", CLOUD_URL, _s3Config.GetBucketName(), videoName);
         }
 
         public async Task<Texture2D> GetTexture(string filename, CancellationToken token = default)

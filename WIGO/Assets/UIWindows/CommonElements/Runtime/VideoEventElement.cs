@@ -85,7 +85,7 @@ namespace WIGO.Userinterface
 
             aspect = aspect <= 0f ? 9f / 16f : aspect;
             _currentMode = VideoMode.Muted;
-            string path = ServiceLocator.Get<S3ContentClient>().GetVideoURL(url);
+            string path = ServiceLocator.Get<S3ContentClient>().GetPublicVideoUrl(url);
             int height = Mathf.RoundToInt(VIDEO_SIZE / aspect);
 
             _renderTexture = RenderTexture.GetTemporary(VIDEO_SIZE, height, 32, GraphicsFormat.R16G16B16A16_SFloat);
