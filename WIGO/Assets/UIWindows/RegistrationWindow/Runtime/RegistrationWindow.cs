@@ -312,15 +312,15 @@ namespace WIGO.Userinterface
 
         public void OnSetNotifications(bool accept)
         {
-            NotificationSettings settings = new NotificationSettings()
-            {
-                areYouOK = accept,
-                estimate = accept,
-                expireEvent = accept,
-                newEvent = accept,
-                newMessages = accept,
-                responses = accept
-            };
+            //NotificationSettings settings = new NotificationSettings()
+            //{
+            //    areYouOK = accept,
+            //    estimate = accept,
+            //    expireEvent = accept,
+            //    newEvent = accept,
+            //    newMessages = accept,
+            //    responses = accept
+            //};
 
             var model = ServiceLocator.Get<GameModel>();
             //model.SaveNotifications(settings);

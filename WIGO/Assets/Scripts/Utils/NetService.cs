@@ -16,8 +16,8 @@ namespace WIGO.Core
         #region EVENTS
         public static async Task<IEnumerable<Event>> TryGetFeedEvents(FeedRequest data, string url, string stoken, CancellationToken ctoken = default)
         {
-            string jsonData = JsonReader.Serialize(data).Replace("\"tags\":[],", string.Empty);
-            string correctData = jsonData.Replace("\"gender\":0", string.Empty);
+            string jsonData = JsonReader.Serialize(data).Replace(":[]", ":null");
+            string correctData = jsonData.Replace(":0", ":null");
             RPCRequest request = new RPCRequest()
             {
                 jsonrpc = "2.0",
@@ -283,7 +283,7 @@ namespace WIGO.Core
             return (res != null && res.result.Count > 0) ? res.result[0].profile : null;
         }
 
-        public static async Task TrySendLocation(Location location, string url, string stoken, CancellationToken ctoken = default)
+        public static async Task<bool> TrySendLocation(Location location, string url, string stoken, CancellationToken ctoken = default)
         {
             string jsonData = JsonReader.Serialize(location);
             RPCRequest request = new RPCRequest()
@@ -301,7 +301,7 @@ namespace WIGO.Core
             if (string.IsNullOrEmpty(resJson))
             {
                 Debug.LogError("Send location request is empty");
-                return;
+                return false;
             }
 
             if (resJson.Contains("error"))
@@ -316,10 +316,11 @@ namespace WIGO.Core
                 }
                 catch { }
 
-                return;
+                return false;
             }
 
             Debug.Log("Location sent");
+            return true;
         }
 
         public static async Task<GlobalsData> RequestGlobal(string url, string stoken, CancellationToken ctoken = default)
@@ -379,7 +380,7 @@ namespace WIGO.Core
             return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
 
-        public static async Task TryAcceptOrDeclineRequest(string requestId, string url, bool accept, string stoken, CancellationToken ctoken = default)
+        public static async Task<Event> TryAcceptOrDeclineRequest(string requestId, string url, bool accept, string stoken, CancellationToken ctoken = default)
         {
             string methodName = accept ? "requestAccept" : "requestDecline";
             RPCRequest request = new RPCRequest()
@@ -394,7 +395,8 @@ namespace WIGO.Core
             var resJson = await PostRequest(json, url, ctoken, stoken);
 
             Debug.LogFormat("Answer: {0}", resJson);
-            GetParsedResult<List<AbstractEvent>>(resJson, methodName);
+            var res = GetParsedResult<List<Event>>(resJson, methodName);
+            return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
         #endregion
 

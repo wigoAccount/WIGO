@@ -160,8 +160,6 @@ namespace WIGO.Userinterface
         void OnApplyFilterCategory()
         {
             _cts?.Cancel();
-            _currentCard?.Clear();
-            _endOfPostsController.Deactivate();
             RefreshFeed();
         }
 
@@ -173,25 +171,10 @@ namespace WIGO.Userinterface
             _endOfPostsController.Deactivate();
             _loadingLabel.SetActive(true);
 
-            bool gotLocation = false;
-            Location myLocation;
-
-#if UNITY_EDITOR
-            gotLocation = true;
-            myLocation = new Location()
+            var model = ServiceLocator.Get<GameModel>();
+            bool locationSent = await model.SendLocationDataToServer();
+            if (locationSent)
             {
-                latitude = "55.762021191659485",
-                longitude = "37.63407669596055"
-            };
-#elif UNITY_IOS
-            gotLocation = MessageIOSHandler.TryGetMyLocation(out Location location);
-            myLocation = location;
-#endif
-
-            if (gotLocation)
-            {
-                var model = ServiceLocator.Get<GameModel>();
-                await NetService.TrySendLocation(myLocation, model.GetUserLinks().data.address, model.ShortToken);
                 await UpdateFeedCards();
             }
             else
@@ -412,7 +395,7 @@ namespace WIGO.Userinterface
             _cts.Dispose();
             _cts = null;
             _loadingLabel.SetActive(false);
-            _loadedCards = categoryUid == 0
+            _loadedCards = categoryUid == 0 || cards == null
                 ? new List<Event>(cards)
                 : new List<Event>(cards.Where(x => x.ContainsTag(categoryUid)));
             _currentCardIndex = 0;

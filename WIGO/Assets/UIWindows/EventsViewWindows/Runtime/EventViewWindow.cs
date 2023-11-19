@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using WIGO.Core;
 using DG.Tweening;
-
+using System.Linq;
 using System.Threading;
 using WIGO.Utility;
 
@@ -110,7 +110,7 @@ namespace WIGO.Userinterface
             var model = ServiceLocator.Get<GameModel>();
             _cts = new CancellationTokenSource();
             _cts.CancelAfter(8000);
-            await NetService.TryAcceptOrDeclineRequest(_request.uid, model.GetUserLinks().data.address, true, model.ShortToken, _cts.Token);
+            var myEvent = await NetService.TryAcceptOrDeclineRequest(_request.uid, model.GetUserLinks().data.address, true, model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
             if (_cts.IsCancellationRequested)
@@ -122,9 +122,22 @@ namespace WIGO.Userinterface
 
             _cts.Dispose();
             _cts = null;
-            _request.status = "accept";
-            _fullInfoView = true;
-            _view.SetupView(_request, false);
+
+            if (myEvent != null)
+            {
+                model.SetMyEvent(myEvent);
+                var oldUid = _request.uid;
+                _request = myEvent.requests.FirstOrDefault(x => x.uid == oldUid);
+
+                if (_request == null)
+                {
+                    Debug.LogErrorFormat("Accepted request '{0}' isn't included in my Event", oldUid);
+                    return;
+                }
+
+                _fullInfoView = true;
+                _view.SetupView(_request, false);
+            }
         }
 
         // This is only for MY EVENT and THEIR REQUEST
@@ -134,7 +147,7 @@ namespace WIGO.Userinterface
             var model = ServiceLocator.Get<GameModel>();
             _cts = new CancellationTokenSource();
             _cts.CancelAfter(8000);
-            await NetService.TryAcceptOrDeclineRequest(_request.uid, model.GetUserLinks().data.address, false, model.ShortToken, _cts.Token);
+            var myEvent = await NetService.TryAcceptOrDeclineRequest(_request.uid, model.GetUserLinks().data.address, false, model.ShortToken, _cts.Token);
 
             _loadingWindow.SetActive(false);
             if (_cts.IsCancellationRequested)
@@ -146,8 +159,13 @@ namespace WIGO.Userinterface
 
             _cts.Dispose();
             _cts = null;
-            _request.status = "decline";
-            ServiceLocator.Get<UIManager>().CloseCurrent();
+
+            if (myEvent != null)
+            {
+                model.SetMyEvent(myEvent);
+                _request.status = "decline";
+                ServiceLocator.Get<UIManager>().CloseCurrent();
+            }
         }
 
         public async void OnRemoveClick()

@@ -6,6 +6,7 @@ using TMPro;
 using WIGO.Core;
 using DG.Tweening;
 using Event = WIGO.Core.Event;
+using System.Globalization;
 
 namespace WIGO.Userinterface
 {
@@ -28,6 +29,7 @@ namespace WIGO.Userinterface
         [SerializeField] Color _declineColor;
         [Space]
         [SerializeField] string _minFromMe;
+        [SerializeField] string _hoursFromMe;
         [SerializeField] string _lessText;
         [SerializeField] string _moreText;
 
@@ -52,14 +54,16 @@ namespace WIGO.Userinterface
             _onCardSkip = onCardSkip;
             _cardGroup = GetComponent<CanvasGroup>();
 
-            _usernnameLabel.text = card.author.nickname;
+            _usernnameLabel.text = card.author.firstname;
             float nameWidth = Mathf.Min(_usernnameLabel.preferredWidth + 0.4f, 128f);
             _usernnameLabel.rectTransform.sizeDelta = new Vector2(nameWidth, _usernnameLabel.rectTransform.sizeDelta.y);
             _descLabel.text = card.about;
-            //_locationLabel.text = card.address;
             _moreButton.gameObject.SetActive(_descLabel.preferredWidth > _descLabel.rectTransform.rect.width);
-            _distanceTimeLabel.text = card.time_to.ToString() + _minFromMe;
             _remainingSeconds = card.waiting;
+            SetDistanceTime(card.time_to);
+
+            //old
+            //_locationLabel.text = card.address;
             //_groupSizeLabel.text = card.GetGroupSizeType().ToString();
             //_groupSizeIcon.color = card.GetGroupSizeType() == EventGroupSizeType.Single ? UIGameColors.Purple : UIGameColors.Blue;
 
@@ -72,6 +76,13 @@ namespace WIGO.Userinterface
 
             SetupVideo(card.video, card.AspectRatio);
             OnOpen();
+        }
+
+        void SetDistanceTime(int seconds)
+        {
+            int minutes = Mathf.RoundToInt(seconds / 60f);
+            string timeTo = minutes > 60 ? $"{(minutes / 60f).ToString("0.0", CultureInfo.InvariantCulture)} {_hoursFromMe}" : $"{minutes} {_minFromMe}";
+            _distanceTimeLabel.SetText(timeTo);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -209,8 +220,9 @@ namespace WIGO.Userinterface
 
         void UpdateRemainingTime(int time)
         {
-            int minutes = Mathf.FloorToInt((float)time / 60f);
-            int seconds = time - minutes * 60;
+            int fullSeconds = Mathf.Clamp(time, 0, int.MaxValue);
+            int minutes = Mathf.FloorToInt((float)fullSeconds / 60f);
+            int seconds = fullSeconds - minutes * 60;
             _timeLabel.text = string.Format("{0:00}:{1:00}", minutes, seconds);
         }
 

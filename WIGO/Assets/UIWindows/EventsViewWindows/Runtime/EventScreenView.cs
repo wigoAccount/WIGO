@@ -113,8 +113,9 @@ namespace WIGO.Userinterface
 
         public void SetTime(int time)
         {
-            int minutes = Mathf.FloorToInt((float)time / 60f);
-            int seconds = time - minutes * 60;
+            int correctTime = Mathf.Clamp(time, 0, int.MaxValue);
+            int minutes = Mathf.FloorToInt((float)correctTime / 60f);
+            int seconds = correctTime - minutes * 60;
             _timerLabel.text = string.Format("00:{0:00}:{1:00}", minutes, seconds);
             _timerView.ApplyGradient();
         }

@@ -1833,7 +1833,8 @@ MonoBehaviour:
   _categoriesContent: {fileID: 6390878028962085930}
   _acceptColor: {r: 0.25490198, g: 0.7372549, b: 0.27450982, a: 1}
   _declineColor: {r: 0.99215686, g: 0.34117648, b: 0.22352941, a: 1}
-  _minFromMe: " \u043C\u0438\u043D \u043E\u0442 \u043C\u0435\u043D\u044F"
+  _minFromMe: "\u043C\u0438\u043D \u043E\u0442 \u043C\u0435\u043D\u044F"
+  _hoursFromMe: "\u0447. \u043E\u0442 \u043C\u0435\u043D\u044F"
   _lessText: "\u041C\u0435\u043D\u044C\u0448\u0435"
   _moreText: "\u0415\u0449\u0435"
 --- !u!225 &1562692731408572615
@@ -2232,7 +2233,7 @@ VideoPlayer:
   m_TargetAudioSources:
   - {fileID: 0}
   m_DirectAudioVolumes:
-  - 0
+  - 1
   m_Url: 
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 01

@@ -63,7 +63,6 @@ public class GameModel
         _ltoken = ltoken;
         ShortToken = stoken;
         _links = links;
-        //SaveData();
     }
 
     public void SaveProfile(ProfileData profile) => _myProfile = profile;
@@ -98,7 +97,6 @@ public class GameModel
         SaveData();
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
-        _timer = 55f;
         _login = true;
     }
 
@@ -126,7 +124,6 @@ public class GameModel
         _availableTags = res?.tags;
 
         SaveData();
-        _timer = 55f;
         _login = true;
         return true;
     }
@@ -172,18 +169,14 @@ public class GameModel
                 _myEventTimer -= 1f;
                 _myEvent.waiting = Mathf.Clamp(_myEvent.waiting - 1, 0, int.MaxValue);
                 if (_myEvent.waiting <= 0)
-                {
-                    _myEvent = null;
-                    OnControlMyEvent?.Invoke(false);
                     return;
-                }
 
                 OnChangeMyEventTime?.Invoke(_myEvent.waiting);
             }
         }
     }
 
-    async void SendLocationDataToServer()
+    public async Task<bool> SendLocationDataToServer()
     {
         bool gotLocation = false;
 
@@ -201,7 +194,13 @@ public class GameModel
 
         if (gotLocation)
         {
-            await NetService.TrySendLocation(_myLocation, _links.data.address, ShortToken);
+            bool locationSent = await NetService.TrySendLocation(_myLocation, _links.data.address, ShortToken);
+            return locationSent;
+        }
+        else
+        {
+            Debug.LogWarning("Fail get location from plugin");
+            return false;
         }
     }
 
@@ -212,7 +211,7 @@ public class GameModel
     }
 }
 
-[System.Serializable]
+[Serializable]
 public struct NotificationSettings
 {
     public bool responses;
