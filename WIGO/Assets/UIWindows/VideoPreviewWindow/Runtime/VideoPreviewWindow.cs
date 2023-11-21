@@ -5,8 +5,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using System.Threading.Tasks;
+using WIGO.Utility;
 
 using Event = WIGO.Core.Event;
+
 namespace WIGO.Userinterface
 {
     public class VideoPreviewWindow : UIWindow
@@ -72,7 +74,7 @@ namespace WIGO.Userinterface
             UIGameColors.SetTransparent(_preview, 1f);
             _preview.texture = _videoTexture;
 
-            StartCoroutine(LoadVideoContent(_videoPath));
+            _videoLoadRoutine = StartCoroutine(LoadVideoContent(_videoPath));
         }
 
         public void OnBackButtonClick()
@@ -91,6 +93,14 @@ namespace WIGO.Userinterface
                 ServiceLocator.Get<UIManager>().Open<CreateEventWindow>(WindowId.CREATE_EVENT_SCREEN, (window) => window.Setup(_videoPath));
         }
 
+        public void OnRestartRecordClick()
+        {
+#if UNITY_IOS && !UNITY_EDITOR
+            ClearData();
+            MessageIOSHandler.OnPressCameraButton();
+#endif
+        }
+
         public void OnPlayControlClick()
         {
             _playButton.SetActive(_isPlaying);
@@ -104,6 +114,43 @@ namespace WIGO.Userinterface
             }
 
             _isPlaying = !_isPlaying;
+        }
+
+        protected override void Awake()
+        {
+            MessageRouter.onMessageReceive += OnReceiveMessage;
+        }
+
+        private void OnDestroy()
+        {
+            MessageRouter.onMessageReceive -= OnReceiveMessage;
+        }
+
+        void OnReceiveMessage(NativeMessageType type, string message)
+        {
+            if (!gameObject.activeSelf)
+            {
+                return;
+            }
+
+            switch (type)
+            {
+                case NativeMessageType.Video:
+                    OnRecordComplete(message);
+                    break;
+                case NativeMessageType.Location:
+                case NativeMessageType.MyLocation:
+                case NativeMessageType.Other:
+                    Debug.LogFormat("<color=red>Unexpected message: {0}</color>", message);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        void OnRecordComplete(string videoPath)
+        {
+            Setup(videoPath, _acceptedEvent);
         }
 
         void SetupCardTextureSize(int width, int height)
@@ -123,6 +170,12 @@ namespace WIGO.Userinterface
 
         void ClearData()
         {
+            if (_videoLoadRoutine != null)
+            {
+                StopCoroutine(_videoLoadRoutine);
+                _videoLoadRoutine = null;
+            }
+
             if (_videoTexture != null)
             {
                 _videoPlayer.Stop();

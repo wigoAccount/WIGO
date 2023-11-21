@@ -353,7 +353,7 @@ namespace WIGO.Userinterface
                 case NativeMessageType.Location:
                 case NativeMessageType.MyLocation:
                 case NativeMessageType.Other:
-                    Debug.LogFormat("<color=red>Unexpected essage: {0}</color>", message);
+                    Debug.LogFormat("<color=red>Unexpected message: {0}</color>", message);
                     break;
                 default:
                     break;

@@ -68,7 +68,7 @@ namespace WIGO.Userinterface
             string path = ServiceLocator.Get<S3ContentClient>().GetPublicVideoUrl(_currentCard.video);
             _videoLoadRoutine = StartCoroutine(LoadVideoContent(path));
             _view.SetupView(request, isMyRequest);
-            _seconds = request.waiting;
+            _seconds = request.time_to;
             _timer = 0f;
         }
 

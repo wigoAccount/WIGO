@@ -36,6 +36,7 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _acceptTitle;
         [SerializeField] TMP_Text _cancelLabel;
         [SerializeField] TMP_Text _eventCreatorTitle;
+        [SerializeField] TMP_Text _eventCreatorDesc;
         [SerializeField] TMP_Text _eventDescTitle;
         [SerializeField] RectTransform _descBlock;
         [Space]
@@ -44,6 +45,7 @@ namespace WIGO.Userinterface
         [SerializeField] string[] _acceptTitleText;
         [SerializeField] string[] cancelBtnText;
         [SerializeField] string[] _creatorTitleText;
+        [SerializeField] string[] _contactsDescText;
         [SerializeField] string[] _descTitleText;
 
         public override void Init(EventViewModel model)
@@ -95,12 +97,13 @@ namespace WIGO.Userinterface
                     _cancelLabel.SetText(card.IsResponse() ? cancelBtnText[1] : cancelBtnText[0]);
                     _timerLabel.colorGradientPreset = card.IsResponse() ? _gradients[1] : _gradients[0];
                     _eventCreatorTitle.SetText(card.IsResponse() ? _creatorTitleText[0] : _creatorTitleText[1]);
+                    _eventCreatorDesc.SetText(card.IsResponse() ? _contactsDescText[0] : _contactsDescText[1]);
                     _eventDescTitle.SetText(card.IsResponse() ? _descTitleText[0] : _descTitleText[1]);
                     var preset = card.IsResponse() ? _gradients[1] : _gradients[0];
                     _locationBtnGradient.m_color1 = preset.bottomLeft;
                     _locationBtnGradient.m_color2 = preset.bottomRight;
                     _timerLabel.colorGradient = new VertexGradient(preset.bottomLeft, preset.bottomRight, preset.topLeft, preset.topRight);
-                    SetTime(card.waiting);
+                    SetTime(request.time_to);
                     break;
                 default:
                     break;

@@ -15,6 +15,7 @@ namespace WIGO.Core
         public Location location;
         public string address;
         public int waiting;
+        public int time_to;
 
         public float AspectRatio { get
             {
@@ -41,7 +42,6 @@ namespace WIGO.Core
         public string title;
         public int duration;
         public string area;
-        public int time_to;
         public int[] tags;
         public Request[] requests;
 

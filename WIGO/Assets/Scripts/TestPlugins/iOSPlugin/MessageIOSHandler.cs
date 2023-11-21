@@ -10,7 +10,7 @@ namespace WIGO.Utility
 #if UNITY_IOS && !UNITY_EDITOR
         #region open controllers
         [DllImport("__Internal")]
-        private static extern void startSwiftCameraController();
+        private static extern void startSwiftCameraControllerLocation();
 
         [DllImport("__Internal")]
         private static extern void startSwiftMapController();
@@ -28,7 +28,7 @@ namespace WIGO.Utility
         #region delegates
         public delegate void SwiftTestPluginVideoDidSave(string value);
         [DllImport("__Internal")]
-        private static extern void setSwiftTestPluginVideoDidSave(SwiftTestPluginVideoDidSave callBack);
+        private static extern void setSwiftTestPluginVideoDidSaveLocation(SwiftTestPluginVideoDidSave callBack);
 
         public delegate void SwiftTestPluginLocationDidSend(string coordinates, string location);
         [DllImport("__Internal")]
@@ -54,13 +54,13 @@ namespace WIGO.Utility
         [RuntimeInitializeOnLoadMethod]
         public static void Initialize()
         {
-            setSwiftTestPluginVideoDidSave(onGetVideoPath);
+            setSwiftTestPluginVideoDidSaveLocation(onGetVideoPath);
             setSwiftTestPluginLocationDidSend(onGetFullLocation);
         }
 
         public static void OnPressCameraButton()
         {
-            startSwiftCameraController();
+            startSwiftCameraControllerLocation();
         }
 
         public static void OnPressMapButton()

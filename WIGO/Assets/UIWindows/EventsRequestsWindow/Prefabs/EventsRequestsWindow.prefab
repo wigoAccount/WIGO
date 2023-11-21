@@ -7115,8 +7115,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u0412\u0430\u0448\u0430 \u0432\u0441\u0442\u0440\u0435\u0447\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430
-    \n\u0438 \u0441\u043E\u0441\u0442\u043E\u0438\u0442\u0441\u044F \u0447\u0435\u0440\u0435\u0437:\r"
+  m_text: "\u0421\u043E\u0431\u044B\u0442\u0438\u0435 \u0430\u043A\u0442\u0438\u0432\u043D\u043E
+    \u0435\u0449\u0435:\r"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2bee4cc296a8b604d95f619e733b7475, type: 2}
   m_sharedMaterial: {fileID: -258531979302972988, guid: 2bee4cc296a8b604d95f619e733b7475, type: 2}
