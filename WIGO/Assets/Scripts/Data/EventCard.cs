@@ -14,6 +14,7 @@ namespace WIGO.Core
         public ProfileData author;
         public Location location;
         public string address;
+        public string phone;
         public int waiting;
         public int time_to;
 
@@ -72,6 +73,7 @@ namespace WIGO.Core
         }
 
         public string status;
+        public string watched;
         public Event @event;
 
         public RequestStatus GetStatus()
@@ -82,6 +84,16 @@ namespace WIGO.Core
             }
 
             return RequestStatus.wait;
+        }
+
+        public bool IsWatched()
+        {
+            if (bool.TryParse(watched, out bool isWatched))
+            {
+                return isWatched;
+            }
+
+            return false;
         }
 
         public override bool IsResponse() => true;

@@ -398,6 +398,44 @@ namespace WIGO.Core
             var res = GetParsedResult<List<Event>>(resJson, methodName);
             return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
+
+        public static async Task TryMarkRequestAsWatched(string requestId, string url, string stoken, CancellationToken ctoken = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "requestWatch",
+                @params = new List<string> { requestId },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Mark as watched request is empty");
+                return;
+            }
+
+            if (resJson.Contains("error"))
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+                }
+                catch { }
+
+                return;
+            }
+
+            Debug.LogFormat("Request '{0}' marked as watched", requestId);
+        }
         #endregion
 
         static async Task<string> PostRequest(string request, CancellationToken token, string addHeader = null)

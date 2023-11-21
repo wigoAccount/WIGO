@@ -70,6 +70,16 @@ namespace WIGO.Userinterface
             _view.SetupView(request, isMyRequest);
             _seconds = request.time_to;
             _timer = 0f;
+            CheckNewRequest();
+        }
+
+        async void CheckNewRequest()
+        {
+            if (!_myRequest && !_request.IsWatched())
+            {
+                var model = ServiceLocator.Get<GameModel>();
+                await NetService.TryMarkRequestAsWatched(_request.uid, model.GetUserLinks().data.address, model.ShortToken);
+            }
         }
 
         public void OnBackButtonClick()

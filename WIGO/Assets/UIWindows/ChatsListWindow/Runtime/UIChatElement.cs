@@ -37,8 +37,7 @@ namespace WIGO.Userinterface
         public void RaiseSelectCallback() => _onSelectChat?.Invoke(_request, _isEvent);
 
         public Request.RequestStatus GetRequestStatus() => _request.GetStatus();
-        // [TODO]: Check 'THEIR REQUEST' watched or new
-        public WatchRequestStatus GetWatchStatus() => WatchRequestStatus.Watched;
+        public bool IsWatched() => _request.IsWatched();
     }
 
     public class UIChatElement : MonoBehaviour, ICell<UIChatInfo>
@@ -104,9 +103,9 @@ namespace WIGO.Userinterface
 
             if (card.IsResponse())
             {
-                var watchStatus = _info.GetWatchStatus();
-                _statusIcon.color = watchStatus == WatchRequestStatus.Watched ? UIGameColors.transparentBlue : UIGameColors.Blue;
-                _statusLabel.text = watchStatus == WatchRequestStatus.Watched ? _statusTexts[0] : _statusTexts[1];
+                var watchStatus = _info.IsWatched();
+                _statusIcon.color = watchStatus ? UIGameColors.transparentBlue : UIGameColors.Blue;
+                _statusLabel.text = watchStatus ? _statusTexts[0] : _statusTexts[1];
             }
             else
             {

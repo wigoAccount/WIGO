@@ -40,7 +40,7 @@ namespace WIGO.Userinterface
             {
                 if (_counter >= _checkLocationMaxCount)
                 {
-                    ServiceLocator.Get<UIManager>().GetPopupManager().AddErrorNotification(20);
+                    ServiceLocator.Get<UIManager>().GetPopupManager().AddErrorNotification(141);
                     return;
                 }
 

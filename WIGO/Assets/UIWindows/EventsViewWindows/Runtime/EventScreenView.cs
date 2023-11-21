@@ -111,7 +111,7 @@ namespace WIGO.Userinterface
 
             var profile = card.author;
             _usernameLabel.SetText(profile.firstname);
-            _phoneNumber.SetText(profile.phone);
+            _phoneNumber.SetText(card.phone);
         }
 
         public void SetTime(int time)
