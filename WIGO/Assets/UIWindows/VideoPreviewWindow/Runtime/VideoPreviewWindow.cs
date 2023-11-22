@@ -47,10 +47,10 @@ namespace WIGO.Userinterface
                 return;
             }
 			
-			if (path.StartsWith("file"))
+			if (path.StartsWith("\"file"))
             {
                 int found = Mathf.Clamp(path.IndexOf("var") - 1, 0, int.MaxValue);
-                _videoPath = path.Substring(found).Replace(@"\", "");
+                _videoPath = path.Substring(found).Replace("\"", "").Replace(@"\", "");
             }
 			else
 				_videoPath = path;
