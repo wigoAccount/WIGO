@@ -106,12 +106,12 @@ namespace WIGO.Userinterface
             }
         }
 
-        private void Awake()
+        protected virtual void Awake()
         {
             ServiceLocator.Get<GameModel>().OnUpdateAvatar += UpdateAvatarTexture;
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             ServiceLocator.Get<GameModel>().OnUpdateAvatar -= UpdateAvatarTexture;
             ClearTexture();

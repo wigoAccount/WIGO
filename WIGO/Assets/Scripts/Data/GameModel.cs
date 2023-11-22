@@ -15,6 +15,8 @@ public class GameModel
     public Action<int> OnChangeMyEventTime;
     public Action<bool> OnControlMyEvent;
     public Action<Texture2D> OnUpdateAvatar;
+    public Action OnUpdateProfile;
+
     public string ShortToken { get; private set; }
     public string LongToken { get => _ltoken; }
 
@@ -65,7 +67,11 @@ public class GameModel
         _links = links;
     }
 
-    public void SaveProfile(ProfileData profile) => _myProfile = profile;
+    public void SaveProfile(ProfileData profile)
+    {
+        _myProfile = profile;
+        OnUpdateProfile?.Invoke();
+    }
 
     public void SaveNotifications(NotificationSettings settings)
     {
