@@ -1611,6 +1611,7 @@ MonoBehaviour:
   _myEventButton: {fileID: 3504423655656980342}
   _remainingTimeLabel: {fileID: 7798368125846447686}
   _editorVideoPath: D:/UnityProjects/WIGO_PRJ/IMG_9668.MP4
+  _permissionData: {fileID: 11400000, guid: b9109ccfa8bd0dc47bb17ec148d7b28b, type: 2}
 --- !u!114 &1657895480321415412
 MonoBehaviour:
   m_ObjectHideFlags: 0

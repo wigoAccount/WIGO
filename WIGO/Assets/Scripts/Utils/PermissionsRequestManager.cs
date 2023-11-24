@@ -11,8 +11,64 @@ using System.Collections;
 
 namespace WIGO.Utility
 {
+    [Serializable]
+    public struct PermissionsSaveData
+    {
+        public bool cameraOn;
+        public bool microphoneOn;
+    }
+
     public static class PermissionsRequestManager
     {
+        public static void RequestBothPermissionsAtFirstTime(Action<bool, PermissionsSaveData> callback)
+        {
+            bool camAllowed = HasCameraPermission();
+            bool micAllowed = HasMicrophonePermission();
+            PermissionsSaveData newData = new PermissionsSaveData()
+            {
+                cameraOn = camAllowed,
+                microphoneOn = micAllowed
+            };
+
+            if (!camAllowed)
+            {
+                CheckCameraAndMic(micAllowed, callback, newData);
+            }
+            else if (!micAllowed)
+            {
+                CheckMicOnly(callback, newData);
+            }
+            else
+                callback?.Invoke(true, newData);
+        }
+
+        static void CheckCameraAndMic(bool micAllowed, Action<bool, PermissionsSaveData> callback, PermissionsSaveData newData)
+        {
+            RequestPermissionCamera((allow) =>
+            {
+                newData.cameraOn = allow;
+                if (!allow)
+                {
+                    callback?.Invoke(false, newData);
+                    return;
+                }
+
+                if (!micAllowed)
+                    CheckMicOnly(callback, newData);
+                else
+                    callback?.Invoke(true, newData);
+            });
+        }
+
+        static void CheckMicOnly(Action<bool, PermissionsSaveData> callback, PermissionsSaveData newData)
+        {
+            RequestPermissionMicrophone((isMicAllow) =>
+            {
+                newData.microphoneOn = isMicAllow;
+                callback?.Invoke(isMicAllow, newData);
+            });
+        }
+
         #region PERMISSIONS CAMERA
         public static bool HasCameraPermission()
         {

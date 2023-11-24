@@ -236,6 +236,8 @@ namespace WIGO.Userinterface
                 _videoPlayer.Play();
                 yield return null;
                 _videoPlayer.Pause();
+                _videoPlayer.SetDirectAudioMute(0, false);
+                _videoPlayer.SetDirectAudioVolume(0, 1f);
 
                 _videoPlayer.errorReceived -= OnErrorReceived;
                 _videoLoadRoutine = null;

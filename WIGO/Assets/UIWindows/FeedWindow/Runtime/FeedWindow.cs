@@ -81,12 +81,34 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            //if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
-            //{
-            //    CreatePermissionSettingPopup(true);
-            //    return;
-            //}
+            string saveData = PlayerPrefs.GetString("Permissions");
+            if (string.IsNullOrEmpty(saveData))
+            {
+                PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
+                {
+                    string jsonData = JsonReader.Serialize(data);
+                    PlayerPrefs.SetString("Permissions", jsonData);
+                    if (res)
+                    {
+                        CreateEvent();
+                    }
+                });
+                return;
+            }
 
+            bool camAllow = PermissionsRequestManager.HasCameraPermission();
+            bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
+            if (!camAllow || !micAllow)
+            {
+                CreatePermissionSettingPopup(true);
+                return;
+            }
+
+            CreateEvent();
+        }
+
+        void CreateEvent()
+        {
             _acceptedEvent = null;
 #if UNITY_EDITOR
             OnRecordComplete(_editorVideoPath);
@@ -205,22 +227,43 @@ namespace WIGO.Userinterface
         {
             if (accept)
             {
-                //if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
-                //{
-                //    CreatePermissionSettingPopup(false);
-                //    return;
-                //}
+                string saveData = PlayerPrefs.GetString("Permissions");
+                if (string.IsNullOrEmpty(saveData))
+                {
+                    PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
+                    {
+                        string jsonData = JsonReader.Serialize(data);
+                        PlayerPrefs.SetString("Permissions", jsonData);
+                        if (res)
+                        {
+                            AcceptEvent(card);
+                        }
+                    });
+                    return;
+                }
 
-                _acceptedEvent = card;
-                UIGameColors.SetTransparent(_overlay);
-                _overlay.gameObject.SetActive(true);
-                _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
+                bool camAllow = PermissionsRequestManager.HasCameraPermission();
+                bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
+                if (!camAllow || !micAllow)
+                {
+                    CreatePermissionSettingPopup(true);
+                    return;
+                }
 
+                AcceptEvent(card);
                 return;
             }
 
             DeclineCard(card.uid);
             CreateNextCard();
+        }
+
+        void AcceptEvent(Event card)
+        {
+            _acceptedEvent = card;
+            UIGameColors.SetTransparent(_overlay);
+            _overlay.gameObject.SetActive(true);
+            _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
         }
 
         async void DeclineCard(string cardId)

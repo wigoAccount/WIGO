@@ -21,10 +21,12 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _myEventButton;
         [SerializeField] TMP_Text _remainingTimeLabel;
         [SerializeField] string _editorVideoPath;
+        [SerializeField] TempMessagesContainer _permissionData;
 
         List<UIChatInfo> _eventsData = new List<UIChatInfo>();
         Coroutine _loadingCoroutine;
         CancellationTokenSource _cts;
+        bool _focusLost;
 
         public override void OnOpen(WindowId previous)
         {
@@ -65,17 +67,83 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            //if (!PermissionsRequestManager.HasCameraPermission() || !PermissionsRequestManager.HasMicrophonePermission())
-            //{
-            //    CreatePermissionSettingPopup(true);
-            //    return;
-            //}
+            string saveData = PlayerPrefs.GetString("Permissions");
+            if (string.IsNullOrEmpty(saveData))
+            {
+                PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
+                {
+                    string jsonData = JsonReader.Serialize(data);
+                    PlayerPrefs.SetString("Permissions", jsonData);
+                    if (res)
+                    {
+                        CreateEvent();
+                    }
+                });
+                return;
+            }
 
+            bool camAllow = PermissionsRequestManager.HasCameraPermission();
+            bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
+            if (!camAllow || !micAllow)
+            {
+                CreatePermissionSettingPopup();
+                return;
+            }
+
+            CreateEvent();
+        }
+
+        void CreateEvent()
+        {
 #if UNITY_EDITOR
             OnRecordComplete(_editorVideoPath);
 #elif UNITY_IOS
             MessageIOSHandler.OnPressCameraButton();
 #endif
+        }
+
+        void CreatePermissionSettingPopup()
+        {
+            List<PopupOption> options = new List<PopupOption>
+            {
+                new PopupOption(_permissionData.GetMessageAt(1), OnOpenAppSettings),
+                new PopupOption(_permissionData.GetMessageAt(2), OnDeclinePermissions, UIGameColors.RED_HEX)
+            };
+            ServiceLocator.Get<UIManager>().GetPopupManager().AddPopup(_permissionData.GetMessageAt(0), options);
+        }
+
+        void OnOpenAppSettings()
+        {
+            try
+            {
+                _focusLost = true;
+#if UNITY_EDITOR
+                return;
+#elif UNITY_ANDROID && !UNITY_EDITOR
+                using var unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                using AndroidJavaObject currentActivityObject = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
+                string packageName = currentActivityObject.Call<string>("getPackageName");
+
+                using var uriClass = new AndroidJavaClass("android.net.Uri");
+                using AndroidJavaObject uriObject = uriClass.CallStatic<AndroidJavaObject>("fromParts", "package", packageName, null);
+                using var intentObject = new AndroidJavaObject("android.content.Intent", "android.settings.APPLICATION_DETAILS_SETTINGS", uriObject);
+                intentObject.Call<AndroidJavaObject>("addCategory", "android.intent.category.DEFAULT");
+                intentObject.Call<AndroidJavaObject>("setFlags", 0x10000000);
+                currentActivityObject.Call("startActivity", intentObject);
+#elif UNITY_IOS && !UNITY_EDITOR
+                Application.OpenURL("App-Prefs:");
+#endif
+            }
+            catch (Exception ex)
+            {
+                _focusLost = false;
+                Debug.LogException(ex);
+            }
+        }
+
+        void OnDeclinePermissions()
+        {
+            ServiceLocator.Get<UIManager>().GetPopupManager().CloseCurrentPopup();
         }
 
         public void OnOpenMyEvent()
@@ -103,6 +171,15 @@ namespace WIGO.Userinterface
             var model = ServiceLocator.Get<GameModel>();
             model.OnChangeMyEventTime -= OnSetRemainingTime;
             model.OnControlMyEvent -= OnControlMyEvent;
+        }
+
+        private void OnApplicationPause(bool pause)
+        {
+            if (!pause && _focusLost)
+            {
+                _focusLost = false;
+                ServiceLocator.Get<UIManager>().GetPopupManager().CloseCurrentPopup();
+            }
         }
 
         void OnReceiveMessage(NativeMessageType type, string message)
