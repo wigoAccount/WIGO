@@ -810,7 +810,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Edward
+  m_text: Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8e42784b5864f7e4db57e7cc5c0dddd5, type: 2}
   m_sharedMaterial: {fileID: -8416503087220985743, guid: 8e42784b5864f7e4db57e7cc5c0dddd5, type: 2}
@@ -1047,7 +1047,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "00 \u043C\u0438\u043D \u043E\u0442 \u043C\u0435\u043D\u044F"
+  m_text: 00 -
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 22d1c6bb6ff4528429e892619a59bcac, type: 2}
   m_sharedMaterial: {fileID: -1526984713497711304, guid: 22d1c6bb6ff4528429e892619a59bcac, type: 2}
@@ -1257,7 +1257,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: -16, y: 68}
-  m_SizeDelta: {x: 42, y: 32}
+  m_SizeDelta: {x: 50, y: 32}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &6390878027622413223
 CanvasRenderer:
@@ -1461,7 +1461,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 16, y: 60}
-  m_SizeDelta: {x: -76, y: 16}
+  m_SizeDelta: {x: -84, y: 16}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &6390878027824346020
 CanvasRenderer:
@@ -1491,12 +1491,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Let''s have a party today! Join me in the evening. I wish u were here
-    with me
-
-
-    We can eat some wine and salad. And I can play the guitar. May
-    be u will sing with me?'
+  m_text: '-'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 958c77490dcb35b48ac07a4c29d90b7a, type: 2}
   m_sharedMaterial: {fileID: 590227339616746179, guid: 958c77490dcb35b48ac07a4c29d90b7a, type: 2}
@@ -1644,7 +1639,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 45:38
+  m_text: 00:00
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8e42784b5864f7e4db57e7cc5c0dddd5, type: 2}
   m_sharedMaterial: {fileID: -8416503087220985743, guid: 8e42784b5864f7e4db57e7cc5c0dddd5, type: 2}

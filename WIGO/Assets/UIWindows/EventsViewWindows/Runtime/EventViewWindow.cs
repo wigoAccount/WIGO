@@ -228,7 +228,7 @@ namespace WIGO.Userinterface
 
         public void OnCopyPhoneNumber()
         {
-            string phoneNumber = _currentCard.author == null ? "None" : _currentCard.author.phone;
+            string phoneNumber = _currentCard == null ? "None" : _currentCard.phone;
             GUIUtility.systemCopyBuffer = phoneNumber;
             
             if (_copyAnimation == null)

@@ -407,6 +407,7 @@ namespace WIGO.Userinterface
         {
 			if (string.IsNullOrEmpty(videoPath))
             {
+                _overlay.gameObject.SetActive(false);
                 RefreshFeed();
                 return;
             }

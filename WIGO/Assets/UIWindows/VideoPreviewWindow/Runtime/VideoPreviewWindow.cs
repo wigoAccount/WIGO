@@ -43,11 +43,12 @@ namespace WIGO.Userinterface
         {
             if (string.IsNullOrEmpty(path))
             {
-                Debug.LogError("Path is empty");
+                Debug.LogWarning("Path is empty");
                 return;
             }
-			
-			if (path.StartsWith("file"))
+
+            CheckOldVideoAndClear();
+            if (path.StartsWith("file"))
             {
                 int found = Mathf.Clamp(path.IndexOf("var") - 1, 0, int.MaxValue);
                 _videoPath = path.Substring(found).Replace(@"\", "");
@@ -96,7 +97,7 @@ namespace WIGO.Userinterface
         public void OnRestartRecordClick()
         {
 #if UNITY_IOS && !UNITY_EDITOR
-            ClearData();
+            ClearBeforeRecord();
             MessageIOSHandler.OnPressCameraButton();
 #endif
         }
@@ -185,6 +186,36 @@ namespace WIGO.Userinterface
                 _videoPath = null;
                 _isPlaying = false;
                 _playButton.SetActive(true);
+                UIGameColors.SetTransparent(_preview, 0.1f);
+            }
+        }
+
+        void ClearBeforeRecord()
+        {
+            if (_videoLoadRoutine != null)
+            {
+                StopCoroutine(_videoLoadRoutine);
+                _videoLoadRoutine = null;
+            }
+
+            _videoPlayer.Stop();
+            _isPlaying = false;
+            _playButton.SetActive(true);
+        }
+
+        void CheckOldVideoAndClear()
+        {
+            if (!string.IsNullOrEmpty(_videoPath) && File.Exists(_videoPath))
+            {
+                File.Delete(_videoPath);
+                _videoPath = null;
+            }
+
+            if (_videoTexture != null)
+            {
+                _videoTexture.Release();
+                Destroy(_videoTexture);
+                _videoTexture = null;
                 UIGameColors.SetTransparent(_preview, 0.1f);
             }
         }

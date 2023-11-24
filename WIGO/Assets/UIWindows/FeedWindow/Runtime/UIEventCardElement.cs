@@ -58,7 +58,7 @@ namespace WIGO.Userinterface
             float nameWidth = Mathf.Min(_usernnameLabel.preferredWidth + 0.4f, 128f);
             _usernnameLabel.rectTransform.sizeDelta = new Vector2(nameWidth, _usernnameLabel.rectTransform.sizeDelta.y);
             _descLabel.text = card.about;
-            _moreButton.gameObject.SetActive(_descLabel.preferredWidth > _descLabel.rectTransform.rect.width);
+            _moreButton.gameObject.SetActive(_descLabel.preferredWidth > _descLabel.rectTransform.rect.width || _descLabel.preferredHeight > _descLabel.rectTransform.rect.height);
             _remainingSeconds = card.waiting;
             SetDistanceTime(card.time_to);
 
