@@ -79,36 +79,40 @@ namespace WIGO.Userinterface
             ServiceLocator.Get<UIManager>().Open<SettingsWindow>(WindowId.SETTINGS_SCREEN);
         }
 
-        public void OnCreateEventClick()
+        public void OnAskPermissionsClick()
         {
-            string saveData = PlayerPrefs.GetString("Permissions");
-            if (string.IsNullOrEmpty(saveData))
+            PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
             {
-                PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
-                {
-                    string jsonData = JsonReader.Serialize(data);
-                    PlayerPrefs.SetString("Permissions", jsonData);
-                    if (res)
-                    {
-                        CreateEvent();
-                    }
-                });
-                return;
-            }
-
-            bool camAllow = PermissionsRequestManager.HasCameraPermission();
-            bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
-            if (!camAllow || !micAllow)
-            {
-                CreatePermissionSettingPopup(true);
-                return;
-            }
-
-            CreateEvent();
+                Debug.LogFormat("<color=cyan>Access: {0}; Camera: {1}; Mic: {2}</color>", res ? "OK" : "Denied", data.cameraOn ? "OK" : "Denied", data.microphoneOn ? "OK" : "Denied");
+            });
         }
 
-        void CreateEvent()
+        public void OnCreateEventClick()
         {
+            //string saveData = PlayerPrefs.GetString("Permissions");
+            //if (string.IsNullOrEmpty(saveData))
+            //{
+            //    PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
+            //    {
+            //        string jsonData = JsonReader.Serialize(data);
+            //        PlayerPrefs.SetString("Permissions", jsonData);
+            //        if (res)
+            //        {
+            //            CreateEvent();
+            //        }
+            //    });
+            //    return;
+            //}
+
+            //bool camAllow = PermissionsRequestManager.HasCameraPermission();
+            //bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
+            //if (!camAllow || !micAllow)
+            //{
+            //    CreatePermissionSettingPopup(true);
+            //    return;
+            //}
+
+            //CreateEvent();
             _acceptedEvent = null;
 #if UNITY_EDITOR
             OnRecordComplete(_editorVideoPath);
@@ -116,6 +120,16 @@ namespace WIGO.Userinterface
             MessageIOSHandler.OnPressCameraButton();
 #endif
         }
+
+//        void CreateEvent()
+//        {
+//            _acceptedEvent = null;
+//#if UNITY_EDITOR
+//            OnRecordComplete(_editorVideoPath);
+//#elif UNITY_IOS
+//            MessageIOSHandler.OnPressCameraButton();
+//#endif
+//        }
 
         public void OnOpenMyEvent()
         {
@@ -227,30 +241,34 @@ namespace WIGO.Userinterface
         {
             if (accept)
             {
-                string saveData = PlayerPrefs.GetString("Permissions");
-                if (string.IsNullOrEmpty(saveData))
-                {
-                    PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
-                    {
-                        string jsonData = JsonReader.Serialize(data);
-                        PlayerPrefs.SetString("Permissions", jsonData);
-                        if (res)
-                        {
-                            AcceptEvent(card);
-                        }
-                    });
-                    return;
-                }
+                //string saveData = PlayerPrefs.GetString("Permissions");
+                //if (string.IsNullOrEmpty(saveData))
+                //{
+                //    PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
+                //    {
+                //        string jsonData = JsonReader.Serialize(data);
+                //        PlayerPrefs.SetString("Permissions", jsonData);
+                //        if (res)
+                //        {
+                //            AcceptEvent(card);
+                //        }
+                //    });
+                //    return;
+                //}
 
-                bool camAllow = PermissionsRequestManager.HasCameraPermission();
-                bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
-                if (!camAllow || !micAllow)
-                {
-                    CreatePermissionSettingPopup(true);
-                    return;
-                }
+                //bool camAllow = PermissionsRequestManager.HasCameraPermission();
+                //bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
+                //if (!camAllow || !micAllow)
+                //{
+                //    CreatePermissionSettingPopup(true);
+                //    return;
+                //}
 
-                AcceptEvent(card);
+                //AcceptEvent(card);
+                _acceptedEvent = card;
+                UIGameColors.SetTransparent(_overlay);
+                _overlay.gameObject.SetActive(true);
+                _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
                 return;
             }
 
@@ -258,13 +276,13 @@ namespace WIGO.Userinterface
             CreateNextCard();
         }
 
-        void AcceptEvent(Event card)
-        {
-            _acceptedEvent = card;
-            UIGameColors.SetTransparent(_overlay);
-            _overlay.gameObject.SetActive(true);
-            _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
-        }
+        //void AcceptEvent(Event card)
+        //{
+        //    _acceptedEvent = card;
+        //    UIGameColors.SetTransparent(_overlay);
+        //    _overlay.gameObject.SetActive(true);
+        //    _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
+        //}
 
         async void DeclineCard(string cardId)
         {
