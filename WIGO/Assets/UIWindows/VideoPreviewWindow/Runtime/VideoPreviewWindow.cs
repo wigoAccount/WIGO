@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WIGO.Utility;
 
 using Event = WIGO.Core.Event;
+using Crystal;
 
 namespace WIGO.Userinterface
 {
@@ -18,6 +19,7 @@ namespace WIGO.Userinterface
         [SerializeField] RawImage _preview;
         [SerializeField] GameObject _playButton;
         [SerializeField] GameObject _loader;
+        [SerializeField] SafeArea _safeArea;
 
         RenderTexture _videoTexture;
         Coroutine _videoLoadRoutine;
@@ -26,7 +28,7 @@ namespace WIGO.Userinterface
         bool _isPlaying;
 
         const float UPPER_DEFAULT_PADDING = 56f;
-        const float BOTTOM_DEFAULT_PADDING = 116f;
+        const float BOTTOM_DEFAULT_PADDING = 104f;
 
         public override void OnBack(WindowId previous, Action callback = null)
         {
@@ -162,10 +164,12 @@ namespace WIGO.Userinterface
             float cardHeight = cardWidth / aspect;
 
             _preview.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, cardHeight);
+
             float screenHeight = ServiceLocator.Get<UIManager>().GetCanvasSize().y;
-            float maskHeight = _maskBounds.rect.height > cardHeight 
-                ? cardHeight 
-                : Mathf.Min(screenHeight - UPPER_DEFAULT_PADDING - BOTTOM_DEFAULT_PADDING, cardHeight);
+            float safePaddings = _safeArea.GetSafeAreaUpperPadding() + _safeArea.GetSafeAreaBottomPadding();
+            float maskHeight = _maskBounds.rect.height > cardHeight
+                ? cardHeight
+                : Mathf.Min(screenHeight - UPPER_DEFAULT_PADDING - BOTTOM_DEFAULT_PADDING - safePaddings, cardHeight);
             _maskBounds.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, maskHeight);
         }
 
