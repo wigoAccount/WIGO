@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using WIGO.Utility;
 
 namespace WIGO.Userinterface
 {
@@ -7,6 +8,7 @@ namespace WIGO.Userinterface
     {
         [SerializeField] EventsRequestsHeader _header;
         [SerializeField] EventsPart _eventsPart;
+        [SerializeField] string _editorVideoPath;
         //[SerializeField] RequestsPart _requestsPart;
 
         public override void OnOpen(WindowId previous)
@@ -56,14 +58,24 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            //ServiceLocator.Get<UIManager>().Open<RecordEventWindow>(WindowId.RECORD_EVENT_SCREEN, (window) => window.Setup(false));
+#if UNITY_EDITOR
+            OnRecordComplete(_editorVideoPath);
+#elif UNITY_IOS
+            MessageIOSHandler.OnPressCameraButton();
+#endif
         }
 
         protected override void Awake()
         {
+            MessageRouter.onMessageReceive += OnReceiveMessage;
             _header.Initialize(OnChangeCategory);
             _eventsPart.Initialize();
             //_requestsPart.Initialize();
+        }
+
+        private void OnDestroy()
+        {
+            MessageRouter.onMessageReceive -= OnReceiveMessage;
         }
 
         void OnChangeCategory(int category)
@@ -71,6 +83,39 @@ namespace WIGO.Userinterface
             _header.ChangeCategory(category);
             _eventsPart.SetPartActive(category == 0);
             //_requestsPart.SetPartActive(category == 1);
+        }
+
+        void OnReceiveMessage(NativeMessageType type, string message)
+        {
+            if (!gameObject.activeSelf)
+            {
+                return;
+            }
+
+            switch (type)
+            {
+                case NativeMessageType.Video:
+                    OnRecordComplete(message);
+                    break;
+                case NativeMessageType.Location:
+                case NativeMessageType.MyLocation:
+                case NativeMessageType.Other:
+                    Debug.LogFormat("<color=red>Unexpected message: {0}</color>", message);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        void OnRecordComplete(string videoPath)
+        {
+            if (string.IsNullOrEmpty(videoPath))
+            {
+                return;
+            }
+
+            ServiceLocator.Get<UIManager>().Open<VideoPreviewWindow>(WindowId.VIDEO_PREVIEW_SCREEN,
+                (window) => window.Setup(videoPath, null));
         }
     }
 }

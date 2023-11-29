@@ -29,6 +29,7 @@ namespace WIGO.Userinterface
 
         const float UPPER_DEFAULT_PADDING = 56f;
         const float BOTTOM_DEFAULT_PADDING = 104f;
+        const string VIDEO_PATH_START = "file://";
 
         public override void OnBack(WindowId previous, Action callback = null)
         {
@@ -50,17 +51,18 @@ namespace WIGO.Userinterface
             }
 
             CheckOldVideoAndClear();
-            if (path.StartsWith("file"))
+            if (path.StartsWith(VIDEO_PATH_START))
             {
-                int found = Mathf.Clamp(path.IndexOf("var") - 1, 0, int.MaxValue);
-                _videoPath = path.Substring(found).Replace(@"\", "");
+                int startIndex = VIDEO_PATH_START.Length;
+                //int found = Mathf.Clamp(path.IndexOf("var") - 1, 0, int.MaxValue);
+                _videoPath = path.Substring(startIndex).Replace(@"\", "");
             }
 			else
 				_videoPath = path;
 			
 			if (!File.Exists(_videoPath))
             {
-                Debug.LogErrorFormat("Can't find video at path: {0}\r\nOriginal: {1}", _videoPath, path);
+                Debug.LogErrorFormat("Can't find video at path: {0}\r\nPlugin RAW: {1}", _videoPath, path);
                 return;
             }
 
