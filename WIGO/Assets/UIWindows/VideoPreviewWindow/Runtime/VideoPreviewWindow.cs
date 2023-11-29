@@ -211,11 +211,11 @@ namespace WIGO.Userinterface
 
         void CheckOldVideoAndClear()
         {
-            if (!string.IsNullOrEmpty(_videoPath) && File.Exists(_videoPath))
-            {
-                File.Delete(_videoPath);
-                _videoPath = null;
-            }
+            //if (!string.IsNullOrEmpty(_videoPath) && File.Exists(_videoPath))
+            //{
+            //    File.Delete(_videoPath);
+            //    _videoPath = null;
+            //}
 
             if (_videoTexture != null)
             {
