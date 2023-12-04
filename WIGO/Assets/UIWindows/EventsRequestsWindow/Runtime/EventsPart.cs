@@ -139,9 +139,10 @@ namespace WIGO.Userinterface
 
         void UpdateRemainingTime(int time)
         {
-            int minutes = Mathf.FloorToInt((float)time / 60f);
-            int seconds = time - minutes * 60;
-            _timerLabel.text = string.Format("00:{0:00}:{1:00}", minutes, seconds);
+            int hours = Mathf.FloorToInt((float)time / 3600f);
+            int minutes = Mathf.FloorToInt((float)time / 60f) - hours * 60;
+            int seconds = time - minutes * 60 - hours * 3600;
+            _timerLabel.text = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
             _timerLabelGradient.ApplyGradient();
         }
 

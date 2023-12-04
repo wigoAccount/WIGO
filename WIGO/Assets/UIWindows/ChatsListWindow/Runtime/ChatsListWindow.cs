@@ -67,30 +67,35 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            string saveData = PlayerPrefs.GetString("Permissions");
-            if (string.IsNullOrEmpty(saveData))
-            {
-                PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
-                {
-                    string jsonData = JsonReader.Serialize(data);
-                    PlayerPrefs.SetString("Permissions", jsonData);
-                    if (res)
-                    {
-                        CreateEvent();
-                    }
-                });
-                return;
-            }
+            //string saveData = PlayerPrefs.GetString("Permissions");
+            //if (string.IsNullOrEmpty(saveData))
+            //{
+            //    PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
+            //    {
+            //        string jsonData = JsonReader.Serialize(data);
+            //        PlayerPrefs.SetString("Permissions", jsonData);
+            //        if (res)
+            //        {
+            //            CreateEvent();
+            //        }
+            //    });
+            //    return;
+            //}
 
-            bool camAllow = PermissionsRequestManager.HasCameraPermission();
-            bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
-            if (!camAllow || !micAllow)
-            {
-                CreatePermissionSettingPopup();
-                return;
-            }
+            //bool camAllow = PermissionsRequestManager.HasCameraPermission();
+            //bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
+            //if (!camAllow || !micAllow)
+            //{
+            //    CreatePermissionSettingPopup();
+            //    return;
+            //}
 
-            CreateEvent();
+            //CreateEvent();
+#if UNITY_EDITOR
+            OnRecordComplete(_editorVideoPath);
+#elif UNITY_IOS
+            MessageIOSHandler.OnPressCameraButton();
+#endif
         }
 
         void CreateEvent()

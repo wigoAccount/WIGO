@@ -13,13 +13,13 @@ namespace WIGO.Utility
         private static extern void startSwiftCameraControllerLocation();
 
         [DllImport("__Internal")]
-        private static extern void startSwiftMapController();
+        private static extern void startMapViewController();
 
         [DllImport("__Internal")]
         private static extern string GetLastKnownLocation();
 
         [DllImport("__Internal")]
-        private static extern void startSwiftRouteController(string theirLocation);
+        private static extern void startSwiftMapLocationController(string theirLocation);
 
         [DllImport("__Internal")]
         private static extern void startTurnGeolocation();
@@ -32,7 +32,7 @@ namespace WIGO.Utility
 
         public delegate void SwiftTestPluginLocationDidSend(string coordinates, string location);
         [DllImport("__Internal")]
-        private static extern void setSwiftTestPluginLocationDidSend(SwiftTestPluginLocationDidSend callBack);
+        private static extern void setSwiftPluginLocationDidSend(SwiftTestPluginLocationDidSend callBack);
         #endregion
 
         #region delegate handlers
@@ -55,7 +55,7 @@ namespace WIGO.Utility
         public static void Initialize()
         {
             setSwiftTestPluginVideoDidSaveLocation(onGetVideoPath);
-            setSwiftTestPluginLocationDidSend(onGetFullLocation);
+            setSwiftPluginLocationDidSend(onGetFullLocation);
         }
 
         public static void OnPressCameraButton()
@@ -65,7 +65,7 @@ namespace WIGO.Utility
 
         public static void OnPressMapButton()
         {
-            startSwiftMapController();
+            startMapViewController();
         }
 
         public static bool TryGetMyLocation(out Location location)
@@ -98,7 +98,7 @@ namespace WIGO.Utility
 
         public static void OnViewMap(string theirLocation)
         {
-            startSwiftRouteController(theirLocation);
+            startSwiftMapLocationController(theirLocation);
         }
 
         public static void OnAllowLocationPermission()
