@@ -138,13 +138,14 @@ namespace WIGO.Userinterface
                 model.SetMyEvent(myEvent);
                 var oldUid = _request.uid;
                 _request = myEvent.requests.FirstOrDefault(x => x.uid == oldUid);
-
+                
                 if (_request == null)
                 {
                     Debug.LogErrorFormat("Accepted request '{0}' isn't included in my Event", oldUid);
                     return;
                 }
 
+                _currentCard = _myRequest ? (AbstractEvent)_request.@event : _request;
                 _fullInfoView = true;
                 _view.SetupView(_request, false);
             }
@@ -228,7 +229,7 @@ namespace WIGO.Userinterface
 
         public void OnCopyPhoneNumber()
         {
-            string phoneNumber = _currentCard == null ? "None" : _currentCard.phone;
+            string phoneNumber = _currentCard == null ? "None" : string.Format("+7{0}", _currentCard.phone);
             GUIUtility.systemCopyBuffer = phoneNumber;
             
             if (_copyAnimation == null)

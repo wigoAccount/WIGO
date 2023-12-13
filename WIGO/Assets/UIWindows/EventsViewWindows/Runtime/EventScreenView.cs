@@ -38,6 +38,7 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _eventCreatorTitle;
         [SerializeField] TMP_Text _eventCreatorDesc;
         [SerializeField] TMP_Text _eventDescTitle;
+        [SerializeField] TMP_Text _locationDescTitle;
         [SerializeField] RectTransform _descBlock;
         [Space]
         [SerializeField] TMP_ColorGradient[] _gradients;
@@ -47,6 +48,7 @@ namespace WIGO.Userinterface
         [SerializeField] string[] _creatorTitleText;
         [SerializeField] string[] _contactsDescText;
         [SerializeField] string[] _descTitleText;
+        [SerializeField] string[] _locationDescText;
 
         public override void Init(EventViewModel model)
         {
@@ -99,6 +101,7 @@ namespace WIGO.Userinterface
                     _eventCreatorTitle.SetText(card.IsResponse() ? _creatorTitleText[0] : _creatorTitleText[1]);
                     _eventCreatorDesc.SetText(card.IsResponse() ? _contactsDescText[0] : _contactsDescText[1]);
                     _eventDescTitle.SetText(card.IsResponse() ? _descTitleText[0] : _descTitleText[1]);
+                    _locationDescTitle.SetText(card.IsResponse() ? _locationDescText[0] : _locationDescText[1]);
                     var preset = card.IsResponse() ? _gradients[1] : _gradients[0];
                     _locationBtnGradient.m_color1 = preset.bottomLeft;
                     _locationBtnGradient.m_color2 = preset.bottomRight;
@@ -111,7 +114,7 @@ namespace WIGO.Userinterface
 
             var profile = card.author;
             _usernameLabel.SetText(profile.firstname);
-            _phoneNumber.SetText(card.phone);
+            DisplayPhone(card.phone);
         }
 
         public void SetTime(int time)
@@ -122,6 +125,23 @@ namespace WIGO.Userinterface
             int seconds = time - minutes * 60 - hours * 3600;
             _timerLabel.text = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
             _timerView.ApplyGradient();
+        }
+
+        void DisplayPhone(string phone)
+        {
+            if (string.IsNullOrEmpty(phone))
+            {
+                Debug.LogWarning("Phone is EMPTY");
+                return;
+            }
+
+            if (long.TryParse(phone, out long phoneNumber))
+            {
+                string formatPhone = string.Format("+7 {0:(###) ###-##-##}", phoneNumber);
+                _phoneNumber.SetText(formatPhone);
+            }
+            else
+                Debug.LogErrorFormat("Incorrect phone format: {0}", phone);
         }
     }
 }
