@@ -29,10 +29,10 @@ namespace WIGO.Userinterface
             ResetCategories();
         }
 
-        public void SetUnreadMessages(int eventsUnreadCount, int requestsUnreadCount)
+        public void SetUnreadMessages(bool forEvent, int count)
         {
-            _categories[1].SetUnreadLabel(eventsUnreadCount);
-            _categories[2].SetUnreadLabel(requestsUnreadCount);
+            var category = forEvent ? _categories[1] : _categories[2];
+            category.SetUnreadLabel(count);
         }
 
         public void ResetCategories()

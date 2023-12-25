@@ -155,5 +155,17 @@ namespace WIGO.Core
         public int uid;
         public string name;
     }
+
+    [Serializable]
+    public struct UpdateData
+    {
+        public string[] events;
+        public string[] requests;
+
+        public bool IsEmpty()
+        {
+            return (events == null || events.Length == 0) && (requests == null || requests.Length == 0);
+        }
+    }
     #endregion
 }

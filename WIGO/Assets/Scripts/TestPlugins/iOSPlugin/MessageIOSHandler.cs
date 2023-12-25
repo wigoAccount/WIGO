@@ -22,6 +22,9 @@ namespace WIGO.Utility
         private static extern void startSwiftMapLocationController(string theirLocation);
 
         [DllImport("__Internal")]
+        private static extern void startSwiftGuestMapLocationController(string pointLocation, string guestLocation);
+
+        [DllImport("__Internal")]
         private static extern void startTurnGeolocation();
         #endregion
 
@@ -99,6 +102,11 @@ namespace WIGO.Utility
         public static void OnViewMap(string theirLocation)
         {
             startSwiftMapLocationController(theirLocation);
+        }
+
+        public static void OnViewGuestRoute(string pointLocation, string guestLocation)
+        {
+            startSwiftGuestMapLocationController(pointLocation, guestLocation);
         }
 
         public static void OnAllowLocationPermission()

@@ -109,6 +109,11 @@ namespace WIGO.Core
         {
             return $"{longitude},{latitude}";
         }
+
+        public string ToCorrectString()
+        {
+            return $"{latitude},{longitude}";
+        }
     }
 
     public enum EventGroupSizeType

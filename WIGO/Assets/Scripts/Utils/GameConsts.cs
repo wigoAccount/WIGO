@@ -5,6 +5,8 @@ namespace WIGO.Core
     public struct GameConsts
     {
         public static float WINDOW_DEFAULT_OPEN_DURATION = 0.4f;
+        public static float SEND_LOCATION_PERIOD = 60f;
+        public static float ASK_UPDATES_PERIOD = 25f;
         public static int RECORD_VIDEO_SECONDS = 15;
 
         public static Color GetRandomColor()

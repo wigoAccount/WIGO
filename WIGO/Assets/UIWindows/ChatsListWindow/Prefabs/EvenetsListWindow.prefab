@@ -1641,6 +1641,7 @@ MonoBehaviour:
   _safeArea: {fileID: 4917794803198736510}
   _loadingTemplate: {fileID: 7815654264249987618}
   _emptyChatsTip: {fileID: 7126556870140916703}
+  _phone: 9851903412
 --- !u!1 &3622307280891437454
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,6 +16,7 @@ public class GameModel
     public Action<bool> OnControlMyEvent;
     public Action<Texture2D> OnUpdateAvatar;
     public Action OnUpdateProfile;
+    public Action<bool, int> OnGetUpdates;
 
     public string ShortToken { get; private set; }
     public string LongToken { get => _ltoken; }
@@ -28,19 +29,26 @@ public class GameModel
     LinksData _links;
     Location _myLocation;
     IEnumerable<GeneralData> _availableTags;
+    List<Request> _myRequests = new List<Request>();
+    (int newEvents, int newRequests) _updates = (0, 0);
     float _timer;
     float _myEventTimer;
+    float _updateTimer;
     bool _login;
 
     public LinksData GetUserLinks() => _links;
     public NotificationSettings GetNotifications() => _notifications;
     public ProfileData GetMyProfile() => _myProfile;
     public bool HasMyOwnEvent() => _myEvent != null;
-    public string GetMyEventId() => _myEvent == null ? null : _myEvent.uid;
+    public string GetMyEventId() => _myEvent?.uid;
+    public string GetLocationFromMyEvent() => _myEvent?.location.ToCorrectString();
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
-    public string GetUserId() => _myProfile == null ? null : _myProfile.uid;
+    public string GetUserId() => _myProfile?.uid;
     public Location GetMyCurrentLocation() => _myLocation;
     public IEnumerable<GeneralData> GetAvailableTags() => _availableTags;
+    public IEnumerable<Request> GetAllMyRequests() => _myRequests;
+    public IEnumerable<Request> GetCachedRequestsToMyEvent() => _myEvent?.requests;
+    public int GetUnreadEventsCount(bool isEvent) => isEvent ? _updates.newEvents : _updates.newRequests;
 
     public async Task<IEnumerable<Request>> GetRequestsToMyEvent()
     {
@@ -94,8 +102,24 @@ public class GameModel
         _myProfile = null;
         _myEvent = null;
         _links = new LinksData();
+        _myLocation = new Location();
+        _timer = 0f;
+        _myEventTimer = 0f;
+        _updateTimer = 0f;
+        _myRequests.Clear();
+        _updates = (0, 0);
         OnControlMyEvent?.Invoke(false);
         PlayerPrefs.DeleteKey("SaveData");
+    }
+
+    public void FullClear()
+    {
+        Clear();
+        OnChangeMyEventTime = null;
+        OnControlMyEvent = null;
+        OnUpdateAvatar = null;
+        OnUpdateProfile = null;
+        OnGetUpdates = null;
     }
 
     public async void FinishRegister()
@@ -125,6 +149,8 @@ public class GameModel
         _myProfile = data.profile;
 
         await UpdateMyEvent();
+        await UpdateMyRequests();
+        await UpdateEventsAndRequests();
 
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
@@ -148,6 +174,33 @@ public class GameModel
         cts.Dispose();
     }
 
+    public async Task UpdateMyRequests()
+    {
+        var cts = new CancellationTokenSource();
+        cts.CancelAfter(8000);
+
+        var myRequests = await NetService.TryGetMyRequests(_links.data.address, ShortToken, cts.Token);
+        if (!cts.IsCancellationRequested)
+        {
+            _myRequests = myRequests == null ? new List<Request>() : new List<Request>(myRequests);
+        }
+        cts.Dispose();
+    }
+
+    public void DecreaseUpdatesCounter(bool isEvent)
+    {
+        if (isEvent)
+        {
+            int events = Mathf.Clamp(_updates.newEvents - 1, 0, int.MaxValue);
+            _updates.newEvents = events;
+        }
+        else
+        {
+            int requests = Mathf.Clamp(_updates.newRequests - 1, 0, int.MaxValue);
+            _updates.newRequests = requests;
+        }
+    }
+
     public void UpdateMyAvatar(Texture2D texture)
     {
         OnUpdateAvatar?.Invoke(texture);
@@ -160,29 +213,12 @@ public class GameModel
             return;
         }
 
-        _timer += Time.unscaledDeltaTime;
-        if (_timer >= 60f)
-        {
-            _timer = 0f;
-            SendLocationDataToServer();
-        }
-
-        if (_myEvent != null)
-        {
-            _myEventTimer += Time.unscaledDeltaTime;
-            if (_myEventTimer >= 1f)
-            {
-                _myEventTimer -= 1f;
-                _myEvent.waiting = Mathf.Clamp(_myEvent.waiting - 1, 0, int.MaxValue);
-                if (_myEvent.waiting <= 0)
-                    return;
-
-                OnChangeMyEventTime?.Invoke(_myEvent.waiting);
-            }
-        }
+        CheckLocationTimer();
+        CheckUpdateTimer();
+        CheckMyEventTimer();
     }
 
-    public async Task<bool> SendLocationDataToServer()
+    public async Task<bool> SendLocationDataToServer(CancellationToken token = default)
     {
         bool gotLocation = false;
 
@@ -200,7 +236,7 @@ public class GameModel
 
         if (gotLocation)
         {
-            bool locationSent = await NetService.TrySendLocation(_myLocation, _links.data.address, ShortToken);
+            bool locationSent = await NetService.TrySendLocation(_myLocation, _links.data.address, ShortToken, token);
             return locationSent;
         }
         else
@@ -214,6 +250,161 @@ public class GameModel
     {
         string saveData = JsonReader.Serialize(this);
         PlayerPrefs.SetString("SaveData", saveData);
+    }
+
+    async void CheckLocationTimer()
+    {
+        _timer += Time.unscaledDeltaTime;
+        if (_timer >= GameConsts.SEND_LOCATION_PERIOD)
+        {
+            _timer = 0f;
+            CancellationTokenSource cts = new CancellationTokenSource();
+            cts.CancelAfter(5000);
+            bool locationSent = await SendLocationDataToServer(cts.Token);
+
+            if (cts.IsCancellationRequested)
+            {
+                return;
+            }
+
+            cts.Dispose();
+            _timer = locationSent ? 0f : GameConsts.SEND_LOCATION_PERIOD - 5f;
+        }
+    }
+
+    async void CheckUpdateTimer()
+    {
+        _updateTimer += Time.unscaledDeltaTime;
+        if (_updateTimer >= GameConsts.ASK_UPDATES_PERIOD)
+        {
+            _updateTimer = 0f;
+            await UpdateEventsAndRequests();
+        }
+    }
+
+    async Task UpdateEventsAndRequests()
+    {
+        CancellationTokenSource cts = new CancellationTokenSource();
+        cts.CancelAfter(5000);
+        var updateData = await NetService.TryGetUpdateData(_links.data.address, ShortToken, cts.Token);
+
+        if (cts.IsCancellationRequested)
+        {
+            return;
+        }
+
+        cts.Dispose();
+        _updateTimer = 0f;
+        if (updateData.IsEmpty())
+        {
+            return;
+        }
+
+        await CheckEventsUpdate(updateData.events);
+        await CheckRequestsUpdate(updateData.requests);
+
+        _updates = (updateData.events.Length, updateData.requests.Length);
+    }
+
+    async Task CheckEventsUpdate(string[] events)
+    {
+        if (events == null || events.Length == 0)
+        {
+            return;
+        }
+
+        if (_myRequests.Count() > 0)
+        {
+            Event aproved = null;
+            foreach (var aprovedEvent in events)
+            {
+                var checkEvent = _myRequests.FirstOrDefault(x => string.Compare(x.@event.uid, aprovedEvent) == 0);
+                if (checkEvent != null)
+                {
+                    aproved = checkEvent.@event;
+                    break;
+                }
+            }
+
+            if (aproved == null)
+            {
+                Debug.LogErrorFormat("Can't find request to event with ID: {0}", events[0]);
+                return;
+            }
+
+            if (events.Length != _myRequests.Count)
+            {
+                await UpdateMyRequests();
+                await UpdateMyEvent();
+                OnGetUpdates?.Invoke(true, events.Length);
+                Debug.LogFormat("Get updates for aproved EVENT with id: {0}", aproved.uid);
+            }
+        }
+        else
+        {
+            await UpdateMyRequests();
+            await UpdateMyEvent();
+            if (events.Length != _myRequests.Count)
+            {
+                Debug.LogErrorFormat("Loaded requests are different from aproved event with id: {0}", events[0]);
+                return;
+            }
+
+            OnGetUpdates?.Invoke(true, events.Length);
+            Debug.LogFormat("Get updates for aproved EVENT with id: {0}", events[0]);
+        }
+    }
+
+    async Task CheckRequestsUpdate(string[] requests)
+    {
+        if (requests == null || requests.Length == 0)
+        {
+            return;
+        }
+
+        if (_myEvent != null && _myEvent.requests != null && _myEvent.requests.Length > 0)
+        {
+            int updatesCounter = 0;
+            bool updatesExist = false;
+            foreach (var newRequest in requests)
+            {
+                if (!Array.Exists(_myEvent.requests, x => string.Compare(x.uid, newRequest) == 0))
+                {
+                    updatesExist = true;
+                    updatesCounter++;
+                }
+            }
+
+            if (_myEvent.requests.Length != requests.Length || updatesExist)
+            {
+                await UpdateMyEvent();
+                OnGetUpdates?.Invoke(false, updatesCounter);
+                Debug.LogFormat("Get updates for REQUESTS to my Event: {0} new requests", updatesCounter);
+            }
+        }
+        else
+        {
+            await UpdateMyEvent();
+            OnGetUpdates?.Invoke(false, requests.Length);
+            Debug.LogFormat("Get updates for REQUESTS to my Event: {0} new requests", requests.Length);
+        }
+    }
+
+    void CheckMyEventTimer()
+    {
+        if (_myEvent != null)
+        {
+            _myEventTimer += Time.unscaledDeltaTime;
+            if (_myEventTimer >= 1f)
+            {
+                _myEventTimer -= 1f;
+                _myEvent.waiting = Mathf.Clamp(_myEvent.waiting - 1, 0, int.MaxValue);
+                if (_myEvent.waiting <= 0)
+                    return;
+
+                OnChangeMyEventTime?.Invoke(_myEvent.waiting);
+            }
+        }
     }
 }
 

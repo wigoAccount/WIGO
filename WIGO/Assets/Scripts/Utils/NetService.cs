@@ -11,7 +11,24 @@ namespace WIGO.Core
     {
         static HttpClient _client = new HttpClient();
 
-        const string URL = "http://v2.cerebrohq.com/testapi/rpc.php";
+        const string URL = "https://login.wigo.ru/api/rpc.php";
+
+        public static async Task<UpdateData> TryGetUpdateData(string url, string stoken, CancellationToken ctoken = default)
+        {
+            RPCRequest request = new RPCRequest()
+            {
+                jsonrpc = "2.0",
+                method = "notifyList",
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, ctoken, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            var res = GetParsedResult<List<UpdateData>>(resJson, "Get update data");
+            return (res != null && res.result.Count > 0) ? res.result[0] : new UpdateData(); //res != null ? res.result : new UpdateData();
+        }
 
         #region EVENTS
         public static async Task<IEnumerable<Event>> TryGetFeedEvents(FeedRequest data, string url, string stoken, CancellationToken ctoken = default)
@@ -399,13 +416,13 @@ namespace WIGO.Core
             return (res != null && res.result.Count > 0) ? res.result[0] : null;
         }
 
-        public static async Task TryMarkRequestAsWatched(string requestId, string url, string stoken, CancellationToken ctoken = default)
+        public static async Task TryMarkAbstractEventAsWatched(string id, bool isEvent, string url, string stoken, CancellationToken ctoken = default)
         {
             RPCRequest request = new RPCRequest()
             {
                 jsonrpc = "2.0",
-                method = "requestWatch",
-                @params = new List<string> { requestId },
+                method = isEvent ? "eventWatch" : "requestWatch",
+                @params = new List<string> { id },
                 id = "0"
             };
 
@@ -434,7 +451,7 @@ namespace WIGO.Core
                 return;
             }
 
-            Debug.LogFormat("Request '{0}' marked as watched", requestId);
+            Debug.LogFormat("{0} '{1}' marked as watched", isEvent ? "Event" : "Request", id);
         }
         #endregion
 

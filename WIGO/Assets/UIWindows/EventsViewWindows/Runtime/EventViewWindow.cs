@@ -36,6 +36,7 @@ namespace WIGO.Userinterface
         AbstractEvent _currentCard;
         Sequence _copyAnimation;
         CancellationTokenSource _cts;
+        Action<bool> _onMarkAsWatched;
 
         RenderTexture _videoTexture;
         Coroutine _videoLoadRoutine;
@@ -51,11 +52,12 @@ namespace WIGO.Userinterface
             callback?.Invoke();
         }
 
-        public void Setup(Request request, bool isMyRequest)
+        public void Setup(Request request, bool isMyRequest, Action<bool> onMarkAsWatched)
         {
             _request = request;
             _currentCard = isMyRequest ? (AbstractEvent)request.@event : request;
             _myRequest = isMyRequest;
+            _onMarkAsWatched = onMarkAsWatched;
             UIGameColors.SetTransparent(_preview, 0.1f);
             SetupCardTextureSize(_currentCard.AspectRatio);
             _loader.SetActive(true);
@@ -75,11 +77,31 @@ namespace WIGO.Userinterface
 
         async void CheckNewRequest()
         {
+            var model = ServiceLocator.Get<GameModel>();
+            CancellationTokenSource cts = new CancellationTokenSource();
+            cts.CancelAfter(5000);
             if (!_myRequest && !_request.IsWatched())
             {
-                var model = ServiceLocator.Get<GameModel>();
-                await NetService.TryMarkRequestAsWatched(_request.uid, model.GetUserLinks().data.address, model.ShortToken);
+                await NetService.TryMarkAbstractEventAsWatched(_currentCard.uid, false, model.GetUserLinks().data.address, model.ShortToken, cts.Token);
+                if (!cts.IsCancellationRequested)
+                {
+                    _request.watched = "true";
+                    model.DecreaseUpdatesCounter(false);
+                    _onMarkAsWatched?.Invoke(false);
+                }
             }
+            else if (_myRequest && _request.GetStatus() == Request.RequestStatus.accept && model.GetUnreadEventsCount(true) > 0)
+            {
+                await NetService.TryMarkAbstractEventAsWatched(_currentCard.uid, true, model.GetUserLinks().data.address, model.ShortToken, cts.Token);
+                if (!cts.IsCancellationRequested)
+                {
+                    _request.status = "accept";
+                    model.DecreaseUpdatesCounter(true);
+                    _onMarkAsWatched?.Invoke(true);
+                }
+            }
+
+            cts.Dispose();
         }
 
         public void OnBackButtonClick()
@@ -218,13 +240,26 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            string myLocation = ServiceLocator.Get<GameModel>().GetMyCurrentLocation().ToString();
             string theirLocation = _currentCard.location.ToString();
-
-            Debug.LogFormat("Open map: {0}", theirLocation);
+            if (_myRequest)
+            {
 #if UNITY_IOS && !UNITY_EDITOR
-            MessageIOSHandler.OnViewMap(theirLocation);
+                MessageIOSHandler.OnViewMap(theirLocation);
 #endif
+            }
+            else
+            {
+                var myEventLocation = ServiceLocator.Get<GameModel>().GetLocationFromMyEvent();
+                if (string.IsNullOrEmpty(myEventLocation))
+                {
+                    Debug.LogError("Fail get my event location. Event seems to be null");
+                    return;
+                }
+
+#if UNITY_IOS && !UNITY_EDITOR
+                MessageIOSHandler.OnViewGuestRoute(myEventLocation, theirLocation);
+#endif
+            }
         }
 
         public void OnCopyPhoneNumber()
