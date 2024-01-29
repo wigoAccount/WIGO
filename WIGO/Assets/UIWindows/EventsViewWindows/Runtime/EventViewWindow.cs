@@ -29,6 +29,8 @@ namespace WIGO.Userinterface
         [SerializeField] Image _soundStatusIcon;
         [SerializeField] Sprite[] _soundSprites;
         [SerializeField] CanvasGroup _copiedLabel;
+        [Space]
+        [SerializeField] AudioSource _copyClickAudio;
 
         new EventViewModel _model;
         EventScreenView _view;
@@ -246,6 +248,7 @@ namespace WIGO.Userinterface
             {
 #if UNITY_IOS && !UNITY_EDITOR
                 string theirLocation = _currentCard.location.ToString();
+                Debug.LogFormat("<color=lime>LOC: Send their location to plug in: {0}</color>", theirLocation);
                 MessageIOSHandler.OnViewMap(theirLocation);
 #endif
             }
@@ -260,6 +263,7 @@ namespace WIGO.Userinterface
                 }
 
 #if UNITY_IOS && !UNITY_EDITOR
+                Debug.LogFormat("<color=lime>LOC: Send my event location to plug in: {0}\r\ntheir location from request: {1}</color>", myEventLocation, theirLocation);
                 MessageIOSHandler.OnViewGuestRoute(myEventLocation, theirLocation);
 #endif
             }
@@ -269,6 +273,7 @@ namespace WIGO.Userinterface
         {
             string phoneNumber = _currentCard == null ? "None" : string.Format("+7{0}", _currentCard.phone);
             GUIUtility.systemCopyBuffer = phoneNumber;
+            _copyClickAudio.Play();
             
             if (_copyAnimation == null)
             {
