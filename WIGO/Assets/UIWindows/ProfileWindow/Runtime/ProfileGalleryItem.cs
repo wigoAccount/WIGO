@@ -10,6 +10,7 @@ namespace WIGO.Userinterface
     {
         [SerializeField] UserProfileElement _profile;
 
+        Texture2D _cachedOldAvatar;
         CancellationTokenSource _cts;
         string _selectedPhotoPath;
 
@@ -32,6 +33,27 @@ namespace WIGO.Userinterface
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
+        }
+
+        public void CacheCurrentAvatar()
+        {
+            if (_cachedOldAvatar != null)
+            {
+                Destroy(_cachedOldAvatar);
+                _cachedOldAvatar = null;
+            }
+
+            var avatar = _profile.GetCachedTexture();
+            if (avatar != null)
+            {
+                _cachedOldAvatar = new Texture2D(avatar.width, avatar.height);
+                _cachedOldAvatar.LoadImage(avatar.EncodeToPNG(), false);
+            }
+        }
+
+        public void ApplyCachedAvatar()
+        {
+            ServiceLocator.Get<GameModel>().UpdateMyAvatar(_cachedOldAvatar);
         }
 
         private void OnDisable()

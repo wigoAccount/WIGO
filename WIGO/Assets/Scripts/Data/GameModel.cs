@@ -52,7 +52,8 @@ public class GameModel
 
     public async Task<IEnumerable<Request>> GetRequestsToMyEvent()
     {
-        _myEvent = await NetService.TryGetMyEvent(_links.data.address, ShortToken);
+        await UpdateMyEvent();
+        //_myEvent = await NetService.TryGetMyEvent(_links.data.address, ShortToken);
         _myEventTimer = 0f;
         OnControlMyEvent?.Invoke(_myEvent != null);
         if (_myEvent == null)
@@ -277,13 +278,13 @@ public class GameModel
         _updateTimer += Time.unscaledDeltaTime;
         if (_updateTimer >= GameConsts.ASK_UPDATES_PERIOD)
         {
-            _updateTimer = 0f;
             await UpdateEventsAndRequests();
         }
     }
 
     async Task UpdateEventsAndRequests()
     {
+        _updateTimer = 0f;
         CancellationTokenSource cts = new CancellationTokenSource();
         cts.CancelAfter(5000);
         var updateData = await NetService.TryGetUpdateData(_links.data.address, ShortToken, cts.Token);
@@ -294,19 +295,47 @@ public class GameModel
         }
 
         cts.Dispose();
-        _updateTimer = 0f;
         if (updateData.IsEmpty())
         {
+            _updates = (updateData.events.Length, updateData.requests.Length);
             return;
         }
 
-        await CheckEventsUpdate(updateData.events);
-        await CheckRequestsUpdate(updateData.requests);
+        await CheckEventsUpdate(updateData.events, true);
+        await CheckRequestsUpdate(updateData.requests, true);
 
         _updates = (updateData.events.Length, updateData.requests.Length);
     }
 
-    async Task CheckEventsUpdate(string[] events)
+    public async Task UpdateAndLoadEventsAndRequests()
+    {
+        _updateTimer = 0f;
+        CancellationTokenSource cts = new CancellationTokenSource();
+        cts.CancelAfter(5000);
+        var updateData = await NetService.TryGetUpdateData(_links.data.address, ShortToken, cts.Token);
+
+        if (cts.IsCancellationRequested)
+        {
+            return;
+        }
+
+        cts.Dispose();
+        
+        if (updateData.IsEmpty())
+        {
+            await UpdateMyRequests();
+            await UpdateMyEvent();
+            _updates = (updateData.events.Length, updateData.requests.Length);
+            return;
+        }
+
+        await CheckEventsUpdate(updateData.events, false);
+        await CheckRequestsUpdate(updateData.requests, false);
+
+        _updates = (updateData.events.Length, updateData.requests.Length);
+    }
+
+    async Task CheckEventsUpdate(string[] events, bool withNotify)
     {
         if (events == null || events.Length == 0)
         {
@@ -332,11 +361,13 @@ public class GameModel
                 return;
             }
 
-            if (events.Length != _myRequests.Count)
+            if (events.Length != _updates.newEvents)
             {
                 await UpdateMyRequests();
                 await UpdateMyEvent();
-                OnGetUpdates?.Invoke(true, events.Length);
+
+                if (withNotify)
+                    OnGetUpdates?.Invoke(true, events.Length);
                 Debug.LogFormat("Get updates for aproved EVENT with id: {0}", aproved.uid);
             }
         }
@@ -350,12 +381,13 @@ public class GameModel
                 return;
             }
 
-            OnGetUpdates?.Invoke(true, events.Length);
+            if (withNotify)
+                OnGetUpdates?.Invoke(true, events.Length);
             Debug.LogFormat("Get updates for aproved EVENT with id: {0}", events[0]);
         }
     }
 
-    async Task CheckRequestsUpdate(string[] requests)
+    async Task CheckRequestsUpdate(string[] requests, bool withNotify)
     {
         if (requests == null || requests.Length == 0)
         {
@@ -378,14 +410,16 @@ public class GameModel
             if (_myEvent.requests.Length != requests.Length || updatesExist)
             {
                 await UpdateMyEvent();
-                OnGetUpdates?.Invoke(false, updatesCounter);
+                if (withNotify)
+                    OnGetUpdates?.Invoke(false, updatesCounter);
                 Debug.LogFormat("Get updates for REQUESTS to my Event: {0} new requests", updatesCounter);
             }
         }
         else
         {
             await UpdateMyEvent();
-            OnGetUpdates?.Invoke(false, requests.Length);
+            if (withNotify)
+                OnGetUpdates?.Invoke(false, requests.Length);
             Debug.LogFormat("Get updates for REQUESTS to my Event: {0} new requests", requests.Length);
         }
     }

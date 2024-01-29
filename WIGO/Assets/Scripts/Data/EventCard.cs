@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using System.Security.Cryptography;
 
 namespace WIGO.Core
 {
@@ -16,9 +18,11 @@ namespace WIGO.Core
         public string address;
         public string phone;
         public int waiting;
-        public int time_to;
+        public string time_to;
 
-        public float AspectRatio { get
+        public float AspectRatio 
+        { 
+            get
             {
                 float.TryParse(video_aspect, out float aspect);
                 if (aspect <= 0f)
@@ -28,6 +32,18 @@ namespace WIGO.Core
         }
 
         public virtual bool IsResponse() => false;
+
+        public int TimeTo
+        {
+            get
+            {
+                Single.TryParse(time_to, NumberStyles.Float, CultureInfo.InvariantCulture, out float timeMin);
+                //float.TryParse(time_to, System.Globalization.NumberStyles. out float timeMin);
+                if (timeMin <= 0f)
+                    timeMin = 0f;
+                return UnityEngine.Mathf.RoundToInt(timeMin * 60);
+            }
+        }
     }
 
     [Serializable]

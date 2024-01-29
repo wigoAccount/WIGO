@@ -106,7 +106,7 @@ namespace WIGO.Userinterface
                     _locationBtnGradient.m_color1 = preset.bottomLeft;
                     _locationBtnGradient.m_color2 = preset.bottomRight;
                     _timerLabel.colorGradient = new VertexGradient(preset.bottomLeft, preset.bottomRight, preset.topLeft, preset.topRight);
-                    SetTime(request.time_to);
+                    SetTime(request.TimeTo);
                     break;
                 default:
                     break;
@@ -121,7 +121,7 @@ namespace WIGO.Userinterface
         {
             int correctTime = Mathf.Clamp(time, 0, int.MaxValue);
             int hours = Mathf.FloorToInt((float)correctTime / 3600f);
-            int minutes = Mathf.FloorToInt((float)correctTime / 60f);
+            int minutes = Mathf.FloorToInt((float)correctTime / 60f) - hours * 60;
             int seconds = time - minutes * 60 - hours * 3600;
             _timerLabel.text = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
             _timerView.ApplyGradient();

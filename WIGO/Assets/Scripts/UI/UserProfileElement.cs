@@ -1,3 +1,4 @@
+using Amazon;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,9 +13,11 @@ namespace WIGO.Userinterface
         [SerializeField] GameObject _mask;
         [SerializeField] RawImage _avatarImage;
         [SerializeField] Image _background;
-        [SerializeField] TMP_Text _firstLetter;
+        //[SerializeField] TMP_Text _firstLetter;
 
         CancellationTokenSource _cts;
+
+        public Texture2D GetCachedTexture() => _avatarImage.texture as Texture2D;
 
         public virtual async void Setup(ProfileData profile)
         {
@@ -29,7 +32,7 @@ namespace WIGO.Userinterface
             string url = profile.avatar;
 
             _background.color = profile.GetColor();
-            _firstLetter.text = profile.firstname.Substring(0, 1);
+            //_firstLetter.text = profile.firstname.Substring(0, 1);
             if (string.IsNullOrEmpty(url) || string.Compare(url, "null") == 0)
             {
                 _background.gameObject.SetActive(true);
@@ -120,6 +123,14 @@ namespace WIGO.Userinterface
         void UpdateAvatarTexture(Texture2D texture)
         {
             ClearTexture();
+
+            if (texture == null)
+            {
+                _background.gameObject.SetActive(true);
+                _mask.SetActive(false);
+                return;
+            }
+
             SetPhotoSize(texture);
             _avatarImage.texture = texture;
             _background.gameObject.SetActive(false);

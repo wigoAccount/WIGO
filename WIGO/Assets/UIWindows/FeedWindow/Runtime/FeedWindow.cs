@@ -89,47 +89,15 @@ namespace WIGO.Userinterface
 
         public void OnCreateEventClick()
         {
-            //string saveData = PlayerPrefs.GetString("Permissions");
-            //if (string.IsNullOrEmpty(saveData))
-            //{
-            //    PermissionsRequestManager.RequestBothPermissionsAtFirstTime((res, data) =>
-            //    {
-            //        string jsonData = JsonReader.Serialize(data);
-            //        PlayerPrefs.SetString("Permissions", jsonData);
-            //        if (res)
-            //        {
-            //            CreateEvent();
-            //        }
-            //    });
-            //    return;
-            //}
-
-            //bool camAllow = PermissionsRequestManager.HasCameraPermission();
-            //bool micAllow = PermissionsRequestManager.HasMicrophonePermission();
-            //if (!camAllow || !micAllow)
-            //{
-            //    CreatePermissionSettingPopup(true);
-            //    return;
-            //}
-
-            //CreateEvent();
-            _acceptedEvent = null;
-#if UNITY_EDITOR
-            OnRecordComplete(_editorVideoPath);
-#elif UNITY_IOS
-            MessageIOSHandler.OnPressCameraButton();
-#endif
+            UIGameColors.SetTransparent(_overlay);
+            _overlay.gameObject.SetActive(true);
+            _overlay.DOFade(1f, 0.4f).OnComplete(() =>
+            {
+                _currentCard?.Clear();
+                _currentCard = null;
+                StartCoroutine(DelayLaunchRecord());
+            });
         }
-
-//        void CreateEvent()
-//        {
-//            _acceptedEvent = null;
-//#if UNITY_EDITOR
-//            OnRecordComplete(_editorVideoPath);
-//#elif UNITY_IOS
-//            MessageIOSHandler.OnPressCameraButton();
-//#endif
-//        }
 
         public void OnOpenMyEvent()
         {
@@ -266,6 +234,7 @@ namespace WIGO.Userinterface
 
                 //AcceptEvent(card);
                 _acceptedEvent = card;
+                //StartCoroutine(DelayLaunchRecord());                                                        // [TODO]: Use overlay but get null video path if close record window
                 UIGameColors.SetTransparent(_overlay);
                 _overlay.gameObject.SetActive(true);
                 _overlay.DOFade(1f, 0.4f).OnComplete(() => StartCoroutine(DelayLaunchRecord()));
@@ -423,7 +392,7 @@ namespace WIGO.Userinterface
 
         void OnRecordComplete(string videoPath)
         {
-			if (string.IsNullOrEmpty(videoPath))
+			if (string.IsNullOrEmpty(videoPath) || string.Compare(videoPath, "null") == 0)
             {
                 _overlay.gameObject.SetActive(false);
                 RefreshFeed();

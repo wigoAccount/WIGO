@@ -56,7 +56,7 @@ namespace WIGO.Userinterface
         {
             if (_editArea.gameObject.activeSelf)
             {
-                _editArea.Close();
+                _editArea.Close(false);
                 _infoArea.gameObject.SetActive(true);
                 _content.anchoredPosition = Vector2.zero;
                 _editButton.SetActive(true);
@@ -97,7 +97,7 @@ namespace WIGO.Userinterface
         public async void OnDoneClick()
         {
             var updatedProfile = await _editArea.UpdateInfo();
-            _editArea.Close();
+            _editArea.Close(true);
             _profileTemplate.sprite = updatedProfile.GetGender() == Gender.male ? _templates[0] : _templates[1];
             _infoArea.gameObject.SetActive(true);
             _content.anchoredPosition = Vector2.zero;

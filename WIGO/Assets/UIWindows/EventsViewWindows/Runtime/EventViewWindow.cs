@@ -70,7 +70,7 @@ namespace WIGO.Userinterface
             string path = ServiceLocator.Get<S3ContentClient>().GetPublicVideoUrl(_currentCard.video);
             _videoLoadRoutine = StartCoroutine(LoadVideoContent(path));
             _view.SetupView(request, isMyRequest);
-            _seconds = request.time_to;
+            _seconds = request.TimeTo;
             _timer = 0f;
             CheckNewRequest();
         }
@@ -169,6 +169,8 @@ namespace WIGO.Userinterface
 
                 _currentCard = _myRequest ? (AbstractEvent)_request.@event : _request;
                 _fullInfoView = true;
+                _seconds = _request.TimeTo;
+                _timer = 0f;
                 _view.SetupView(_request, false);
             }
         }
@@ -240,16 +242,17 @@ namespace WIGO.Userinterface
                 return;
             }
 
-            string theirLocation = _currentCard.location.ToString();
             if (_myRequest)
             {
 #if UNITY_IOS && !UNITY_EDITOR
+                string theirLocation = _currentCard.location.ToString();
                 MessageIOSHandler.OnViewMap(theirLocation);
 #endif
             }
             else
             {
                 var myEventLocation = ServiceLocator.Get<GameModel>().GetLocationFromMyEvent();
+                string theirLocation = _currentCard.location.ToCorrectString();
                 if (string.IsNullOrEmpty(myEventLocation))
                 {
                     Debug.LogError("Fail get my event location. Event seems to be null");

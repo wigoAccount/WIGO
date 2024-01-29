@@ -37,12 +37,22 @@ namespace WIGO.Userinterface
             _aboutIF.SetTextWithoutNotify(profile.about);
             _genderLabel.SetText(profile.gender.uid == 2 ? _maleText : _femaleText);
             _avatar.gameObject.SetActive(true);
+            _avatar.CacheCurrentAvatar();
         }
 
-        public void Close()
+        public void Close(bool save)
         {
             _avatar.OnClear();
             _avatar.gameObject.SetActive(false);
+            if (!save)
+            {
+                _avatar.ApplyCachedAvatar();
+            }
+            else
+            {
+                _avatar.CacheCurrentAvatar();
+            }
+
             gameObject.SetActive(false);
         }
 

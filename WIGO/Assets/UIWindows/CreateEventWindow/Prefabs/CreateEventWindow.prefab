@@ -741,7 +741,7 @@ MonoBehaviour:
   _testCoordinates: "\"Optional(SwiftTestPlugin.YandexMapViewController.Address(name:
     \\\"\u0443\u043B\u0438\u0446\u0430 \u0413\u0435\u043D\u0435\u0440\u0430\u043B\u0430
     \u0422\u0440\u043E\u0448\u0435\u0432\u0430, 37\\\"))\""
-  _testLocation: '"45.06505731087551,39.04180422032874"'
+  _testLocation: '"55.50226313069569,37.5615915041566"'
 --- !u!114 &2919947879440716911
 MonoBehaviour:
   m_ObjectHideFlags: 0

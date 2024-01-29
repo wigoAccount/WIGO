@@ -22,6 +22,7 @@ namespace WIGO.Userinterface
         [SerializeField] TMP_Text _remainingTimeLabel;
         [SerializeField] string _editorVideoPath;
         [SerializeField] TempMessagesContainer _permissionData;
+        [SerializeField] UpdateArea _updateArea;
 
         List<UIChatInfo> _eventsData = new List<UIChatInfo>();
         Coroutine _loadingCoroutine;
@@ -97,6 +98,7 @@ namespace WIGO.Userinterface
             var eventCreated = model.HasMyOwnEvent();
             _createEventButton.SetActive(!eventCreated);
             _myEventButton.SetActive(eventCreated);
+            _updateArea.Init(UpdateRequests);
         }
 
         private void OnDestroy()
@@ -141,9 +143,9 @@ namespace WIGO.Userinterface
 
         void OnRecordComplete(string videoPath)
         {
-            if (string.IsNullOrEmpty(videoPath))
+            if (string.IsNullOrEmpty(videoPath) || string.Compare(videoPath, "null") == 0)
             {
-                Debug.LogError("Error: Recorded video path is empty!");
+                Debug.LogWarning("Recorded video path is empty!");
                 return;
             }
 
@@ -184,20 +186,32 @@ namespace WIGO.Userinterface
         {
             _loadingCoroutine = StartCoroutine(ActivateLoadingWithDelay());
 
-            _cts = new CancellationTokenSource();
             var model = ServiceLocator.Get<GameModel>();
-            var requestsToMyEvent = await model.GetRequestsToMyEvent();
-            var myOwnRequests = await NetService.TryGetMyRequests(model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
-            
-            if (_cts.IsCancellationRequested)
-            {
-                _cts.Dispose();
-                _cts = null;
-                return;
-            }
+            await model.UpdateAndLoadEventsAndRequests();
 
-            _cts.Dispose();
-            _cts = null;
+            _updateArea.DeactivateLoading();
+            var requestsToMyEvent = model.GetCachedRequestsToMyEvent();
+            var myOwnRequests = model.GetAllMyRequests();
+            int eventUpdates = model.GetUnreadEventsCount(true);
+            int requestUpdates = model.GetUnreadEventsCount(false);
+            _categoriesPanel.SetUnreadMessages(false, eventUpdates);
+            _categoriesPanel.SetUnreadMessages(true, requestUpdates);
+
+            //_cts = new CancellationTokenSource();
+            //var model = ServiceLocator.Get<GameModel>();
+            //var requestsToMyEvent = await model.GetRequestsToMyEvent();
+            //await model.UpdateMyRequests();
+            //var myOwnRequests = model.GetAllMyRequests();//NetService.TryGetMyRequests(model.GetUserLinks().data.address, model.ShortToken, _cts.Token);
+
+            //if (_cts.IsCancellationRequested)
+            //{
+            //    _cts.Dispose();
+            //    _cts = null;
+            //    return;
+            //}
+
+            //_cts.Dispose();
+            //_cts = null;
 
             if (_loadingCoroutine != null)
             {
@@ -216,6 +230,7 @@ namespace WIGO.Userinterface
             bool myRequestsEmpty = myOwnRequests == null || myOwnRequests.Count() == 0;
             if (requestsEmpty && myRequestsEmpty)
             {
+                _chatsScroll.ClearScroll();
                 _view.SetEmptyTipVisible(true);
                 return;
             }
@@ -224,6 +239,9 @@ namespace WIGO.Userinterface
             {
                 foreach (var request in requestsToMyEvent)
                 {
+                    if (request.GetStatus() == Request.RequestStatus.decline)
+                        continue;
+
                     UIChatInfo info = new UIChatInfo(request, OnSelectChat);
                     _eventsData.Add(info);
                 }
@@ -233,6 +251,9 @@ namespace WIGO.Userinterface
             {
                 foreach (var request in myOwnRequests)
                 {
+                    if (request.GetStatus() == Request.RequestStatus.decline)
+                        continue;
+
                     UIChatInfo info = new UIChatInfo(request, OnSelectChat, true);
                     _eventsData.Add(info);
                 }
