@@ -41,6 +41,7 @@ public class GameModel
     public ProfileData GetMyProfile() => _myProfile;
     public bool HasMyOwnEvent() => _myEvent != null;
     public string GetMyEventId() => _myEvent?.uid;
+    public string GetMyEventAddress() => _myEvent?.address;
     public string GetLocationFromMyEvent() => _myEvent?.location.ToCorrectString();
     public bool IsMyProfile(string id) => string.Compare(id, _myProfile.uid) == 0;
     public string GetUserId() => _myProfile?.uid;

@@ -71,7 +71,8 @@ namespace WIGO.Userinterface
             _eventDescription.SetText(card.about);
             _fullDescription.SetText(card.about);
             _unaprovedDescription.SetText(card.about);
-            _location.SetText(card.address);
+            string address = isMyRequest ? request.@event?.address : ServiceLocator.Get<GameModel>().GetMyEventAddress();
+            _location.SetText(address);
 
             switch (request.GetStatus())
             {
