@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Security.Cryptography;
 
 namespace WIGO.Core
 {
@@ -37,8 +36,7 @@ namespace WIGO.Core
         {
             get
             {
-                Single.TryParse(time_to, NumberStyles.Float, CultureInfo.InvariantCulture, out float timeMin);
-                //float.TryParse(time_to, System.Globalization.NumberStyles. out float timeMin);
+                float.TryParse(time_to, NumberStyles.Float, CultureInfo.InvariantCulture, out float timeMin);
                 if (timeMin <= 0f)
                     timeMin = 0f;
                 return UnityEngine.Mathf.RoundToInt(timeMin * 60);
