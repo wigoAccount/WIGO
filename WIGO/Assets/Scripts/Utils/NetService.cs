@@ -1,6 +1,8 @@
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -28,6 +30,91 @@ namespace WIGO.Core
             Debug.LogFormat("Answer: {0}", resJson);
             var res = GetParsedResult<List<UpdateData>>(resJson, "Get update data");
             return (res != null && res.result.Count > 0) ? res.result[0] : new UpdateData(); //res != null ? res.result : new UpdateData();
+        }
+
+        public static async Task RegisterDevicePush(string firebaseToken, string url, string stoken, CancellationToken token = default)
+        {
+            var uid = SystemInfo.deviceUniqueIdentifier;
+            string osId = string.Empty;
+#if UNITY_EDITOR
+            osId = "windows";
+#elif UNITY_IOS
+            osId = "ios";
+#elif UNITY_ANDROID
+            osId = "android";
+#endif
+
+            RPCRequest request = new()
+            {
+                jsonrpc = "2.0",
+                method = "userSetPush",
+                @params = new List<string> { uid, firebaseToken, osId },
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, token, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Register device push answer is empty");
+                return;
+            }
+
+            if (resJson.Contains("error"))
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+                }
+                catch { }
+
+                return;
+            }
+
+            Debug.Log("This device is registered for push notifications");
+        }
+
+        public static async Task TestPush(string url, string stoken, CancellationToken token = default)
+        {
+            RPCRequest request = new()
+            {
+                jsonrpc = "2.0",
+                method = "notifyInsert_test",
+                @params = new List<string>(),
+                id = "0"
+            };
+
+            string json = JsonReader.Serialize(request);
+            var resJson = await PostRequest(json, url, token, stoken);
+
+            Debug.LogFormat("Answer: {0}", resJson);
+            if (string.IsNullOrEmpty(resJson))
+            {
+                Debug.LogError("Test push request is empty");
+            }
+
+            if (resJson.Contains("error"))
+            {
+                try
+                {
+                    RPCError error = JsonReader.Deserialize<RPCError>(resJson);
+                    if (error != null)
+                    {
+                        ReportError(error.error);
+                    }
+                }
+                catch { }
+
+                return;
+            }
+
+            Debug.Log("Test push successfully sent");
         }
 
         #region EVENTS

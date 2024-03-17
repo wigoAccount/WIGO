@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyDDiFu4U_W494BWuwyXKUtUhMAXLfMwSGA</string>
+	<string>AIzaSyDoAyF0mARJThwxfH3OCi_GgsKJ34AWVpo</string>
 	<key>GCM_SENDER_ID</key>
-	<string>629358081060</string>
+	<string>299571885066</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.WigoLegal.WIGO</string>
 	<key>PROJECT_ID</key>
-	<string>wigo-9028c</string>
+	<string>wigoapp-push</string>
 	<key>STORAGE_BUCKET</key>
-	<string>wigo-9028c.appspot.com</string>
+	<string>wigoapp-push.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:629358081060:ios:f764f6bd7546684f0a54b1</string>
+	<string>1:299571885066:ios:7223730a5cec510a535bf3</string>
 </dict>
 </plist>

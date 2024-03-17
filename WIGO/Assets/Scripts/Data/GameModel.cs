@@ -29,7 +29,8 @@ public class GameModel
     LinksData _links;
     Location _myLocation;
     IEnumerable<GeneralData> _availableTags;
-    List<Request> _myRequests = new List<Request>();
+    List<Request> _myRequests = new();
+    PushNotificationsController _pushNotificationsController;
     (int newEvents, int newRequests) _updates = (0, 0);
     float _timer;
     float _myEventTimer;
@@ -110,6 +111,7 @@ public class GameModel
         _updateTimer = 0f;
         _myRequests.Clear();
         _updates = (0, 0);
+        StopPushNotifications();
         OnControlMyEvent?.Invoke(false);
         PlayerPrefs.DeleteKey("SaveData");
     }
@@ -129,6 +131,7 @@ public class GameModel
         SaveData();
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
+        await InitPusNotifications();
         _login = true;
     }
 
@@ -157,6 +160,7 @@ public class GameModel
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
 
+        await InitPusNotifications();
         SaveData();
         _login = true;
         return true;
@@ -423,6 +427,20 @@ public class GameModel
                 OnGetUpdates?.Invoke(false, requests.Length);
             Debug.LogFormat("Get updates for REQUESTS to my Event: {0} new requests", requests.Length);
         }
+    }
+
+    async Task InitPusNotifications()
+    {
+#if !UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
+        _pushNotificationsController = new();
+        await _pushNotificationsController.Init();
+#endif
+    }
+
+    void StopPushNotifications()
+    {
+        _pushNotificationsController?.Dispose();
+        _pushNotificationsController = null;
     }
 
     void CheckMyEventTimer()

@@ -1,0 +1,31 @@
+{
+  "project_info": {
+    "project_number": "299571885066",
+    "project_id": "wigoapp-push",
+    "storage_bucket": "wigoapp-push.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:299571885066:ios:7223730a5cec510a535bf3",
+        "android_client_info": {
+          "package_name": "com.WigoLegal.WIGO"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoAyF0mARJThwxfH3OCi_GgsKJ34AWVpo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 0
+        },
+        "appinvite_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
