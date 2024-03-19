@@ -5094,7 +5094,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 5769373299623145685}
         m_TargetAssemblyTypeName: WIGO.Userinterface.FeedWindow, Assembly-CSharp
-        m_MethodName: OnAskPermissionsClick
+        m_MethodName: OnTestPush
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

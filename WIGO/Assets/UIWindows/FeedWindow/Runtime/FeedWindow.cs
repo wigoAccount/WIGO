@@ -87,6 +87,13 @@ namespace WIGO.Userinterface
             });
         }
 
+        public async void OnTestPush()
+        {
+            var model = ServiceLocator.Get<GameModel>();
+            await NetService.TestPush(model.GetUserLinks().data.address, model.ShortToken);
+            Debug.Log("Test push sent");
+        }
+
         public void OnCreateEventClick()
         {
             UIGameColors.SetTransparent(_overlay);
