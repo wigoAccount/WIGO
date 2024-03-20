@@ -131,7 +131,7 @@ public class GameModel
         SaveData();
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
-        await InitPusNotifications();
+        //await InitPusNotifications();
         _login = true;
     }
 
@@ -160,7 +160,7 @@ public class GameModel
         var res = await NetService.RequestGlobal(_links.data.address, ShortToken);
         _availableTags = res?.tags;
 
-        await InitPusNotifications();
+        //await InitPusNotifications();
         SaveData();
         _login = true;
         return true;
